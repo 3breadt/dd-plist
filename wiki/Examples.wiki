@@ -1,0 +1,16 @@
+#summary This page shows some code examples on the usage of this library.
+
+= Examples =
+== Simple parsing operations ==
+
+{{{
+File file = new File("Info.plist");
+NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(file);
+String name = rootDict.objectForKey("Name").toString();
+NSObject[] parameters = ((NSArray)rootDict.objectForKey("Parameters")).getArray();
+for(NSObject param:parameters) {
+  //...
+}
+}}}
+
+For more information on how to handle the different data types contained in a property list consult the javadoc included in the release.
