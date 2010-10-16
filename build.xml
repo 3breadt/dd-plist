@@ -3,17 +3,20 @@
 <project name="plist" default="compile" basedir=".">
   <property name="source"     value="src"   />
   <property name="build"      value="build" />
+  <property name="doc"        value="doc" />
   <property name="dist"       value="dist"  />
   <property name="jar"        value="dd-plist.jar" />
   
   <target name="init">
     <mkdir dir="${build}" />
     <mkdir dir="${dist}" />
+    <mkdir dir="${doc}" />
   </target>
   
   <target name="clean">
     <delete dir="${build}" />
     <delete dir="${dist}" />
+    <delete dir="${doc}"/>
   </target>
   
   <target name="compile" depends="init">
@@ -33,9 +36,18 @@
   </target>
 
   <target name="javadoc" depends="init">
-    <javadoc destdir="${dist}/javadoc">
+    <delete dir="${doc}/javadoc" />
+    <javadoc destdir="${doc}/javadoc">
         <fileset dir="${source}"/>
     </javadoc>
+  </target>
+
+  <target name="package" depends="jar,javadoc">
+    <zip destfile="${dist}/dd-plist.zip">
+      <fileset dir="${dist}" includes="${jar}" />
+      <fileset dir="." includes="*.txt" />
+      <fileset dir="${doc}"/>
+    </zip>
   </target>
   
 </project>
