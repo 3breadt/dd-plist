@@ -158,7 +158,7 @@ public class BinaryPropertyListParser {
                 //integer
                 int length = (int) Math.pow(2, objInfo);
                 if (length < Runtime.getRuntime().freeMemory()) {
-                    return new NSInteger(copyOfRange(bytes, offset + 1, offset + 1 + length));
+                    return new NSNumber(copyOfRange(bytes, offset + 1, offset + 1 + length), NSNumber.INTEGER);
                 } else {
                     throw new Exception("To little heap space available! Wanted to read " + length + " bytes, but only " + Runtime.getRuntime().freeMemory() + " are available.");
                 }
@@ -167,7 +167,7 @@ public class BinaryPropertyListParser {
                 //real
                 int length = (int) Math.pow(2, objInfo);
                 if (length < Runtime.getRuntime().freeMemory()) {
-                    return new NSReal(copyOfRange(bytes, offset + 1, offset + 1 + length));
+                    return new NSNumber(copyOfRange(bytes, offset + 1, offset + 1 + length), NSNumber.REAL);
                 } else {
                     throw new Exception("To little heap space available! Wanted to read " + length + " bytes, but only " + Runtime.getRuntime().freeMemory() + " are available.");
                 }

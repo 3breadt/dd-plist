@@ -92,10 +92,10 @@ public class XMLPropertyListParser {
       return new NSBoolean(false);
     }
     else if(type.equals("integer")) {
-      return new NSInteger(n.getChildNodes().item(0).getNodeValue());
+      return new NSNumber(n.getChildNodes().item(0).getNodeValue());
     }
     else if(type.equals("real")) {
-      return new NSReal(n.getChildNodes().item(0).getNodeValue());
+      return new NSNumber(n.getChildNodes().item(0).getNodeValue());
     }
     else if(type.equals("string")) {
       NodeList children = n.getChildNodes();
