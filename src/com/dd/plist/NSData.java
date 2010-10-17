@@ -67,12 +67,16 @@ public class NSData extends NSObject {
 
     /**
      * The bytes contained in this NSData object.
-     * @return
+     * @return The data as bytes
      */
     public byte[] bytes() {
         return bytes;
     }
 
+    /**
+     * Gets the amount of data stored in this object.
+     * @return The number of bytes contained in this object.
+     */
     public int length() {
         return bytes.length;
     }
@@ -98,7 +102,7 @@ public class NSData extends NSObject {
 
     /**
      * Gets the Base64 encoded data contained in this NSData object.
-     * @return
+     * @return The Base64 encoded data as a <code>String</code>.
      */
     public String getBase64EncodedData() {
         return Base64.encodeBytes(bytes);

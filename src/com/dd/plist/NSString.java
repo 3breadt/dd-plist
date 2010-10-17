@@ -14,8 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ */
 package com.dd.plist;
 
 import java.io.UnsupportedEncodingException;
@@ -26,41 +25,50 @@ import java.io.UnsupportedEncodingException;
  */
 public class NSString extends NSObject {
 
-  private String content;
+    private String content;
 
-  /**
-   * Creates an NSString from its binary representation.
-   * @param bytes The binary representation.
-   * @param encoding The encoding of the binary representation, the name of a supported charset.
-   * @see java.lang.String
-   * @throws UnsupportedEncodingException
-   */
-  public NSString(byte[] bytes, String encoding) throws UnsupportedEncodingException {
-    content = new String(bytes,encoding);
-  }
+    /**
+     * Creates an NSString from its binary representation.
+     * @param bytes The binary representation.
+     * @param encoding The encoding of the binary representation, the name of a supported charset.
+     * @see java.lang.String
+     * @throws UnsupportedEncodingException
+     */
+    public NSString(byte[] bytes, String encoding) throws UnsupportedEncodingException {
+        content = new String(bytes, encoding);
+    }
 
-  /**
-   * Creates a NSString from a string.
-   * @param string The string that will be contained in the NSString.
-   */
-  public NSString(String string) {
-    content = string;
-  }
+    /**
+     * Creates a NSString from a string.
+     * @param string The string that will be contained in the NSString.
+     */
+    public NSString(String string) {
+        try {
+            content = new String(string.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            ex.printStackTrace();
+        }
+    }
 
-  /**
-   * The textual representation of this NSString.
-   * @return The NSString's contents.
-   */
-  @Override
-  public String toString() {
-    return content;
-  }
+    /**
+     * The textual representation of this NSString.
+     * @return The NSString's contents.
+     */
+    @Override
+    public String toString() {
+        return content;
+    }
 
-  public String toXML(String indent) {
-    String xml=indent+"<string>";
-    xml+=content;
-    xml+="</string>";
-    return xml;
-  }
-
+    /**
+     * The string as XML node. All XML special characters (<,>)
+     * contained in the string are replaced by spaces.
+     * @param indent
+     * @return
+     */
+    public String toXML(String indent) {
+        String xml = indent + "<string>";
+        xml += content.replaceAll("<|>", " ");
+        xml += "</string>";
+        return xml;
+    }
 }
