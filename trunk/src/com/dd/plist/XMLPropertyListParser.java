@@ -14,8 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ */
 package com.dd.plist;
 
 import java.io.File;
@@ -33,81 +32,91 @@ import org.w3c.dom.NodeList;
  */
 public class XMLPropertyListParser {
 
-  public static NSObject parse(File f) throws Exception {
-    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-    docBuilderFactory.setIgnoringElementContentWhitespace(true);
-    DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+    public static NSObject parse(File f) throws Exception {
+        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        docBuilderFactory.setIgnoringElementContentWhitespace(true);
+        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 
-    Document doc = docBuilder.parse(f);
+        Document doc = docBuilder.parse(f);
 
-    if(!doc.getDoctype().getName().equals("plist")) throw new UnsupportedOperationException("The given XML document is not a property list.");
+        if (!doc.getDoctype().getName().equals("plist")) {
+            throw new UnsupportedOperationException("The given XML document is not a property list.");
+        }
 
-    return parseObject(doc.getDocumentElement().getFirstChild());
-  }
+        return parseObject(doc.getDocumentElement().getFirstChild());
+    }
 
-  public static NSObject parse(final byte[] bytes) throws Exception{
-    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-    docBuilderFactory.setIgnoringElementContentWhitespace(true);
-    DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+    public static NSObject parse(final byte[] bytes) throws Exception {
 
-    InputStream is = new InputStream() {
-      private int pos = 0;
-      @Override
-      public int read() throws IOException {
-        if(pos>=bytes.length) return -1;
-        return bytes[pos++];
-      }
-    };
-    Document doc = docBuilder.parse(is);
+        InputStream is = new InputStream() {
 
-    if(!doc.getDoctype().getName().equals("plist")) throw new UnsupportedOperationException("The given XML document is not a property list.");
+            private int pos = 0;
 
-    return parseObject(doc.getDocumentElement().getFirstChild());
-  }
+            @Override
+            public int read() throws IOException {
+                if (pos >= bytes.length) {
+                    return -1;
+                }
+                return bytes[pos++];
+            }
+        };
 
-  private static NSObject parseObject(Node n) throws Exception {
-    String type = n.getNodeName();
-    if(type.equals("dict")) {
-      NSDictionary dict = new NSDictionary();
-      NodeList children = n.getChildNodes();
-      for(int i=0;i<children.getLength();i+=2) {
-        Node key = children.item(i);
-        Node val = children.item(i+1);
+        return parse(is);
+    }
 
-        dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
-      }
-      return dict;
+    public static NSObject parse(InputStream is) throws Exception {
+        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        docBuilderFactory.setIgnoringElementContentWhitespace(true);
+        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+
+        Document doc = docBuilder.parse(is);
+
+        if (!doc.getDoctype().getName().equals("plist")) {
+            throw new UnsupportedOperationException("The given XML document is not a property list.");
+        }
+
+        return parseObject(doc.getDocumentElement().getFirstChild());
     }
-    else if(type.equals("array")) {
-      NodeList children = n.getChildNodes();
-      NSArray array = new NSArray(children.getLength());
-      for(int i=0;i<children.getLength();i++)
-        array.setValue(i, parseObject(children.item(i)));
-      return array;
+
+    private static NSObject parseObject(Node n) throws Exception {
+        String type = n.getNodeName();
+        if (type.equals("dict")) {
+            NSDictionary dict = new NSDictionary();
+            NodeList children = n.getChildNodes();
+            for (int i = 0; i < children.getLength(); i += 2) {
+                Node key = children.item(i);
+                Node val = children.item(i + 1);
+
+                dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
+            }
+            return dict;
+        } else if (type.equals("array")) {
+            NodeList children = n.getChildNodes();
+            NSArray array = new NSArray(children.getLength());
+            for (int i = 0; i < children.getLength(); i++) {
+                array.setValue(i, parseObject(children.item(i)));
+            }
+            return array;
+        } else if (type.equals("true")) {
+            return new NSNumber(true);
+        } else if (type.equals("false")) {
+            return new NSNumber(false);
+        } else if (type.equals("integer")) {
+            return new NSNumber(n.getChildNodes().item(0).getNodeValue());
+        } else if (type.equals("real")) {
+            return new NSNumber(n.getChildNodes().item(0).getNodeValue());
+        } else if (type.equals("string")) {
+            NodeList children = n.getChildNodes();
+            if (children.getLength() == 0) {
+                return new NSString(""); //Empty string
+            } else {
+                return new NSString(children.item(0).getNodeValue());
+            }
+        } else if (type.equals("data")) {
+            return new NSData(n.getChildNodes().item(0).getNodeValue());
+        } else if (type.equals("date")) {
+            return new NSDate(n.getChildNodes().item(0).getNodeValue());
+        }
+        return null;
     }
-    else if(type.equals("true")) {
-      return new NSBoolean(true);
-    }
-    else if(type.equals("false")) {
-      return new NSBoolean(false);
-    }
-    else if(type.equals("integer")) {
-      return new NSNumber(n.getChildNodes().item(0).getNodeValue());
-    }
-    else if(type.equals("real")) {
-      return new NSNumber(n.getChildNodes().item(0).getNodeValue());
-    }
-    else if(type.equals("string")) {
-      NodeList children = n.getChildNodes();
-      if(children.getLength()==0) return new NSString(""); //Empty string
-      else return new NSString(children.item(0).getNodeValue());
-    }
-    else if(type.equals("data")) {
-      return new NSData(n.getChildNodes().item(0).getNodeValue());
-    }
-    else if(type.equals("date")) {
-      return new NSDate(n.getChildNodes().item(0).getNodeValue());
-    }
-    return null;
-  }
 }

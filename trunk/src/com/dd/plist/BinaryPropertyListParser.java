@@ -141,11 +141,11 @@ public class BinaryPropertyListParser {
                     }
                     case 0x8: {
                         //false
-                        return new NSBoolean(false);
+                        return new NSNumber(false);
                     }
                     case 0x9: {
                         //true
-                        return new NSBoolean(true);
+                        return new NSNumber(true);
                     }
                     case 0xF: {
                         //filler byte
