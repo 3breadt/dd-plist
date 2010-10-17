@@ -1,5 +1,5 @@
 #summary This page shows some code examples on the usage of this library.
-#labels Featured
+#labels Featured,Phase-Implementation
 
 = Introduction =
 
@@ -15,7 +15,7 @@ _Note: The following content types cannot yet be parsed from binary property lis
 You can then navigate the contents of the property lists using the various classes extending `NSObject`. These are modeled in such a way as to closely resemble the respective Cocoa classes.
 
 
-== Saving ==
+== Creation ==
 You can create your own property list using the various constructors of the different `NSObject` classes. You can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
 
 If you directly want to save your property list to a file, you can use the `saveAsXML` method of the `PropertyListParser` class.
@@ -23,7 +23,8 @@ If you directly want to save your property list to a file, you can use the `save
 _Note: Saving of binary property lists is not supported._
 
 = Examples =
-== Simple parsing operations ==
+
+== Parsing ==
 
 {{{
 try {
@@ -59,4 +60,21 @@ try {
 }
 }}}
 
-For more information on how to handle the different data types contained in a property list consult the javadoc included in the release.
+== Creation ==
+
+{{{
+NSDictionary root = new NSDictionary();
+NSArray people = new NSArray(2);
+NSDictionary person1 = new NSDictionary();
+person1.put("Name", new NSString("Peter"));
+person1.put("Age", new NSNumber(23));
+person1.put("Photo", new NSData(new File("peter.jpg")));
+NSDictionary person2 = new NSDictionary();
+person2.put("Name", new NSString("Lisa"));
+person1.put("Age", new NSNumber(42));
+person1.put("Photo", new NSData(new File("lisa.jpg")));
+people.setValue(0, person1);
+people.setValue(1, person2);
+root.put("People", people);
+PropertyListParser.saveAsXML(root, new File("people.plist"));
+}}}
