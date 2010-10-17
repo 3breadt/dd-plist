@@ -1,15 +1,61 @@
 #summary This page shows some code examples on the usage of this library.
+#labels Featured
+
+= Introduction =
+
+== Parsing ==
+
+You can feed the `PropertyListParser` with a `File`, an `InputStream`s or a `byte` array.
+The `parse` method of the `PropertyListParser` will parse the input and give you a `NSObject` as result. Generally this is a `NSDictionary`.
+
+_Note: Only binary and XML property lists are supported. The deprecated ASCII format is not supported._
+
+_Note: The following content types cannot yet be parsed from binary property lists: dates, real numbers, UIDs_
+
+You can then navigate the contents of the property lists using the various classes extending `NSObject`. These are modeled in such a way as to closely resemble the respective Cocoa classes.
+
+
+== Saving ==
+You can create your own property list using the various constructors of the different `NSObject` classes. You can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
+
+If you directly want to save your property list to a file, you can use the `saveAsXML` method of the `PropertyListParser` class.
+
+_Note: Saving of binary property lists is not supported._
 
 = Examples =
 == Simple parsing operations ==
 
 {{{
-File file = new File("Info.plist");
-NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(file);
-String name = rootDict.objectForKey("Name").toString();
-NSObject[] parameters = ((NSArray)rootDict.objectForKey("Parameters")).getArray();
-for(NSObject param:parameters) {
-  //...
+try {
+  File file = new File("Info.plist");
+  NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(file);
+  String name = rootDict.objectForKey("Name").toString();
+  NSObject[] parameters = ((NSArray)rootDict.objectForKey("Parameters")).getArray();
+  for(NSObject param:parameters) {
+    if(param.getClass().equals(NSNumber.class) {
+      NSNumber num = (NSNumber)param;
+      switch(num.type()) {
+        case NSNumber.BOOLEAN : {
+          boolean bool = num.boolValue();
+          //...
+          break;
+        }
+        case NSNumber.INTEGER : {
+          long l = num.longValue();
+          //or int i = num.intValue();
+          //...
+          break;
+        }
+        case NSNumber.REAL : {
+          double d = num.doubleValue();
+          //...
+          break;
+        }
+    } 
+    // else...
+  }
+} catch(Exception ex) {
+  ex.printStackTrace();
 }
 }}}
 
