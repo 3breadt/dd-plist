@@ -63,18 +63,31 @@ try {
 == Creation ==
 
 {{{
+//Creating the root object
 NSDictionary root = new NSDictionary();
+
+//Creation of an array of the length 2
 NSArray people = new NSArray(2);
+
+//Creation of the first object to be stored in the array
 NSDictionary person1 = new NSDictionary();
 person1.put("Name", new NSString("Peter"));
 person1.put("Age", new NSNumber(23));
 person1.put("Photo", new NSData(new File("peter.jpg")));
+
+//Creation of the second object to be stored in the array
 NSDictionary person2 = new NSDictionary();
 person2.put("Name", new NSString("Lisa"));
 person1.put("Age", new NSNumber(42));
 person1.put("Photo", new NSData(new File("lisa.jpg")));
+
+//Put the objects into the array
 people.setValue(0, person1);
 people.setValue(1, person2);
+
+//Put the array into the property list
 root.put("People", people);
+
+//Save the propery list
 PropertyListParser.saveAsXML(root, new File("people.plist"));
 }}}
