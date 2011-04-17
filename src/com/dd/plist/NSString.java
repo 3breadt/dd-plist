@@ -63,7 +63,7 @@ public class NSString extends NSObject {
      * The string as XML node. All XML special characters (<,>)
      * contained in the string are replaced by spaces.
      * @param indent
-     * @return
+     * @return The XML representation of the NSString object.
      */
     public String toXML(String indent) {
         String xml = indent + "<string>";
