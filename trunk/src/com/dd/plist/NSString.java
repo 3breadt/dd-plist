@@ -44,7 +44,7 @@ public class NSString extends NSObject {
      */
     public NSString(String string) {
         try {
-            content = new String(string.getBytes("UTF-8"));
+            content = new String(string.getBytes("UTF-8"), "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             ex.printStackTrace();
         }
