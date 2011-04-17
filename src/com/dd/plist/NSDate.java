@@ -20,6 +20,7 @@ package com.dd.plist;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.Date;
 
 /**
@@ -30,25 +31,29 @@ public class NSDate extends NSObject {
 
     private Date date;
 
+    // EPOCH = new SimpleDateFormat("yyyy MM dd zzz").parse("2001 01 01 GMT").getTime();
+    // ...but that's annoying in a static initializer because it can throw exceptions, ick.
+    // So we just hardcode the correct value.
+    private final static long EPOCH = 978307200000L;
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    static { sdf.setTimeZone(TimeZone.getTimeZone("GMT")); }
+    
     /**
      * Creates a date from its binary representation. <br/>
-     * <b><i>NOT SUPPORTED YET.</i></b>
      * @param bytes The date bytes
      */
     public NSDate(byte[] bytes) {
-        //TODO bytes are 8 byte float
-        System.err.println("WARNING: Binary encoded date objects are not yet supported");
-        date = new Date();
+        //dates are 8 byte big-endian double, seconds since the epoch
+        date = new Date(EPOCH + (long)(1000 * BinaryPropertyListParser.parseDouble(bytes)));
     }
-
     /**
      * Parses a date from its textual representation.
-     * That representation has the following pattern: <code>yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'</code>
-     * @param textRepresentation The textual representation of the date
+     * That representation has the following pattern: <code>yyyy-MM-dd'T'HH:mm:ss'Z'</code>
+     * @param textRepresentation The textual representation of the date (ISO 8601 format)
      * @throws ParseException When the date could not be parsed, i.e. it does not match the expected pattern.
      */
     public NSDate(String textRepresentation) throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
         date = sdf.parse(textRepresentation);
     }
 
@@ -62,7 +67,6 @@ public class NSDate extends NSObject {
 
     public String toXML(String indent) {
         String xml = indent + "<date>";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
         if (date != null) {
             xml += sdf.format(date);
         }
