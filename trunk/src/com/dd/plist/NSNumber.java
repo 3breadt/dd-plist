@@ -60,7 +60,8 @@ public class NSNumber extends NSObject {
                 break;
             }
             case REAL : {
-                //TODO
+                doubleValue = BinaryPropertyListParser.parseDouble(bytes);
+		longValue = (long)doubleValue;
                 break;
             }
             default : {

@@ -357,6 +357,30 @@ public class BinaryPropertyListParser {
     }
 
     /**
+     * Parses longs from a (big-endian) byte array
+     * @param bytes
+     * @return the parsed long integer
+     */
+    public static final long parseLong(byte[] bytes) {
+        long l = 0;
+        for (byte b : bytes) {
+            l <<= 8;
+            l |= b & 0xFF;
+        }
+        return l;
+    }
+
+    /**
+     * Parses doubles from a (big-endian) byte array
+     * @param bytes
+     * @return the parsed double
+     */
+    public static final double parseDouble(byte[] bytes) {
+	if (bytes.length != 8) throw new IllegalArgumentException("bad byte array length " + bytes.length);
+	return Double.longBitsToDouble(parseLong(bytes));
+    }
+
+    /**
      * Copies a part of a byte array into a new array
      * @param src The source array
      * @param startIndex The index from which to start copying
