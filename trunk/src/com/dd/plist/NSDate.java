@@ -40,13 +40,14 @@ public class NSDate extends NSObject {
     static { sdf.setTimeZone(TimeZone.getTimeZone("GMT")); }
     
     /**
-     * Creates a date from its binary representation. <br/>
+     * Creates a date from its binary representation.
      * @param bytes The date bytes
      */
     public NSDate(byte[] bytes) {
         //dates are 8 byte big-endian double, seconds since the epoch
         date = new Date(EPOCH + (long)(1000 * BinaryPropertyListParser.parseDouble(bytes)));
     }
+    
     /**
      * Parses a date from its textual representation.
      * That representation has the following pattern: <code>yyyy-MM-dd'T'HH:mm:ss'Z'</code>

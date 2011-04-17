@@ -55,8 +55,7 @@ public class NSNumber extends NSObject {
     public NSNumber(byte[] bytes, int type) {
         switch(type) {
             case INTEGER : {
-                //TODO enable long
-                doubleValue = longValue = BinaryPropertyListParser.parseUnsignedInt(bytes);
+                doubleValue = longValue = BinaryPropertyListParser.parseLong(bytes);
                 break;
             }
             case REAL : {
