@@ -29,10 +29,12 @@ public class NSNumber extends NSObject {
      * This can either be a Java <code>long</code> or <code>int</code>.
      **/
     public static final int INTEGER = 0;
+
     /**
      * Indicates that the number's value is a real number.
      * This is a Java <code>double</code>. **/
     public static final int REAL = 1;
+    
     /** 
      * Indicates that the number's value is boolean.
      **/
@@ -93,7 +95,7 @@ public class NSNumber extends NSObject {
                     boolValue = Boolean.parseBoolean(text);
                     doubleValue = longValue = boolValue?1:0;
                 } catch(Exception ex3) {
-                    throw new IllegalArgumentException("Given text neither represents a double, int or boolean value.");
+                    throw new IllegalArgumentException("Given text neither represents a double, int nor boolean value.");
                 }
             }
         }
@@ -145,7 +147,7 @@ public class NSNumber extends NSObject {
         if(type==BOOLEAN)
             return boolValue;
         else
-            return doubleValue!=0;
+            return longValue!=0;
     }
 
     /**

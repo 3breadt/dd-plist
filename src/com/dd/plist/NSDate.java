@@ -59,6 +59,14 @@ public class NSDate extends NSObject {
     }
 
     /**
+     * Creates a NSDate from a Java Date
+     * @param d The date
+     */
+    public NSDate(Date d) {
+        date = d;
+    }
+
+    /**
      * Gets the date.
      * @return The date.
      */
