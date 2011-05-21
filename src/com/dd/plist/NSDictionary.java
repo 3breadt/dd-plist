@@ -87,7 +87,7 @@ public class NSDictionary extends NSObject {
         while (keys.hasMoreElements()) {
             String key = keys.nextElement();
             NSObject val = objectForKey(key);
-            xml += indent + "  <key>" + key + "</key>" + System.getProperty("line.separator");
+            xml += indent + "  <key><![CDATA[" + key.replaceAll("]]>", "]]]]><![CDATA[>") + "]]></key>" + System.getProperty("line.separator");
             xml += val.toXML(indent + "  ") + System.getProperty("line.separator");
         }
         xml += indent + "</dict>";
