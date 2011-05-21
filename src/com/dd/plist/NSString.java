@@ -66,9 +66,9 @@ public class NSString extends NSObject {
      * @return The XML representation of the NSString object.
      */
     public String toXML(String indent) {
-        String xml = indent + "<string>";
-        xml += content.replaceAll("<|>", " ");
-        xml += "</string>";
+        String xml = indent + "<string><![CDATA[";
+        xml += content.replaceAll("]]>", "]]]]><![CDATA[>");
+        xml += "]]></string>";
         return xml;
     }
 }
