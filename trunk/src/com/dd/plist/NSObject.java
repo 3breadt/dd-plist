@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2010 Daniel Dreibrodt
+ * Copyright (C) 2011 Daniel Dreibrodt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ */
 package com.dd.plist;
 
 /**
@@ -26,32 +25,34 @@ package com.dd.plist;
  */
 public abstract class NSObject {
 
- /**
-  * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
-  * @param indent The indentation with which to generate the XML.
-  * @return The XML representation of the object.
-  */
- public abstract String toXML(String indent);
+    public final static String NEWLINE = System.getProperty("line.separator");
+    public final static String INDENT = "\t";
 
- /**
-  * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
-  * @return The XML representation of the object.
-  */
- public String toXML() {
-     return toXML("");
- }
+    /**
+     * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
+     * @param indent The StringBuilder onto which the XML representation is appended.
+     * @param level The indentation level of the object.
+     */
+    public abstract void toXML(StringBuilder xml, int level);
 
- /**
-  * Generates a valid XML property list including headers.
-  * @return The XML property list.
-  */
- public String toXMLPropertyList() {
-    String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+System.getProperty("line.separator");
-    xml += "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"+System.getProperty("line.separator");
-    xml += "<plist version=\"1.0\">"+System.getProperty("line.separator");
-    xml += toXML("");
-    xml += "</plist>";
-    return xml;
- }
-  
+    /**
+     * Generates a valid XML property list including headers using this object as root.
+     * @return The XML representation of the property list
+     */
+    public String toXMLPropertyList() {
+        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        xml.append(NSObject.NEWLINE);
+        xml.append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">");
+        xml.append(NSObject.NEWLINE);
+        xml.append("<plist version=\"1.0\">");
+        xml.append(NSObject.NEWLINE);
+
+        xml.append("</plist>");
+        return xml.toString();
+    }
+
+    protected void indent(StringBuilder xml, int level) {
+        for(int i=0;i<level;i++)
+            xml.append(INDENT);
+    }
 }

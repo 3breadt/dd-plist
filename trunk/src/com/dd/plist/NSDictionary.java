@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2010 Daniel Dreibrodt
+ * Copyright (C) 2011 Daniel Dreibrodt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 
 package com.dd.plist;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.Date;
+import java.util.HashMap;
 
 /**
  * A NSDictionary is a collection of keys and values, essentially a Hashtable.
@@ -30,13 +30,13 @@ import java.util.Hashtable;
  */
 public class NSDictionary extends NSObject {
 
-    private Hashtable<String, NSObject> dict;
+    private HashMap<String, NSObject> dict;
 
     /**
      * Creates a new empty NSDictionary.
      */
     public NSDictionary() {
-        dict = new Hashtable<String, NSObject>();
+        dict = new HashMap<String, NSObject>();
     }
 
     /**
@@ -55,6 +55,34 @@ public class NSDictionary extends NSObject {
      */
     public void put(String key, NSObject obj) {
         dict.put(key, obj);
+    }
+
+    public void put(String key, String obj) {
+        put(key, new NSString(obj));
+    }
+
+    public void put(String key, int obj) {
+        put(key, new NSNumber(obj));
+    }
+
+    public void put(String key, long obj) {
+        put(key, new NSNumber(obj));
+    }
+
+    public void put(String key, double obj) {
+        put(key, new NSNumber(obj));
+    }
+
+    public void put(String key, boolean obj) {
+        put(key, new NSNumber(obj));
+    }
+
+    public void put(String key, Date obj) {
+        put(key, new NSDate(obj));
+    }
+
+    public void put(String key, byte[] obj) {
+        put(key, new NSData(obj));
     }
 
     /**
@@ -81,16 +109,21 @@ public class NSDictionary extends NSObject {
         return hash;
     }
 
-    public String toXML(String indent) {
-        String xml = indent + "<dict>" + System.getProperty("line.separator");
-        Enumeration<String> keys = dict.keys();
-        while (keys.hasMoreElements()) {
-            String key = keys.nextElement();
+    public void toXML(StringBuilder xml, int level) {
+        indent(xml, level);
+        xml.append("<dict>");
+        xml.append(NSObject.NEWLINE);
+        for (String key:dict.keySet()) {
             NSObject val = objectForKey(key);
-            xml += indent + "  <key><![CDATA[" + key.replaceAll("]]>", "]]]]><![CDATA[>") + "]]></key>" + System.getProperty("line.separator");
-            xml += val.toXML(indent + "  ") + System.getProperty("line.separator");
+            indent(xml, level+1);
+            xml.append("<key><![CDATA[");
+            xml.append(key.replaceAll("]]>", "]]]]><![CDATA[>"));
+            xml.append("]]></key>");
+            xml.append(NSObject.NEWLINE);
+            val.toXML(xml, level+1);
+            xml.append(NSObject.NEWLINE);
         }
-        xml += indent + "</dict>";
-        return xml;
+        indent(xml, level);
+        xml.append("</dict>");        
     }
 }

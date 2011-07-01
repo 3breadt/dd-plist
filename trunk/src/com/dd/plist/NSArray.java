@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2010 Daniel Dreibrodt
+ * Copyright (C) 2011 Daniel Dreibrodt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,12 +98,15 @@ public class NSArray extends NSObject {
         return hash;
     }
 
-    public String toXML(String indent) {
-        String xml = indent + "<array>" + System.getProperty("line.separator");
+    public void toXML(StringBuilder xml, int level) {
+        indent(xml, level);
+        xml.append("<array>");
+        xml.append(NSObject.NEWLINE);
         for (NSObject o : array) {
-            xml += o.toXML(indent + "  ") + System.getProperty("line.separator");
+            o.toXML(xml, level+1);
+            xml.append(NSObject.NEWLINE);
         }
-        xml += indent + "</array>";
-        return xml;
+        indent(xml, level);
+        xml.append("</array>");
     }
 }
