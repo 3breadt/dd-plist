@@ -247,6 +247,8 @@ public class BinaryPropertyListParser {
                     } else {
                         length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
                     }
+                    //length is String length -> to get byte length multiply by 2, as 1 character takes 2 bytes in UTF-16
+                    length *= 2;
                 }
                 if (length < Runtime.getRuntime().freeMemory()) {
                     return new NSString(copyOfRange(bytes, offset + stroffset, offset + stroffset + length), "UTF-16BE");
