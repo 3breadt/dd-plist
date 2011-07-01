@@ -63,6 +63,8 @@ public class NSDate extends NSObject {
      * @param d The date
      */
     public NSDate(Date d) {
+        if(d==null)
+            throw new IllegalArgumentException("Date cannot be null");
         date = d;
     }
 
@@ -74,13 +76,11 @@ public class NSDate extends NSObject {
         return date;
     }
 
-    public String toXML(String indent) {
-        String xml = indent + "<date>";
-        if (date != null) {
-            xml += sdf.format(date);
-        }
-        xml += "</date>";
-        return xml;
+    public void toXML(StringBuilder xml, int level) {
+        indent(xml, level);
+        xml.append("<date>");
+        xml.append(sdf.format(date));
+        xml.append("</date>");
     }
 
     /**

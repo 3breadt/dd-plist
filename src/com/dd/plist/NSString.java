@@ -59,16 +59,10 @@ public class NSString extends NSObject {
         return content;
     }
 
-    /**
-     * The string as XML node. All XML special characters (<,>)
-     * contained in the string are replaced by spaces.
-     * @param indent
-     * @return The XML representation of the NSString object.
-     */
-    public String toXML(String indent) {
-        String xml = indent + "<string><![CDATA[";
-        xml += content.replaceAll("]]>", "]]]]><![CDATA[>");
-        xml += "]]></string>";
-        return xml;
+    public void toXML(StringBuilder xml, int level) {
+        indent(xml, level);
+        xml.append("<string><![CDATA[");
+        xml.append(content.replaceAll("]]>", "]]]]><![CDATA[>"));
+        xml.append("]]></string>");
     }
 }

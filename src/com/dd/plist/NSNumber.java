@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2010 Daniel Dreibrodt
+ * Copyright (C) 2011 Daniel Dreibrodt, Keith Randall
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,6 +93,7 @@ public class NSNumber extends NSObject {
             } catch(Exception ex2) {
                 try {
                     boolValue = Boolean.parseBoolean(text);
+                    type = BOOLEAN;
                     doubleValue = longValue = boolValue?1:0;
                 } catch(Exception ex3) {
                     throw new IllegalArgumentException("Given text neither represents a double, int nor boolean value.");
@@ -106,8 +107,8 @@ public class NSNumber extends NSObject {
      * @param i The integer value.
      */
     public NSNumber(int i) {
-        type = INTEGER;
         doubleValue = longValue = i;
+        type = INTEGER;
     }
 
     /**
@@ -126,6 +127,7 @@ public class NSNumber extends NSObject {
     public NSNumber(boolean b) {
         boolValue = b;
         doubleValue = longValue = b?1:0;
+        type = BOOLEAN;
     }
 
     /**
@@ -217,23 +219,23 @@ public class NSNumber extends NSObject {
     }
 
     @Override
-    public String toXML(String indent) {
+    public void toXML(StringBuilder xml, int level) {
+        indent(xml, level);
         switch(type) {
             case INTEGER : {
-                String xml = "<integer>"+String.valueOf(longValue)+"</integer>";
-                return indent+xml;
+                xml.append("<integer>");
+                xml.append(longValue());
+                xml.append("</integer>");
             }
             case REAL : {
-                String xml = "<real>"+String.valueOf(doubleValue)+"</real>";
-                return indent+xml;
+                xml.append("<real>");
+                xml.append(doubleValue());
+                xml.append("</real>");
             } case BOOLEAN : {
-                if(boolValue)
-                    return indent+"<true/>";
+                if(boolValue())
+                    xml.append("<true/>");
                 else
-                    return indent+"<false/>";
-            }
-            default : {
-                return "";
+                    xml.append("<false/>");
             }
         }
     }

@@ -14,8 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ */
 package com.dd.plist;
 
 /**
@@ -24,27 +23,26 @@ package com.dd.plist;
  */
 public class NSUID extends NSObject {
 
-  private byte[] bytes;
-  private String name;
+    private byte[] bytes;
+    private String name;
 
-  public NSUID(String name, byte[] bytes) {
-    this.name = name;
-    this.bytes = bytes;
-  }
+    public NSUID(String name, byte[] bytes) {
+        this.name = name;
+        this.bytes = bytes;
+    }
 
-  public byte[] getBytes() {
-    return bytes;
-  }
+    public byte[] getBytes() {
+        return bytes;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public String toXML(String indent) {
-    String xml=indent+"<string>";
-    xml+=new String(bytes);
-    xml+="</string>";
-    return xml;
-  }
-
+    public void toXML(StringBuilder xml, int level) {
+        indent(xml, level);
+        xml.append("<string>");
+        xml.append(new String(bytes));
+        xml.append("</string>");
+    }
 }
