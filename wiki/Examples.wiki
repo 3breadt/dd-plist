@@ -10,7 +10,7 @@ The `parse` method of the `PropertyListParser` will parse the input and give you
 
 _Note: Only binary and XML property lists are supported. The deprecated ASCII format is not supported._
 
-_Note: The following content types cannot yet be parsed from binary property lists: dates, real numbers, UIDs_
+_Note: The support for UID objects is experimental_
 
 You can then navigate the contents of the property lists using the various classes extending `NSObject`. These are modeled in such a way as to closely resemble the respective Cocoa classes.
 
@@ -71,14 +71,14 @@ NSArray people = new NSArray(2);
 
 //Creation of the first object to be stored in the array
 NSDictionary person1 = new NSDictionary();
-person1.put("Name", new NSString("Peter"));
-person1.put("Age", new NSNumber(23));
+person1.put("Name", "Peter");
+person1.put("Age", 23);
 person1.put("Photo", new NSData(new File("peter.jpg")));
 
 //Creation of the second object to be stored in the array
 NSDictionary person2 = new NSDictionary();
-person2.put("Name", new NSString("Lisa"));
-person1.put("Age", new NSNumber(42));
+person2.put("Name", "Lisa");
+person1.put("Age", 42);
 person1.put("Photo", new NSData(new File("lisa.jpg")));
 
 //Put the objects into the array
