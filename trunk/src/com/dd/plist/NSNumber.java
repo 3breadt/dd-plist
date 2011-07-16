@@ -226,16 +226,19 @@ public class NSNumber extends NSObject {
                 xml.append("<integer>");
                 xml.append(longValue());
                 xml.append("</integer>");
+		break;
             }
             case REAL : {
                 xml.append("<real>");
                 xml.append(doubleValue());
                 xml.append("</real>");
+		break;
             } case BOOLEAN : {
                 if(boolValue())
                     xml.append("<true/>");
                 else
                     xml.append("<false/>");
+		break;
             }
         }
     }
