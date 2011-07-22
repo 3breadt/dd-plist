@@ -17,6 +17,8 @@
  */
 package com.dd.plist;
 
+import java.io.IOException;
+
 /**
  * A NSUID contains a UID. Only found in binary property lists.
  * @author Daniel Dreibrodt
@@ -44,5 +46,10 @@ public class NSUID extends NSObject {
         xml.append("<string>");
         xml.append(new String(bytes));
         xml.append("</string>");
+    }
+    
+    void toBinary(BinaryPropertyListWriter out) throws IOException {
+	out.write(0x80 + bytes.length - 1);
+	out.write(bytes);
     }
 }

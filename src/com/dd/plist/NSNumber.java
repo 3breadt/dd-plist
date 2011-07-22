@@ -18,6 +18,8 @@
 
 package com.dd.plist;
 
+import java.io.IOException;
+
 /**
  * A number whose value is either an integer, a real number or boolean.
  * @author Daniel Dreibrodt
@@ -181,18 +183,19 @@ public class NSNumber extends NSObject {
 
     /**
      * Checks whether the other object is a NSNumber of the same value.
-     * The type is ignored, what matters is the numeric value.
      * @param obj The object to compare to.
-     * @return Whether the objects are equal in terms of numeric value.
+     * @return Whether the objects are equal in terms of numeric value and type.
      */
     @Override
     public boolean equals(Object obj) {
-        return obj.getClass().equals(NSNumber.class) && obj.hashCode()==hashCode();
+	if (!(obj instanceof NSNumber)) return false;
+	NSNumber n = (NSNumber) obj;
+	return type == n.type && longValue == n.longValue && doubleValue == n.doubleValue && boolValue == n.boolValue;
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
+        int hash = type;
         hash = 37 * hash + (int) (this.longValue ^ (this.longValue >>> 32));
         hash = 37 * hash + (int) (Double.doubleToLongBits(this.doubleValue) ^ (Double.doubleToLongBits(this.doubleValue) >>> 32));
         hash = 37 * hash + (boolValue() ? 1 : 0);
@@ -242,5 +245,35 @@ public class NSNumber extends NSObject {
             }
         }
     }
-
+    
+    void toBinary(BinaryPropertyListWriter out) throws IOException {
+	switch (type()) {
+	    case INTEGER : {
+		// ???: how are negative numbers handled?
+		if (longValue() < 256) {
+		    out.write(0x10);
+		    out.writeBytes(longValue(), 1);
+		} else if (longValue() < 65536) {
+		    out.write(0x11);
+		    out.writeBytes(longValue(), 2);
+		} else if (longValue() < 4294967296L) {
+		    out.write(0x12);
+		    out.writeBytes(longValue(), 4);
+		} else {
+		    out.write(0x13);
+		    out.writeBytes(longValue(), 8);
+		}
+		break;
+	    }
+	    case REAL : {
+		out.write(0x23);
+		out.writeDouble(doubleValue());
+		break;
+	    }
+	    case BOOLEAN : {
+		out.write(boolValue() ? 0x09 : 0x08);
+		break;
+	    }
+	}
+    }
 }

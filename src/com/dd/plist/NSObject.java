@@ -17,6 +17,8 @@
  */
 package com.dd.plist;
 
+import java.io.IOException;
+
 /**
  * Abstract interface for any object contained in a property list.
  * The names and functions of the various objects orient themselves
@@ -30,10 +32,23 @@ public abstract class NSObject {
 
     /**
      * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
-     * @param indent The StringBuilder onto which the XML representation is appended.
+     * @param xml The StringBuilder onto which the XML representation is appended.
      * @param level The indentation level of the object.
      */
     public abstract void toXML(StringBuilder xml, int level);
+
+    /**
+     * Assigns IDs to all the objects in this NSObject subtree.
+     */
+    void assignIDs(BinaryPropertyListWriter out) {
+	out.assignID(this);
+    }
+
+    /**
+     * Generates the binary representation of the object.
+     * @param out The output stream to serialize the object to.
+     */
+    abstract void toBinary(BinaryPropertyListWriter out) throws IOException;
 
     /**
      * Generates a valid XML property list including headers using this object as root.

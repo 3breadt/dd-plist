@@ -18,8 +18,11 @@
 
 package com.dd.plist;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A NSDictionary is a collection of keys and values, essentially a Hashtable.
@@ -125,5 +128,25 @@ public class NSDictionary extends NSObject {
         }
         indent(xml, level);
         xml.append("</dict>");        
+    }
+
+    @Override
+    void assignIDs(BinaryPropertyListWriter out) {
+	super.assignIDs(out);
+	for (Map.Entry<String,NSObject> entry : dict.entrySet()) {
+	    new NSString(entry.getKey()).assignIDs(out);
+	    entry.getValue().assignIDs(out);
+	}
+    }
+
+    public void toBinary(BinaryPropertyListWriter out) throws IOException {
+	out.writeIntHeader(0xD, dict.size());
+	Set<Map.Entry<String,NSObject>> entries = dict.entrySet();
+	for (Map.Entry<String,NSObject> entry : entries) {
+	    out.writeID(out.getID(new NSString(entry.getKey())));
+	}
+	for (Map.Entry<String,NSObject> entry : entries) {
+	    out.writeID(out.getID(entry.getValue()));
+	}
     }
 }

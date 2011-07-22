@@ -133,4 +133,9 @@ public class NSData extends NSObject {
         indent(xml, level);
         xml.append("</data>");
     }
+
+    void toBinary(BinaryPropertyListWriter out) throws IOException {
+	out.writeIntHeader(0x4, bytes.length);
+	out.write(bytes);
+    }
 }
