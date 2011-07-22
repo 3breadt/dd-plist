@@ -23,8 +23,8 @@
     <mkdir dir="${build}/classes/" />
     <javac srcdir="${source}"
            destdir="${build}/classes/"
-           target="1.6"
-           source="1.6"
+           target="1.5"
+           source="1.5"
            debug="on" debuglevel="lines,vars,source"
            includeantruntime="false"
            fork="true" />

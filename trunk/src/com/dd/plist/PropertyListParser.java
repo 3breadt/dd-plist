@@ -57,8 +57,7 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(byte[] bytes) throws Exception {
-        byte[] magic = Arrays.copyOf(bytes, 8);
-        String magic_string = new String(magic);
+        String magic_string = new String(bytes, 0, 8);
         if (magic_string.startsWith("bplist00")) {
             return BinaryPropertyListParser.parse(bytes);
         } else if (magic_string.startsWith("<?xml")) {
