@@ -18,6 +18,7 @@
 
 package com.dd.plist;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -81,6 +82,11 @@ public class NSDate extends NSObject {
         xml.append("<date>");
         xml.append(sdf.format(date));
         xml.append("</date>");
+    }
+
+    public void toBinary(BinaryPropertyListWriter out) throws IOException {
+	out.write(0x33);
+	out.writeDouble((date.getTime() - EPOCH) / 1000.0);
     }
 
     /**

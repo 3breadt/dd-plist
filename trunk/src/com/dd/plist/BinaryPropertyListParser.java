@@ -58,7 +58,7 @@ public class BinaryPropertyListParser {
         }
 
         /*
-         * Handle trailer, last 32 bits of the file
+         * Handle trailer, last 32 bytes of the file
          */
         byte[] trailer = copyOfRange(bytes, bytes.length - 32, bytes.length);
         //6 null bytes (index 0 to 5)

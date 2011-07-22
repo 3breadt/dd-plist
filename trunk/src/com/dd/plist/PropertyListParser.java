@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -102,9 +103,9 @@ public class PropertyListParser {
      * Saves a property list with the given object as root into a XML file
      * @param root the root object
      * @param out the output file
-     * @throws java.lang.Exception
+     * @throws IOException if an error occurs during writing
      */
-    public static void saveAsXML(NSObject root, File out) throws Exception {
+    public static void saveAsXML(NSObject root, File out) throws IOException {
         FileWriter fw = new FileWriter(out);
         fw.write(root.toXMLPropertyList());
         fw.close();
@@ -114,10 +115,33 @@ public class PropertyListParser {
      * Converts a given property list file into the xml format
      * @param in the source file
      * @param out the target file
-     * @throws java.lang.Exception
+     * @throws Exception if an error occurs during parsing
+     * @throws IOException if an error occurs during writing
      */
     public static void convertToXml(File in, File out) throws Exception {
         NSObject root = parse(in);
         saveAsXML(root, out);
+    }
+    
+    /**
+     * Saves a property list with the given object as root into a binary file
+     * @param root the root object
+     * @param out the output file
+     * @throws IOException if an error occurs during writing
+     */
+    public static void saveAsBinary(NSObject root, File out) throws IOException {
+	BinaryPropertyListWriter.write(out, root);
+    }
+    
+    /**
+     * Converts a given property list file into the binary format
+     * @param in the source file
+     * @param out the target file
+     * @throws Exception if an error occurs during parsing
+     * @throws IOException if an error occurs during writing
+     */
+    public static void convertToBinary(File in, File out) throws Exception {
+	NSObject root = parse(in);
+	saveAsBinary(root, out);
     }
 }

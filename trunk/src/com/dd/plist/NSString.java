@@ -17,7 +17,12 @@
  */
 package com.dd.plist;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 
 /**
  * A NSString contains a string.
@@ -50,6 +55,17 @@ public class NSString extends NSObject {
         }
     }
 
+    @Override
+    public boolean equals(Object obj) {
+	if (!(obj instanceof NSString)) return false;
+	return content.equals(((NSString)obj).content);
+    }
+    
+    @Override
+    public int hashCode() {
+	return content.hashCode();
+    }
+
     /**
      * The textual representation of this NSString.
      * @return The NSString's contents.
@@ -64,5 +80,24 @@ public class NSString extends NSObject {
         xml.append("<string><![CDATA[");
         xml.append(content.replaceAll("]]>", "]]]]><![CDATA[>"));
         xml.append("]]></string>");
+    }
+    
+    private static CharsetEncoder asciiEncoder = Charset.forName("ASCII").newEncoder();
+    private static CharsetEncoder utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
+    public void toBinary(BinaryPropertyListWriter out) throws IOException {
+	CharBuffer charBuf = CharBuffer.wrap(content);
+	int kind;
+	ByteBuffer byteBuf;
+	if (asciiEncoder.canEncode(charBuf)) {
+	    kind = 0x5; // standard ASCII
+	    byteBuf = asciiEncoder.encode(charBuf);
+	} else {
+	    kind = 0x6; // UTF-16-BE
+	    byteBuf = utf16beEncoder.encode(charBuf);
+	}
+	byte[] bytes = new byte[byteBuf.remaining()];
+	byteBuf.get(bytes);
+	out.writeIntHeader(kind, content.length());
+	out.write(bytes);
     }
 }

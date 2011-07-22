@@ -18,6 +18,7 @@
 
 package com.dd.plist;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -108,5 +109,20 @@ public class NSArray extends NSObject {
         }
         indent(xml, level);
         xml.append("</array>");
+    }
+
+    @Override
+    void assignIDs(BinaryPropertyListWriter out) {
+	super.assignIDs(out);
+	for (NSObject obj : array) {
+	    obj.assignIDs(out);
+	}
+    }
+
+    void toBinary(BinaryPropertyListWriter out) throws IOException {
+	out.writeIntHeader(0xA, array.length);
+	for (NSObject obj : array) {
+	    out.writeID(out.getID(obj));
+	}
     }
 }
