@@ -19,7 +19,8 @@ package com.dd.plist;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -106,9 +107,9 @@ public class PropertyListParser {
      * @throws IOException if an error occurs during writing
      */
     public static void saveAsXML(NSObject root, File out) throws IOException {
-        FileWriter fw = new FileWriter(out);
-        fw.write(root.toXMLPropertyList());
-        fw.close();
+	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "UTF-8");
+        w.write(root.toXMLPropertyList());
+        w.close();
     }
 
     /**
