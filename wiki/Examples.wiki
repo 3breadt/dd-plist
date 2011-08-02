@@ -16,10 +16,12 @@ You can then navigate the contents of the property lists using the various class
 
 
 == Creation ==
-You can create your own property list using the various constructors of the different `NSObject` classes. You can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
+
+You can create your own property list using the various constructors of the different `NSObject` classes.
+
+For building a XML property list you can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
 
 If you directly want to save your property list to a file, you can use the `saveAsXML` or `saveAsBinary` methods of the `PropertyListParser` class.
-
 
 = Examples =
 
