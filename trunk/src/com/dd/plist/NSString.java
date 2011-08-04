@@ -82,9 +82,17 @@ public class NSString extends NSObject {
 
     public void toXML(StringBuilder xml, int level) {
         indent(xml, level);
-        xml.append("<string><![CDATA[");
-        xml.append(content.replaceAll("]]>", "]]]]><![CDATA[>"));
-        xml.append("]]></string>");
+        xml.append("<string>");
+        //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
+        //contain the characters < or &. Also the > character should be escaped.
+        if(content.contains("&") || content.contains("<") || content.contains(">")) {
+            xml.append("<![CDATA[");
+            xml.append(content.replaceAll("]]>", "]]]]><![CDATA[>"));
+            xml.append("]]>");
+        } else {
+            xml.append(content);
+        }
+        xml.append("</string>");
     }
     
     private static CharsetEncoder asciiEncoder = Charset.forName("ASCII").newEncoder();
