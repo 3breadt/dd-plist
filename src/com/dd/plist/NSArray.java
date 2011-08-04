@@ -43,6 +43,14 @@ public class NSArray extends NSObject {
     }
 
     /**
+     * Creates a array from an existing one
+     * @param a The array which should be wrapped by the NSArray
+     */
+    public NSArray(NSObject... a) {
+        array = a;
+    }
+
+    /**
      * Returns the object stored at the given index.
      * Equivalent to <code>getArray()[i]</code>.
      * @param i The index of the object.
