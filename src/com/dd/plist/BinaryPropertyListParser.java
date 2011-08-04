@@ -102,11 +102,7 @@ public class BinaryPropertyListParser {
      */
     public static NSObject parse(InputStream is) throws Exception {
         //Read all bytes into a list
-        if (is.available() > Runtime.getRuntime().freeMemory()) {
-            throw new Exception("To little heap space available! Wanted to read " + is.available() + " bytes, but only " + Runtime.getRuntime().freeMemory() + " are available.");
-        }
-        byte[] buf = new byte[is.available()];
-        is.read(buf);
+	byte[] buf = PropertyListParser.readAll(is, Integer.MAX_VALUE);
         is.close();
         return parse(buf);
     }

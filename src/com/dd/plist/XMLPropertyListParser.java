@@ -23,6 +23,7 @@
 package com.dd.plist;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.xml.parsers.DocumentBuilder;
@@ -37,21 +38,23 @@ import org.w3c.dom.NodeList;
  */
 public class XMLPropertyListParser {
 
+    /**
+     * Parses a XML property list file.
+     * @param f The XML plist file.
+     * @return The root object of the property list.
+     * @throws Exception
+     */
     public static NSObject parse(File f) throws Exception {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        docBuilderFactory.setIgnoringComments(true);
-        docBuilderFactory.setIgnoringElementContentWhitespace(true);
-        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-
-        Document doc = docBuilder.parse(f);
-
-        if (!doc.getDoctype().getName().equals("plist")) {
-            throw new UnsupportedOperationException("The given XML document is not a property list.");
-        }
-
-        return parseObject(doc.getDocumentElement().getFirstChild());
+        FileInputStream fis = new FileInputStream(f);
+        return parse(fis);
     }
 
+    /**
+     * Parses a XML property list from a byte array.
+     * @param bytes The byte array
+     * @return The root object of the property list
+     * @throws Exception
+     */
     public static NSObject parse(final byte[] bytes) throws Exception {
 
         InputStream is = new InputStream() {
@@ -70,6 +73,12 @@ public class XMLPropertyListParser {
         return parse(is);
     }
 
+    /**
+     * Parses a XML property list from an input stream.
+     * @param is The input stream.
+     * @return The root object of the property list
+     * @throws Exception
+     */
     public static NSObject parse(InputStream is) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setIgnoringComments(true);
@@ -85,6 +94,12 @@ public class XMLPropertyListParser {
         return parseObject(doc.getDocumentElement().getFirstChild());
     }
 
+    /**
+     * Parses a node in the XML structure and returns the corresponding NSObject
+     * @param n The XML node
+     * @return The corresponding NSObject
+     * @throws Exception
+     */
     private static NSObject parseObject(Node n) throws Exception {
         String type = n.getNodeName();
         if (type.equals("dict")) {

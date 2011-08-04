@@ -22,19 +22,36 @@
  */
 package com.dd.plist;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.InputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Parses any given property list
  * @author Daniel Dreibrodt
  */
 public class PropertyListParser {
+
+    /**
+     * Reads all bytes from an InputStream and stores them in an array, up to
+     * a maximum count.
+     * @param in The InputStream
+     * @param max The maximum number of bytes to read.
+     **/
+    static byte[] readAll(InputStream in, int max) throws IOException {
+	ByteArrayOutputStream buf = new ByteArrayOutputStream();
+	while (max > 0) {
+	    int n = in.read();
+	    if (n == -1) break; // EOF
+	    buf.write(n);
+	    max--;
+	}
+	return buf.toByteArray();
+    }
 
     /**
      * Parses a property list from a file. It can either be in XML or binary format.
@@ -44,17 +61,7 @@ public class PropertyListParser {
      */
     public static NSObject parse(File f) throws Exception {
         FileInputStream fis = new FileInputStream(f);
-        byte[] magic = new byte[8];
-        fis.read(magic);
-        String magic_string = new String(magic);
-        fis.close();
-        if (magic_string.startsWith("bplist00")) {
-            return BinaryPropertyListParser.parse(f);
-        } else if (magic_string.startsWith("<?xml")) {
-            return XMLPropertyListParser.parse(f);
-        } else {
-            throw new UnsupportedOperationException("The given file is neither a binary nor a XML property list. ASCII property lists are not supported.");
-        }
+        return parse(fis);
     }
 
     /**
@@ -81,27 +88,14 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(InputStream is) throws Exception {
-        if(is.markSupported()) {
-            is.mark(10);
-            byte[] magic = new byte[8];
-            is.read(magic);
-            is.reset();
-            String magic_string = new String(magic);
-            if (magic_string.startsWith("bplist00")) {
-                return BinaryPropertyListParser.parse(is);
-            } else if(magic_string.startsWith("<?xml")) {
-                return XMLPropertyListParser.parse(is);
-            } else {
-                throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
-            }
+        byte[] magic = readAll(is, 8);
+        String magic_string = new String(magic);
+        if (magic_string.startsWith("bplist00")) {
+            return BinaryPropertyListParser.parse(is);
+        } else if(magic_string.startsWith("<?xml")) {
+            return XMLPropertyListParser.parse(is);
         } else {
-            if (is.available() > Runtime.getRuntime().freeMemory()) {
-                throw new Exception("To little heap space available! Wanted to read " + is.available() + " bytes, but only " + Runtime.getRuntime().freeMemory() + " are available.");
-            }
-            byte[] buf = new byte[is.available()];
-            is.read(buf);
-            is.close();
-            return parse(buf);
+            throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
         }
     }
 
