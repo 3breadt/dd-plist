@@ -39,6 +39,7 @@ public class XMLPropertyListParser {
 
     public static NSObject parse(File f) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        docBuilderFactory.setIgnoringComments(true);
         docBuilderFactory.setIgnoringElementContentWhitespace(true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 
@@ -71,6 +72,7 @@ public class XMLPropertyListParser {
 
     public static NSObject parse(InputStream is) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        docBuilderFactory.setIgnoringComments(true);
         docBuilderFactory.setIgnoringElementContentWhitespace(true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 
