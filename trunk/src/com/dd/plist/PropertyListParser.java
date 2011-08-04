@@ -88,15 +88,7 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(InputStream is) throws Exception {
-        byte[] magic = readAll(is, 8);
-        String magic_string = new String(magic);
-        if (magic_string.startsWith("bplist00")) {
-            return BinaryPropertyListParser.parse(is);
-        } else if(magic_string.startsWith("<?xml")) {
-            return XMLPropertyListParser.parse(is);
-        } else {
-            throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
-        }
+        return parse(readAll(is, Integer.MAX_VALUE));
     }
 
     /**
