@@ -124,9 +124,18 @@ public class NSDictionary extends NSObject {
         for (String key:dict.keySet()) {
             NSObject val = objectForKey(key);
             indent(xml, level+1);
-            xml.append("<key><![CDATA[");
-            xml.append(key.replaceAll("]]>", "]]]]><![CDATA[>"));
-            xml.append("]]></key>");
+            xml.append("<key>");
+            //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
+            //contain the characters < or &. Also the > character should be escaped.
+            if(key.contains("&") || key.contains("<") || key.contains(">")) {
+                xml.append("<![CDATA[");
+                xml.append(key.replaceAll("]]>", "]]]]><![CDATA[>"));
+                xml.append("]]>");
+            }
+            else {
+                xml.append(key);
+            }
+            xml.append("</key>");
             xml.append(NSObject.NEWLINE);
             val.toXML(xml, level+1);
             xml.append(NSObject.NEWLINE);

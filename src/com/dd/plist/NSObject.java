@@ -66,9 +66,8 @@ public abstract class NSObject {
         xml.append(NSObject.NEWLINE);
         xml.append("<plist version=\"1.0\">");
         xml.append(NSObject.NEWLINE);
-
 	toXML(xml, 0);
-
+        xml.append(NSObject.NEWLINE);
         xml.append("</plist>");
         return xml.toString();
     }
