@@ -100,9 +100,9 @@ public class XMLPropertyListParser {
         if (type.equals("dict")) {
             NSDictionary dict = new NSDictionary();
             NodeList children = n.getChildNodes();
-            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i)) {
+            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
                 Node key = children.item(i);
-                i = getNextElementNode(children, i);
+                i = getNextElementNode(children, i+1);
                 Node val = children.item(i);
 
                 dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
@@ -111,7 +111,7 @@ public class XMLPropertyListParser {
         } else if (type.equals("array")) {
             NodeList children = n.getChildNodes();
             NSArray array = new NSArray(children.getLength());
-            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i)) {
+            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i+1)) {
                 array.setValue(i, parseObject(children.item(i)));
             }
             return array;
@@ -124,7 +124,7 @@ public class XMLPropertyListParser {
         } else if (type.equals("real")) {
             return new NSNumber(n.getChildNodes().item(0).getNodeValue());
         } else if (type.equals("string")) {
-            NodeList children = n.getChildNodes();
+            NodeList children = n.getChildNodes();            
             if (children.getLength() == 0) {
                 return new NSString(""); //Empty string
             } else {
