@@ -22,6 +22,7 @@
  */
 package com.dd.plist;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,21 +57,8 @@ public class XMLPropertyListParser {
      * @throws Exception
      */
     public static NSObject parse(final byte[] bytes) throws Exception {
-
-        InputStream is = new InputStream() {
-
-            private int pos = 0;
-
-            @Override
-            public int read() throws IOException {
-                if (pos >= bytes.length) {
-                    return -1;
-                }
-                return bytes[pos++];
-            }
-        };
-
-        return parse(is);
+        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+        return parse(bis);
     }
 
     /**
@@ -81,8 +69,9 @@ public class XMLPropertyListParser {
      */
     public static NSObject parse(InputStream is) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        //Enable offline parsing
+        docBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         docBuilderFactory.setIgnoringComments(true);
-        docBuilderFactory.setIgnoringElementContentWhitespace(true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 
         Document doc = docBuilder.parse(is);
@@ -91,7 +80,13 @@ public class XMLPropertyListParser {
             throw new UnsupportedOperationException("The given XML document is not a property list.");
         }
 
-        return parseObject(doc.getDocumentElement().getFirstChild());
+        //Skip all #TEXT nodes and take the first element node we find as root
+        NodeList rootNodes = doc.getDocumentElement().getChildNodes();
+        int rootIndex = getNextElementNode(rootNodes, 0);
+        if(rootIndex!=-1)
+            return parseObject(rootNodes.item(rootIndex));
+        else
+            throw new Exception("No root node found!");
     }
 
     /**
@@ -105,9 +100,10 @@ public class XMLPropertyListParser {
         if (type.equals("dict")) {
             NSDictionary dict = new NSDictionary();
             NodeList children = n.getChildNodes();
-            for (int i = 0; i < children.getLength(); i += 2) {
+            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i)) {
                 Node key = children.item(i);
-                Node val = children.item(i + 1);
+                i = getNextElementNode(children, i);
+                Node val = children.item(i);
 
                 dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
             }
@@ -115,7 +111,7 @@ public class XMLPropertyListParser {
         } else if (type.equals("array")) {
             NodeList children = n.getChildNodes();
             NSArray array = new NSArray(children.getLength());
-            for (int i = 0; i < children.getLength(); i++) {
+            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i)) {
                 array.setValue(i, parseObject(children.item(i)));
             }
             return array;
@@ -140,5 +136,19 @@ public class XMLPropertyListParser {
             return new NSDate(n.getChildNodes().item(0).getNodeValue());
         }
         return null;
+    }
+
+    /**
+     * Finds the next element node, starting from the given index.
+     * @param list The list of nodes to search
+     * @param startIndex The index from where to start searching
+     * @return The next index of an element node or -1 if none is found.
+     */
+    private static int getNextElementNode(NodeList list, int startIndex) {
+        for(int i=startIndex;i<list.getLength();i++) {
+            if(list.item(i).getNodeType()==Node.ELEMENT_NODE)
+                return i;
+        }
+        return -1;
     }
 }
