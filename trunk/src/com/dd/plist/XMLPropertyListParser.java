@@ -25,8 +25,8 @@ package com.dd.plist;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -110,10 +110,11 @@ public class XMLPropertyListParser {
             return dict;
         } else if (type.equals("array")) {
             NodeList children = n.getChildNodes();
-            NSArray array = new NSArray(children.getLength());
+            LinkedList<NSObject> objects = new LinkedList<NSObject>();
             for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i+1)) {
-                array.setValue(i, parseObject(children.item(i)));
+                objects.add(parseObject(children.item(i)));
             }
+            NSArray array = new NSArray(objects.toArray(new NSObject[objects.size()]));
             return array;
         } else if (type.equals("true")) {
             return new NSNumber(true);
