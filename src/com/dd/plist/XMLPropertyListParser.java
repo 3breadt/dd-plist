@@ -45,7 +45,7 @@ public class XMLPropertyListParser {
     /**
      * Initialize the document builder.
      * This needs to be done only for the first parsing.
-     * Thereafter it the document builder can be reused.
+     * Thereafter the document builder can be reused.
      * @throws ParserConfigurationException
      */
     private static void initDocBuilder() throws ParserConfigurationException {
@@ -127,11 +127,10 @@ public class XMLPropertyListParser {
             NSDictionary dict = new NSDictionary();
             NodeList children = n.getChildNodes();
             //for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
-            for (int i = 0; i < children.getLength(); i++) {
+            for (int i = 0; i < children.getLength(); i += 2) {
                 Node key = children.item(i);
                 //i = getNextElementNode(children, i+1);
-                i++;
-                Node val = children.item(i);
+                Node val = children.item(i+1);
 
                 dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
             }
