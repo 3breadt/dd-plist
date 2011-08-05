@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -39,6 +40,24 @@ import org.w3c.dom.NodeList;
  */
 public class XMLPropertyListParser {
 
+    private static DocumentBuilder docBuilder = null;
+
+    /**
+     * Initialize the document builder.
+     * This needs to be done only for the first parsing.
+     * Thereafter it the document builder can be reused.
+     * @throws ParserConfigurationException
+     */
+    private static void initDocBuilder() throws ParserConfigurationException {
+        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        
+        docBuilderFactory.setValidating(true);
+        docBuilderFactory.setIgnoringElementContentWhitespace(true);
+        docBuilderFactory.setIgnoringComments(true);
+
+        docBuilder = docBuilderFactory.newDocumentBuilder();
+    }
+
     /**
      * Parses a XML property list file.
      * @param f The XML plist file.
@@ -46,8 +65,13 @@ public class XMLPropertyListParser {
      * @throws Exception
      */
     public static NSObject parse(File f) throws Exception {
-        FileInputStream fis = new FileInputStream(f);
-        return parse(fis);
+        //Initializes the DocumentBuilder the first time we need it
+        if(docBuilder == null)
+            initDocBuilder();
+
+        Document doc = docBuilder.parse(f);
+
+        return parseDocument(doc);
     }
 
     /**
@@ -68,14 +92,16 @@ public class XMLPropertyListParser {
      * @throws Exception
      */
     public static NSObject parse(InputStream is) throws Exception {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        //Enable offline parsing
-        docBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        docBuilderFactory.setIgnoringComments(true);
-        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+        //Initializes the DocumentBuilder the first time we need it
+        if(docBuilder == null)
+            initDocBuilder();
 
         Document doc = docBuilder.parse(is);
 
+        return parseDocument(doc);
+    }
+
+    private static NSObject parseDocument(Document doc) throws Exception {
         if (!doc.getDoctype().getName().equals("plist")) {
             throw new UnsupportedOperationException("The given XML document is not a property list.");
         }
@@ -100,9 +126,11 @@ public class XMLPropertyListParser {
         if (type.equals("dict")) {
             NSDictionary dict = new NSDictionary();
             NodeList children = n.getChildNodes();
-            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
+            //for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
+            for (int i = 0; i < children.getLength(); i++) {
                 Node key = children.item(i);
-                i = getNextElementNode(children, i+1);
+                //i = getNextElementNode(children, i+1);
+                i++;
                 Node val = children.item(i);
 
                 dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
@@ -110,11 +138,15 @@ public class XMLPropertyListParser {
             return dict;
         } else if (type.equals("array")) {
             NodeList children = n.getChildNodes();
-            LinkedList<NSObject> objects = new LinkedList<NSObject>();
+            /*LinkedList<NSObject> objects = new LinkedList<NSObject>();
             for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i+1)) {
                 objects.add(parseObject(children.item(i)));
             }
-            NSArray array = new NSArray(objects.toArray(new NSObject[objects.size()]));
+            NSArray array = new NSArray(objects.toArray(new NSObject[objects.size()]));*/
+            NSArray array = new NSArray(children.getLength());
+            for (int i = 0; i < children.getLength(); i++) {
+                array.setValue(i, parseObject(children.item(i)));
+            }
             return array;
         } else if (type.equals("true")) {
             return new NSNumber(true);
