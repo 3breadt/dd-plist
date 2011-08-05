@@ -61,7 +61,15 @@ public class PropertyListParser {
      */
     public static NSObject parse(File f) throws Exception {
         FileInputStream fis = new FileInputStream(f);
-        return parse(fis);
+        String magicString = new String(readAll(fis, 8), 0, 8);
+        fis.close();
+        if (magicString.startsWith("bplist00")) {
+            return BinaryPropertyListParser.parse(f);
+        } else if (magicString.startsWith("<?xml")) {
+            return XMLPropertyListParser.parse(f);
+        } else {
+            throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
+        }
     }
 
     /**
@@ -71,10 +79,10 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(byte[] bytes) throws Exception {
-        String magic_string = new String(bytes, 0, 8);
-        if (magic_string.startsWith("bplist00")) {
+        String magicString = new String(bytes, 0, 8);
+        if (magicString.startsWith("bplist00")) {
             return BinaryPropertyListParser.parse(bytes);
-        } else if (magic_string.startsWith("<?xml")) {
+        } else if (magicString.startsWith("<?xml")) {
             return XMLPropertyListParser.parse(bytes);
         } else {
             throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
@@ -88,7 +96,22 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(InputStream is) throws Exception {
-        return parse(readAll(is, Integer.MAX_VALUE));
+        if(is.markSupported()) {
+            is.mark(10);
+            String magicString = new String(readAll(is, 8), 0, 8);
+            is.reset();
+            if (magicString.startsWith("bplist00")) {
+                return BinaryPropertyListParser.parse(is);
+            } else if (magicString.startsWith("<?xml")) {
+                return XMLPropertyListParser.parse(is);
+            } else {
+                throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
+            }
+        } else {
+            //Now we have to read everything, because if one parsing method fails
+            //the whole InputStream is lost as we can't reset it
+            return parse(readAll(is, Integer.MAX_VALUE));
+        }
     }
 
     /**
