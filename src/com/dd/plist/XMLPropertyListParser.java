@@ -24,8 +24,8 @@ package com.dd.plist;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.LinkedList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,6 +41,7 @@ import org.w3c.dom.NodeList;
 public class XMLPropertyListParser {
 
     private static DocumentBuilder docBuilder = null;
+    private static boolean skipTextNodes = false;
 
     /**
      * Initialize the document builder.
@@ -49,10 +50,35 @@ public class XMLPropertyListParser {
      * @throws ParserConfigurationException
      */
     private static void initDocBuilder() throws ParserConfigurationException {
+        boolean offline = false;
+        try {
+            URL dtdUrl = new URL("http://www.apple.com/DTDs/PropertyList-1.0.dtd");
+            InputStream dtdIs = dtdUrl.openStream();
+            dtdIs.read();
+            dtdIs.close();
+            //If we came this far the DTD is accessible
+        } catch (Exception ex) {
+            System.out.println("DTD is not accessible: "+ex.getLocalizedMessage());
+            System.out.println("Switching to offline parsing");
+            offline = true;
+        }
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        
-        docBuilderFactory.setValidating(true);
-        docBuilderFactory.setIgnoringElementContentWhitespace(true);
+
+        if(offline) {
+            if(System.getProperty("java.vendor").toLowerCase().contains("android")) {
+                //Is there an error if the DTD could not be loaded as on desktop VMs?
+            } else {
+                //Strangely this does not work on Android (Tested on Nexus One with Android 2.3.4)
+                docBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            }
+            docBuilderFactory.setValidating(false);
+            skipTextNodes = true;
+        } else {
+            docBuilderFactory.setValidating(true);
+            docBuilderFactory.setIgnoringElementContentWhitespace(true);
+            skipTextNodes = false;
+        }
+
         docBuilderFactory.setIgnoringComments(true);
 
         docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -126,27 +152,39 @@ public class XMLPropertyListParser {
         if (type.equals("dict")) {
             NSDictionary dict = new NSDictionary();
             NodeList children = n.getChildNodes();
-            //for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
-            for (int i = 0; i < children.getLength(); i += 2) {
-                Node key = children.item(i);
-                //i = getNextElementNode(children, i+1);
-                Node val = children.item(i+1);
+            if(skipTextNodes) {
+                for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
+                    Node key = children.item(i);
+                    i = getNextElementNode(children, i+1);
+                    Node val = children.item(i);
 
-                dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
+                    dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
+                }
+            } else {
+                for (int i = 0; i < children.getLength(); i += 2) {
+                    Node key = children.item(i);
+                    Node val = children.item(i+1);
+
+                    dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
+                }
             }
             return dict;
         } else if (type.equals("array")) {
             NodeList children = n.getChildNodes();
-            /*LinkedList<NSObject> objects = new LinkedList<NSObject>();
-            for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i+1)) {
-                objects.add(parseObject(children.item(i)));
+            if(skipTextNodes) {
+                LinkedList<NSObject> objects = new LinkedList<NSObject>();
+                for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i+1)) {
+                    objects.add(parseObject(children.item(i)));
+                }
+                return new NSArray(objects.toArray(new NSObject[objects.size()]));
             }
-            NSArray array = new NSArray(objects.toArray(new NSObject[objects.size()]));*/
-            NSArray array = new NSArray(children.getLength());
-            for (int i = 0; i < children.getLength(); i++) {
-                array.setValue(i, parseObject(children.item(i)));
+            else {
+                NSArray array = new NSArray(children.getLength());
+                for (int i = 0; i < children.getLength(); i++) {
+                    array.setValue(i, parseObject(children.item(i)));
+                }
+                return array;
             }
-            return array;
         } else if (type.equals("true")) {
             return new NSNumber(true);
         } else if (type.equals("false")) {
