@@ -64,20 +64,23 @@ public class XMLPropertyListParser {
         }
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 
-        if(offline) {
-            if(System.getProperty("java.vendor").toLowerCase().contains("android")) {
-                //Is there an error if the DTD could not be loaded as on desktop VMs?
-            } else {
-                //Strangely this does not work on Android (Tested on Nexus One with Android 2.3.4)
-                docBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            }
+        if(System.getProperty("java.vendor").toLowerCase().contains("android")) {
+            //The Android parser works differently
+            //See discussion around issue 13 (https://code.google.com/p/plist/issues/detail?id=13)
             docBuilderFactory.setValidating(false);
             skipTextNodes = true;
         } else {
-            docBuilderFactory.setValidating(true);
-            docBuilderFactory.setIgnoringElementContentWhitespace(true);
-            skipTextNodes = false;
+            if(offline) {
+                docBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                docBuilderFactory.setValidating(false);
+                skipTextNodes = true;
+            } else {
+                docBuilderFactory.setValidating(true);
+                docBuilderFactory.setIgnoringElementContentWhitespace(true);
+                skipTextNodes = false;
+            }
         }
+        
 
         docBuilderFactory.setIgnoringComments(true);
 
