@@ -379,8 +379,13 @@ public class BinaryPropertyListParser {
      * @return the parsed double
      */
     public static final double parseDouble(byte[] bytes) {
-	if (bytes.length != 8) throw new IllegalArgumentException("bad byte array length " + bytes.length);
-	return Double.longBitsToDouble(parseLong(bytes));
+	if (bytes.length == 8) {
+            return Double.longBitsToDouble(parseLong(bytes));
+        } else if (bytes.length == 4) {
+            return Float.intBitsToFloat((int)parseLong(bytes));
+        } else {
+            throw new IllegalArgumentException("bad byte array length " + bytes.length);
+        }
     }
 
     /**
