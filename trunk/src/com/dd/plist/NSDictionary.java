@@ -26,6 +26,7 @@ package com.dd.plist;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,7 +45,8 @@ public class NSDictionary extends NSObject {
      * Creates a new empty NSDictionary.
      */
     public NSDictionary() {
-        dict = new HashMap<String, NSObject>();
+        //With a linked HashMap the order of elements in the dictionary is kept.
+        dict = new LinkedHashMap<String, NSObject>();
     }
 
     /**

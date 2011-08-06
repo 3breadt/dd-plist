@@ -33,13 +33,15 @@ public class NSNumber extends NSObject {
 
     /**
      * Indicates that the number's value is an integer.
-     * This can either be a Java <code>long</code> or <code>int</code>.
+     * The number is stored as a Java <code>long</code>.
+     * Its original value could have been char, short, int, long or even long long.
      **/
     public static final int INTEGER = 0;
 
     /**
      * Indicates that the number's value is a real number.
-     * This is a Java <code>double</code>.
+     * The number is stored as a Java <code>double</code>.
+     * Its original value could have been float or double.
      **/
     public static final int REAL = 1;
     

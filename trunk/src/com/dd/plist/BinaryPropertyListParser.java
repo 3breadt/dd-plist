@@ -121,7 +121,10 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses an object inside the currently parsed binary property list
+     * Parses an object inside the currently parsed binary property list.
+     * For the format specification check
+     * <a href="http://www.opensource.apple.com/source/CF/CF-476.18/CFBinaryPList.c">
+     * Apple's binary property list parser implementation</a>.
      * @param obj The object id
      * @return The parsed object
      * @throws java.lang.Exception
@@ -131,7 +134,6 @@ public class BinaryPropertyListParser {
         byte type = bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits
         int objInfo = (type & 0x0F);      //Second 4 bits
-        //System.out.println("Parsing object #"+obj+" @ ["+offset+"]: "+objType+" ("+objInfo+")");
         switch (objType) {
             case 0x0: {
                 //Simple
@@ -261,7 +263,7 @@ public class BinaryPropertyListParser {
                 //UID
                 int length = objInfo + 1;
                 if (length < Runtime.getRuntime().freeMemory()) {
-                    return new NSUID(String.valueOf(obj), copyOfRange(bytes, offset + 1, offset + 1 + length));
+                    return new UID(String.valueOf(obj), copyOfRange(bytes, offset + 1, offset + 1 + length));
                 } else {
                     throw new Exception("To little heap space available! Wanted to read " + length + " bytes, but only " + Runtime.getRuntime().freeMemory() + " are available.");
                 }
@@ -294,10 +296,40 @@ public class BinaryPropertyListParser {
                             offset + arrayoffset + i * objectRefSize,
                             offset + arrayoffset + (i + 1) * objectRefSize));
                     array.setValue(i, parseObject(objRef));
-                    //System.out.println("Element #"+i+" of the Array "+obj+" is: "+array[i].toString());
                 }
                 return array;
 
+            }
+            case 0xC: {
+                //Set
+                int length = objInfo;
+                int arrayoffset = 1;
+                if (objInfo == 0xF) {
+                    int int_type = bytes[offset + 1];
+                    int intType = (int_type & 0xF0) / 0xF;
+                    if (intType != 0x1) {
+                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
+                    }
+                    int intInfo = int_type & 0x0F;
+                    int intLength = (int) Math.pow(2, intInfo);
+                    arrayoffset = 2 + intLength;
+                    if (intLength < 3) {
+                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
+                    } else {
+                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
+                    }
+                }
+                if (length * objectRefSize > Runtime.getRuntime().freeMemory()) {
+                    throw new Exception("To little heap space available!");
+                }
+                NSSet set = new NSSet();
+                for (int i = 0; i < length; i++) {
+                    int objRef = (int) parseUnsignedInt(copyOfRange(bytes,
+                            offset + arrayoffset + i * objectRefSize,
+                            offset + arrayoffset + (i + 1) * objectRefSize));                    
+                    set.addObject(parseObject(objRef));
+                }
+                return set;
             }
             case 0xD: {
                 //Dictionary

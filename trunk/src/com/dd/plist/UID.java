@@ -25,15 +25,15 @@ package com.dd.plist;
 import java.io.IOException;
 
 /**
- * A NSUID contains a UID. Only found in binary property lists.
+ * A UID. Only found in binary property lists that are keyed archives.
  * @author Daniel Dreibrodt
  */
-public class NSUID extends NSObject {
+public class UID extends NSObject {
 
     private byte[] bytes;
     private String name;
 
-    public NSUID(String name, byte[] bytes) {
+    public UID(String name, byte[] bytes) {
         this.name = name;
         this.bytes = bytes;
     }
@@ -46,13 +46,21 @@ public class NSUID extends NSObject {
         return name;
     }
 
+    /**
+     * There is no XML representation specified for UIDs.
+     * In this implementation UIDs are represented as strings in the XML output.
+     * @param xml The xml StringBuilder
+     * @param level The indentation level
+     */
+    @Override
     public void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<string>");
         xml.append(new String(bytes));
         xml.append("</string>");
     }
-    
+
+    @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
 	out.write(0x80 + bytes.length - 1);
 	out.write(bytes);
