@@ -39,7 +39,8 @@ public class NSNumber extends NSObject {
 
     /**
      * Indicates that the number's value is a real number.
-     * This is a Java <code>double</code>. **/
+     * This is a Java <code>double</code>.
+     **/
     public static final int REAL = 1;
     
     /** 
@@ -184,6 +185,15 @@ public class NSNumber extends NSObject {
      */
     public double doubleValue() {
         return doubleValue;
+    }
+
+    /**
+     * The number's float value.
+     * WARNING: Possible loss of precision if the value is outside the float range.
+     * @return The value of the number as float.
+     */
+    public float floatValue() {
+        return (float)doubleValue;
     }
 
     /**
