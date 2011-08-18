@@ -83,8 +83,8 @@ person1.put("Photo", new NSData(new File("peter.jpg")));
 //Creation of the second object to be stored in the array
 NSDictionary person2 = new NSDictionary();
 person2.put("Name", "Lisa");
-person1.put("Age", 42);
-person1.put("Photo", new NSData(new File("lisa.jpg")));
+person2.put("Age", 42);
+person2.put("Photo", new NSData(new File("lisa.jpg")));
 
 //Put the objects into the array
 people.setValue(0, person1);
