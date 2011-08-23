@@ -266,19 +266,21 @@ public class NSNumber extends NSObject {
     void toBinary(BinaryPropertyListWriter out) throws IOException {
 	switch (type()) {
 	    case INTEGER : {
-		// ???: how are negative numbers handled?
-		if (longValue() < 256) {
-		    out.write(0x10);
-		    out.writeBytes(longValue(), 1);
-		} else if (longValue() < 65536) {
-		    out.write(0x11);
-		    out.writeBytes(longValue(), 2);
-		} else if (longValue() < 4294967296L) {
-		    out.write(0x12);
-		    out.writeBytes(longValue(), 4);
+		if (longValue() < 0) {
+			out.write(0x13);
+			out.writeBytes(longValue(), 8);
+		} else if (longValue() <= 0xff) {
+			out.write(0x10);
+			out.writeBytes(longValue(), 1);
+		} else if (longValue() <= 0xffff) {
+			out.write(0x11);
+			out.writeBytes(longValue(), 2);
+		} else if (longValue() <= 0xffffffffL) {
+			out.write(0x12);
+			out.writeBytes(longValue(), 4);
 		} else {
-		    out.write(0x13);
-		    out.writeBytes(longValue(), 8);
+			out.write(0x13);
+			out.writeBytes(longValue(), 8);
 		}
 		break;
 	    }
