@@ -144,6 +144,7 @@ public class BinaryPropertyListWriter {
     }
     
     void writeIntHeader(int kind, int value) throws IOException {
+	assert value >= 0;
 	if (value < 15) {
 	    write((kind << 4) + value);
 	} else if (value < 256) {
