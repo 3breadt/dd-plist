@@ -89,7 +89,7 @@ person1.put("Photo", new NSData(new File("peter.jpg")));
 NSDictionary person2 = new NSDictionary();
 person2.put("Name", "Lisa");
 person2.put("Age", 42);
-person2.put("RegistrationDate, new NSDate("2010-09-23T12:32:42Z")); 
+person2.put("RegistrationDate", new NSDate("2010-09-23T12:32:42Z")); 
 person2.put("Photo", new NSData(new File("lisa.jpg")));
 
 //Put the objects into the array
