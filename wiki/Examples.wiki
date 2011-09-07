@@ -76,14 +76,20 @@ NSArray people = new NSArray(2);
 
 //Creation of the first object to be stored in the array
 NSDictionary person1 = new NSDictionary();
-person1.put("Name", "Peter");
-person1.put("Age", 23);
+//The NSDictionary will automatically wrap strings, numbers and dates in the respective NSObject subclasses
+person1.put("Name", "Peter"); //This will become a NSString
+//Use the Java Calendar class to get a Date object
+Calendar cal = Calendar.getInstance();
+cal.set(2011, 1, 13, 9, 28);
+person1.put("RegistrationDate", cal.getTime()); //This will become a NSDate
+person1.put("Age", 23); //This will become a NSNumber
 person1.put("Photo", new NSData(new File("peter.jpg")));
 
 //Creation of the second object to be stored in the array
 NSDictionary person2 = new NSDictionary();
 person2.put("Name", "Lisa");
 person2.put("Age", 42);
+person2.put("RegistrationDate, new NSDate("2010-09-23T12:32:42Z")); 
 person2.put("Photo", new NSData(new File("lisa.jpg")));
 
 //Put the objects into the array
