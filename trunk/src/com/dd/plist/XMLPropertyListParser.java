@@ -26,13 +26,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 
 /**
  * Parses XML property lists
@@ -41,7 +44,6 @@ import org.w3c.dom.NodeList;
 public class XMLPropertyListParser {
 
     private static DocumentBuilder docBuilder = null;
-    private static boolean skipTextNodes = false;
 
     /**
      * Initialize the document builder.
@@ -50,41 +52,21 @@ public class XMLPropertyListParser {
      * @throws ParserConfigurationException
      */
     private static void initDocBuilder() throws ParserConfigurationException {
-        boolean offline = false;
-        try {
-            URL dtdUrl = new URL("http://www.apple.com/DTDs/PropertyList-1.0.dtd");
-            InputStream dtdIs = dtdUrl.openStream();
-            dtdIs.read();
-            dtdIs.close();
-            //If we came this far the DTD is accessible
-        } catch (Exception ex) {
-            System.out.println("DTD is not accessible: "+ex.getLocalizedMessage());
-            System.out.println("Switching to offline parsing");
-            offline = true;
-        }
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-
-        if(System.getProperty("java.vendor").toLowerCase().contains("android")) {
-            //The Android parser works differently
-            //See discussion around issue 13 (https://code.google.com/p/plist/issues/detail?id=13)
-            docBuilderFactory.setValidating(false);
-            skipTextNodes = true;
-        } else {
-            if(offline) {
-                docBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-                docBuilderFactory.setValidating(false);
-                skipTextNodes = true;
-            } else {
-                docBuilderFactory.setValidating(true);
-                docBuilderFactory.setIgnoringElementContentWhitespace(true);
-                skipTextNodes = false;
-            }
-        }
-        
-
         docBuilderFactory.setIgnoringComments(true);
 
         docBuilder = docBuilderFactory.newDocumentBuilder();
+	docBuilder.setEntityResolver(new EntityResolver() {
+		public InputSource resolveEntity(String publicId, String systemId) {
+		    if (publicId.equals("-//Apple Computer//DTD PLIST 1.0//EN") || // older publicId
+			publicId.equals("-//Apple//DTD PLIST 1.0//EN")) { // newer publicId
+			// return a dummy, zero length DTD so we don't have to fetch
+			// it from the network.
+			return new InputSource(new ByteArrayInputStream(new byte[0]));
+		    }
+		    return null;
+		}
+	    });
     }
 
     /**
@@ -136,10 +118,9 @@ public class XMLPropertyListParser {
         }
 
         //Skip all #TEXT nodes and take the first element node we find as root
-        NodeList rootNodes = doc.getDocumentElement().getChildNodes();
-        int rootIndex = getNextElementNode(rootNodes, 0);
-        if(rootIndex!=-1)
-            return parseObject(rootNodes.item(rootIndex));
+        List<Node> rootNodes = filterElementNodes(doc.getDocumentElement().getChildNodes());
+        if(rootNodes.size() > 0)
+            return parseObject(rootNodes.get(0));
         else
             throw new Exception("No root node found!");
     }
@@ -154,40 +135,20 @@ public class XMLPropertyListParser {
         String type = n.getNodeName();
         if (type.equals("dict")) {
             NSDictionary dict = new NSDictionary();
-            NodeList children = n.getChildNodes();
-            if(skipTextNodes) {
-                for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children, i+1)) {
-                    Node key = children.item(i);
-                    i = getNextElementNode(children, i+1);
-                    Node val = children.item(i);
-
-                    dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
-                }
-            } else {
-                for (int i = 0; i < children.getLength(); i += 2) {
-                    Node key = children.item(i);
-                    Node val = children.item(i+1);
-
-                    dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
-                }
+            List<Node> children = filterElementNodes(n.getChildNodes());
+	    for (int i = 0; i < children.size(); i += 2) {
+		Node key = children.get(i);
+		Node val = children.get(i+1);
+		dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
             }
             return dict;
         } else if (type.equals("array")) {
-            NodeList children = n.getChildNodes();
-            if(skipTextNodes) {
-                LinkedList<NSObject> objects = new LinkedList<NSObject>();
-                for (int i = getNextElementNode(children, 0); i != -1; i = getNextElementNode(children,i+1)) {
-                    objects.add(parseObject(children.item(i)));
-                }
-                return new NSArray(objects.toArray(new NSObject[objects.size()]));
-            }
-            else {
-                NSArray array = new NSArray(children.getLength());
-                for (int i = 0; i < children.getLength(); i++) {
-                    array.setValue(i, parseObject(children.item(i)));
-                }
-                return array;
-            }
+            List<Node> children = filterElementNodes(n.getChildNodes());
+	    NSArray array = new NSArray(children.size());
+	    for (int i = 0; i < children.size(); i++) {
+		array.setValue(i, parseObject(children.get(i)));
+	    }
+	    return array;
         } else if (type.equals("true")) {
             return new NSNumber(true);
         } else if (type.equals("false")) {
@@ -212,16 +173,17 @@ public class XMLPropertyListParser {
     }
 
     /**
-     * Finds the next element node, starting from the given index.
+     * Returns all element nodes that are contained in a list of nodes.
      * @param list The list of nodes to search
-     * @param startIndex The index from where to start searching
-     * @return The next index of an element node or -1 if none is found.
+     * @return The sublist of nodes which have an element type.
      */
-    private static int getNextElementNode(NodeList list, int startIndex) {
-        for(int i=startIndex;i<list.getLength();i++) {
-            if(list.item(i).getNodeType()==Node.ELEMENT_NODE)
-                return i;
-        }
-        return -1;
+    private static List<Node> filterElementNodes(NodeList list) {
+	List<Node> result = new ArrayList<Node>();
+	for (int i=0; i<list.getLength(); i++) {
+	    if (list.item(i).getNodeType()==Node.ELEMENT_NODE) {
+		result.add(list.item(i));
+	    }
+	}
+	return result;
     }
 }
