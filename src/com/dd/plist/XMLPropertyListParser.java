@@ -25,7 +25,6 @@ package com.dd.plist;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -43,19 +42,27 @@ import org.xml.sax.InputSource;
  */
 public class XMLPropertyListParser {
 
-    private static DocumentBuilder docBuilder = null;
+    private static DocumentBuilderFactory docBuilderFactory = null;
 
     /**
-     * Initialize the document builder.
-     * This needs to be done only for the first parsing.
-     * Thereafter the document builder can be reused.
-     * @throws ParserConfigurationException
+     * Initialize the document builder factory so that it can be reuused and does not need to
+     * be reinitialized for each new parsing.
+     * @throws ParserConfigurationException If the parser configuration is not supported on your system.
      */
-    private static void initDocBuilder() throws ParserConfigurationException {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+    private static synchronized void initDocBuilderFactory() throws ParserConfigurationException {
+        docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setIgnoringComments(true);
+    }
 
-        docBuilder = docBuilderFactory.newDocumentBuilder();
+    /**
+     * Gets a DocumentBuilder to parse a XML property list.
+     * As DocumentBuilders are not thread-safe a new DocBuilder is generated for each request.
+     * @return A new DocBuilder that can parse property lists w/o an internet connection.
+     */
+    private static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
+        if(docBuilderFactory==null)
+            initDocBuilderFactory();
+        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 	docBuilder.setEntityResolver(new EntityResolver() {
 		public InputSource resolveEntity(String publicId, String systemId) {
 		    if (publicId.equals("-//Apple Computer//DTD PLIST 1.0//EN") || // older publicId
@@ -67,6 +74,7 @@ public class XMLPropertyListParser {
 		    return null;
 		}
 	    });
+        return docBuilder;
     }
 
     /**
@@ -76,9 +84,7 @@ public class XMLPropertyListParser {
      * @throws Exception
      */
     public static NSObject parse(File f) throws Exception {
-        //Initializes the DocumentBuilder the first time we need it
-        if(docBuilder == null)
-            initDocBuilder();
+        DocumentBuilder docBuilder = getDocBuilder();
 
         Document doc = docBuilder.parse(f);
 
@@ -103,9 +109,7 @@ public class XMLPropertyListParser {
      * @throws Exception
      */
     public static NSObject parse(InputStream is) throws Exception {
-        //Initializes the DocumentBuilder the first time we need it
-        if(docBuilder == null)
-            initDocBuilder();
+        DocumentBuilder docBuilder = getDocBuilder();
 
         Document doc = docBuilder.parse(is);
 
@@ -158,7 +162,7 @@ public class XMLPropertyListParser {
         } else if (type.equals("real")) {
             return new NSNumber(n.getChildNodes().item(0).getNodeValue());
         } else if (type.equals("string")) {
-            NodeList children = n.getChildNodes();            
+            NodeList children = n.getChildNodes();
             if (children.getLength() == 0) {
                 return new NSString(""); //Empty string
             } else {
@@ -178,7 +182,7 @@ public class XMLPropertyListParser {
      * @return The sublist of nodes which have an element type.
      */
     private static List<Node> filterElementNodes(NodeList list) {
-	List<Node> result = new ArrayList<Node>();
+	List<Node> result = new ArrayList<Node>(list.getLength());
 	for (int i=0; i<list.getLength(); i++) {
 	    if (list.item(i).getNodeType()==Node.ELEMENT_NODE) {
 		result.add(list.item(i));
