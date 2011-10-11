@@ -24,6 +24,7 @@
 package com.dd.plist;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,10 +40,12 @@ import java.util.Map;
  * @author Keith Randall
  */
 public class BinaryPropertyListWriter {
+
     /**
      * Writes a binary plist file with the given object as the root.
      * @param file the file to write to
      * @param root the source of the data to write to the file
+     * @throws IOException
      */
     public static void write(File file, NSObject root) throws IOException {
 	OutputStream out = new FileOutputStream(file);
@@ -53,10 +56,24 @@ public class BinaryPropertyListWriter {
      * Writes a binary plist serialization of the given object as the root.
      * @param out the stream to write to
      * @param root the source of the data to write to the stream
+     * @throws IOException
      */
     public static void write(OutputStream out, NSObject root) throws IOException {
 	BinaryPropertyListWriter w = new BinaryPropertyListWriter(out);
 	w.write(root);
+    }
+
+    /**
+     * Writes a binary plist serialization of the given object as the root
+     * into a byte array.
+     * @param root The root object of the property list
+     * @return The byte array containing the serialized property list
+     * @throws IOException
+     */
+    public static byte[] writeToArray(NSObject root) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        write(bout, root);
+        return bout.toByteArray();
     }
     
     // raw output stream to result file

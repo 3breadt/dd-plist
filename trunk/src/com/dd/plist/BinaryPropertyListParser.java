@@ -35,19 +35,19 @@ import java.math.BigInteger;
 public class BinaryPropertyListParser {
 
     /** property list in bytes **/
-    private static byte[] bytes;
+    private byte[] bytes;
     /** Length of an offset definition in bytes **/
-    private static int offsetSize;
+    private int offsetSize;
     /** Length of an object reference in bytes **/
-    private static int objectRefSize;
+    private int objectRefSize;
     /** Number of objects stored in this property list **/
-    private static int numObjects;
+    private int numObjects;
     /** Reference to the top object of the property list **/
-    private static int topObject;
+    private int topObject;
     /** Offset of the offset table from the beginning of the file **/
-    private static int offsetTableOffset;
+    private int offsetTableOffset;
     /** The table holding the information at which offset each object is found **/
-    private static int[] offsetTable;
+    private int[] offsetTable;
 
     /**
      * Parses a binary property list from a byte array
@@ -56,6 +56,17 @@ public class BinaryPropertyListParser {
      * @throws java.lang.Exception
      */
     public static NSObject parse(byte[] data) throws Exception {
+        BinaryPropertyListParser parser = new BinaryPropertyListParser();
+        return parser.doParse(data);
+    }
+
+    /**
+     * Parses a binary property list from a byte array
+     * @param data binary property list content
+     * @return The top PropertyListObject, typically a Dictionary
+     * @throws java.lang.Exception
+     */
+    public NSObject doParse(byte[] data) throws Exception {
         bytes = data;
         String magic = new String(copyOfRange(bytes, 0, 8));
         if (!magic.equals("bplist00")) {
@@ -129,7 +140,7 @@ public class BinaryPropertyListParser {
      * @return The parsed object
      * @throws java.lang.Exception
      */
-    private static NSObject parseObject(int obj) throws Exception {
+    private NSObject parseObject(int obj) throws Exception {
         int offset = offsetTable[obj];
         byte type = bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits
