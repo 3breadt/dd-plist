@@ -52,6 +52,7 @@ public class XMLPropertyListParser {
     private static synchronized void initDocBuilderFactory() throws ParserConfigurationException {
         docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setIgnoringComments(true);
+	docBuilderFactory.setCoalescing(true);
     }
 
     /**
