@@ -46,6 +46,18 @@ public class NSDate extends NSObject {
     static { sdf.setTimeZone(TimeZone.getTimeZone("GMT")); }
     
     /**
+     * Parses the XML date string and creates a Java Date object from it.
+     * This function is synchronized as SimpleDateFormat is not thread-safe.
+     * @param textRepresentation The date string as found in the XML property list
+     * @return The parsed Date
+     * @throws ParseException If the given string cannot be parsed.
+     * @see SimpleDateFormat#parse(java.lang.String)
+     */
+    private static synchronized Date parseXMLDateString(String textRepresentation) throws ParseException {
+        return sdf.parse(textRepresentation);
+    }
+    
+    /**
      * Creates a date from its binary representation.
      * @param bytes The date bytes
      */
@@ -61,7 +73,7 @@ public class NSDate extends NSObject {
      * @throws ParseException When the date could not be parsed, i.e. it does not match the expected pattern.
      */
     public NSDate(String textRepresentation) throws ParseException {
-        date = sdf.parse(textRepresentation);
+        date = parseXMLDateString(textRepresentation);
     }
 
     /**
