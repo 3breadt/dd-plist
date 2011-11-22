@@ -58,6 +58,16 @@ public class NSDate extends NSObject {
     }
     
     /**
+     * Generates a String representation of a Java Date object. The string
+     * is formatted according to the specification for XML property list dates.
+     * @param date The date which should be represented.
+     * @return The string representation of the date.
+     */
+    private static synchronized String makeXMLDateString(Date date) {
+        return sdf.format(date);
+    }
+    
+    /**
      * Creates a date from its binary representation.
      * @param bytes The date bytes
      */
@@ -97,7 +107,7 @@ public class NSDate extends NSObject {
     public void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<date>");
-        xml.append(sdf.format(date));
+        xml.append(makeXMLDateString(date));
         xml.append("</date>");
     }
 
