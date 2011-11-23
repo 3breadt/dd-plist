@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
@@ -97,16 +98,26 @@ public class NSString extends NSObject {
     
     private static CharsetEncoder asciiEncoder = Charset.forName("ASCII").newEncoder();
     private static CharsetEncoder utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
+    
+    
+    private static synchronized ByteBuffer encodeStringASCII(CharBuffer charBuf) throws CharacterCodingException {
+        return asciiEncoder.encode(charBuf);
+    }
+    
+    private static synchronized ByteBuffer encodeStringUTF16BE(CharBuffer charBuf) throws CharacterCodingException {
+        return utf16beEncoder.encode(charBuf);
+    }
+    
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
 	CharBuffer charBuf = CharBuffer.wrap(content);
 	int kind;
 	ByteBuffer byteBuf;
 	if (asciiEncoder.canEncode(charBuf)) {
 	    kind = 0x5; // standard ASCII
-	    byteBuf = asciiEncoder.encode(charBuf);
+	    byteBuf = encodeStringASCII(charBuf);
 	} else {
 	    kind = 0x6; // UTF-16-BE
-	    byteBuf = utf16beEncoder.encode(charBuf);
+	    byteBuf = encodeStringUTF16BE(charBuf);
 	}
 	byte[] bytes = new byte[byteBuf.remaining()];
 	byteBuf.get(bytes);
