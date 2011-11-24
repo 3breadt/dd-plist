@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
@@ -98,29 +97,23 @@ public class NSString extends NSObject {
     
     private static CharsetEncoder asciiEncoder, utf16beEncoder;
     
-    private static synchronized ByteBuffer encodeStringASCII(CharBuffer charBuf) throws CharacterCodingException {
-        if(asciiEncoder==null)
-            asciiEncoder = Charset.forName("ASCII").newEncoder();
-        return asciiEncoder.encode(charBuf);
-    }
-    
-    private static synchronized ByteBuffer encodeStringUTF16BE(CharBuffer charBuf) throws CharacterCodingException {
-        if(utf16beEncoder==null)
-            utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
-        return utf16beEncoder.encode(charBuf);
-    }
-    
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
 	CharBuffer charBuf = CharBuffer.wrap(content);
 	int kind;
 	ByteBuffer byteBuf;
-	if (asciiEncoder.canEncode(charBuf)) {
-	    kind = 0x5; // standard ASCII
-	    byteBuf = encodeStringASCII(charBuf);
-	} else {
-	    kind = 0x6; // UTF-16-BE
-	    byteBuf = encodeStringUTF16BE(charBuf);
-	}
+        synchronized (NSString.class) {
+            if(asciiEncoder==null)
+                asciiEncoder = Charset.forName("ASCII").newEncoder();
+            if (asciiEncoder.canEncode(charBuf)) {
+	        kind = 0x5; // standard ASCII
+	        byteBuf = asciiEncoder.encode(charBuf);
+            } else {
+                if(utf16beEncoder==null)
+                    utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
+	        kind = 0x6; // UTF-16-BE
+	        byteBuf = utf16beEncoder.encode(charBuf);
+            }
+        }
 	byte[] bytes = new byte[byteBuf.remaining()];
 	byteBuf.get(bytes);
 	out.writeIntHeader(kind, content.length());
