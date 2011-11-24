@@ -96,15 +96,17 @@ public class NSString extends NSObject {
         xml.append("</string>");
     }
     
-    private static CharsetEncoder asciiEncoder = Charset.forName("ASCII").newEncoder();
-    private static CharsetEncoder utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
-    
+    private static CharsetEncoder asciiEncoder, utf16beEncoder;
     
     private static synchronized ByteBuffer encodeStringASCII(CharBuffer charBuf) throws CharacterCodingException {
+        if(asciiEncoder==null)
+            asciiEncoder = Charset.forName("ASCII").newEncoder();
         return asciiEncoder.encode(charBuf);
     }
     
     private static synchronized ByteBuffer encodeStringUTF16BE(CharBuffer charBuf) throws CharacterCodingException {
+        if(utf16beEncoder==null)
+            utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
         return utf16beEncoder.encode(charBuf);
     }
     

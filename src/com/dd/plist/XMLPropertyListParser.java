@@ -144,7 +144,15 @@ public class XMLPropertyListParser {
 	    for (int i = 0; i < children.size(); i += 2) {
 		Node key = children.get(i);
 		Node val = children.get(i+1);
-		dict.put(key.getChildNodes().item(0).getNodeValue(), parseObject(val));
+                
+                String keyString = key.getChildNodes().item(0).getNodeValue();
+                
+                //Workaround for buggy behavior of the Android XML parser, which
+                //separates certain Strings into several nodes
+                for(int j=1;j<key.getChildNodes().getLength();j++)
+                    keyString += key.getChildNodes().item(j).getNodeValue();
+                
+		dict.put(keyString, parseObject(val));
             }
             return dict;
         } else if (type.equals("array")) {
@@ -167,7 +175,12 @@ public class XMLPropertyListParser {
             if (children.getLength() == 0) {
                 return new NSString(""); //Empty string
             } else {
-                return new NSString(children.item(0).getNodeValue());
+                String string = children.item(0).getNodeValue();
+                //Workaround for buggy behavior of the Android XML parser, which
+                //separates certain Strings into several nodes
+                for(int i=1;i<children.getLength();i++)
+                    string += children.item(i).getNodeValue();
+                return new NSString(string);
             }
         } else if (type.equals("data")) {
             return new NSData(n.getChildNodes().item(0).getNodeValue());
