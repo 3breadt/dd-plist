@@ -104,6 +104,16 @@ public class NSDate extends NSObject {
         return date;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return obj.getClass().equals(getClass()) && date.equals(((NSDate) obj).getDate());
+    }
+
+    @Override
+    public int hashCode() {
+        return date.hashCode();
+    }
+
     public void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<date>");
