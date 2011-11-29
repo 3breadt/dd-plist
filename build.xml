@@ -63,12 +63,15 @@
   <target name="test" depends="jar">
     <javac srcdir="test"
            destdir="${testtemp}"
+	   encoding="utf8"
            debug="on" debuglevel="lines,vars,source"
            includeantruntime="false">
       <classpath refid="classpath.test"/>
     </javac>
     <junit haltonfailure="yes">
-      <test name="ParseTest"/>
+      <batchtest>
+	<fileset dir="${testtemp}" includes="*Test.class"/>
+      </batchtest>
       <formatter type="plain" usefile="false"/>
       <classpath refid="classpath.test"/>
     </junit>
