@@ -6,17 +6,20 @@
   <property name="doc"        value="doc" />
   <property name="dist"       value="dist"  />
   <property name="jar"        value="dd-plist.jar" />
+  <property name="testtemp"   value="test/temp" />
   
   <target name="init">
     <mkdir dir="${build}" />
     <mkdir dir="${dist}" />
     <mkdir dir="${doc}" />
+    <mkdir dir="${testtemp}" />
   </target>
   
   <target name="clean">
     <delete dir="${build}" />
     <delete dir="${dist}" />
     <delete dir="${doc}"/>
+    <delete dir="${testtemp}"/>
   </target>
   
   <target name="compile" depends="init">
@@ -43,7 +46,7 @@
     </javadoc>
   </target>
 
-  <target name="package" depends="jar,javadoc">
+  <target name="package" depends="jar,javadoc,test">
     <zip destfile="${dist}/dd-plist.zip">
       <fileset dir="${dist}" includes="${jar}" />
       <fileset dir="." includes="*.txt" />
@@ -51,4 +54,24 @@
     </zip>
   </target>
   
+  <path id="classpath.test">
+    <pathelement location="test/junit-4.10.jar"/>
+    <pathelement location="${dist}/${jar}"/>
+    <pathelement location="${testtemp}"/>
+  </path>
+
+  <target name="test" depends="jar">
+    <javac srcdir="test"
+           destdir="${testtemp}"
+           debug="on" debuglevel="lines,vars,source"
+           includeantruntime="false">
+      <classpath refid="classpath.test"/>
+    </javac>
+    <junit haltonfailure="yes">
+      <test name="ParseTest"/>
+      <formatter type="plain" usefile="false"/>
+      <classpath refid="classpath.test"/>
+    </junit>
+  </target>
+
 </project>
