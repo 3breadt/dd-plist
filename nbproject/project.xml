@@ -13,19 +13,19 @@
                 <source-folder>
                     <label>plist</label>
                     <location>.</location>
-                    <encoding>MacRoman</encoding>
+                    <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
                     <label>src</label>
                     <type>java</type>
                     <location>src</location>
-                    <encoding>MacRoman</encoding>
+                    <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
                     <label>test</label>
                     <type>java</type>
                     <location>test</location>
-                    <encoding>MacRoman</encoding>
+                    <encoding>UTF-8</encoding>
                 </source-folder>
             </folders>
             <ide-actions>

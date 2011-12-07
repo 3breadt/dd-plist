@@ -42,8 +42,12 @@ public class NSDate extends NSObject {
     // So we just hardcode the correct value.
     private final static long EPOCH = 978307200000L;
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    static { sdf.setTimeZone(TimeZone.getTimeZone("GMT")); }
+    private static final SimpleDateFormat sdfDefault = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final SimpleDateFormat sdfGnuStep = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    static { 
+        sdfDefault.setTimeZone(TimeZone.getTimeZone("GMT"));
+        sdfGnuStep.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
     
     /**
      * Parses the XML date string and creates a Java Date object from it.
@@ -53,8 +57,12 @@ public class NSDate extends NSObject {
      * @throws ParseException If the given string cannot be parsed.
      * @see SimpleDateFormat#parse(java.lang.String)
      */
-    private static synchronized Date parseXMLDateString(String textRepresentation) throws ParseException {
-        return sdf.parse(textRepresentation);
+    private static synchronized Date parseDateString(String textRepresentation) throws ParseException {
+        try {
+            return sdfDefault.parse(textRepresentation);
+        } catch(ParseException ex) {
+            return sdfGnuStep.parse(textRepresentation);
+        }
     }
     
     /**
@@ -63,8 +71,8 @@ public class NSDate extends NSObject {
      * @param date The date which should be represented.
      * @return The string representation of the date.
      */
-    private static synchronized String makeXMLDateString(Date date) {
-        return sdf.format(date);
+    private static synchronized String makeDateString(Date date) {
+        return sdfDefault.format(date);
     }
     
     /**
@@ -83,7 +91,7 @@ public class NSDate extends NSObject {
      * @throws ParseException When the date could not be parsed, i.e. it does not match the expected pattern.
      */
     public NSDate(String textRepresentation) throws ParseException {
-        date = parseXMLDateString(textRepresentation);
+        date = parseDateString(textRepresentation);
     }
 
     /**
@@ -117,7 +125,7 @@ public class NSDate extends NSObject {
     public void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<date>");
-        xml.append(makeXMLDateString(date));
+        xml.append(makeDateString(date));
         xml.append("</date>");
     }
 

@@ -50,10 +50,7 @@ public class NSData extends NSObject {
      * @param base64 The Base64 encoded contents of the NSData object.
      */
     public NSData(String base64) {
-        String data = "";
-        for (String line : base64.split("\n")) {
-            data += line.trim();
-        }
+        String data = base64.replaceAll("\\s+", "");
         bytes = Base64.decode(data);
     }
 
