@@ -67,6 +67,8 @@ public class PropertyListParser {
             return BinaryPropertyListParser.parse(f);
         } else if (magicString.startsWith("<?xml")) {
             return XMLPropertyListParser.parse(f);
+        } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
+            return ASCIIPropertyListParser.parse(f);
         } else {
             throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
         }
@@ -84,6 +86,8 @@ public class PropertyListParser {
             return BinaryPropertyListParser.parse(bytes);
         } else if (magicString.startsWith("<?xml")) {
             return XMLPropertyListParser.parse(bytes);
+        } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
+            return ASCIIPropertyListParser.parse(bytes);
         } else {
             throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
         }
@@ -104,6 +108,8 @@ public class PropertyListParser {
                 return BinaryPropertyListParser.parse(is);
             } else if (magicString.startsWith("<?xml")) {
                 return XMLPropertyListParser.parse(is);
+            } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
+                return ASCIIPropertyListParser.parse(is);
             } else {
                 throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
             }
