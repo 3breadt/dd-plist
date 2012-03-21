@@ -104,12 +104,18 @@ public class NSString extends NSObject {
         synchronized (NSString.class) {
             if(asciiEncoder==null)
                 asciiEncoder = Charset.forName("ASCII").newEncoder();
+            else
+                asciiEncoder.reset();
+            
             if (asciiEncoder.canEncode(charBuf)) {
 	        kind = 0x5; // standard ASCII
 	        byteBuf = asciiEncoder.encode(charBuf);
             } else {
                 if(utf16beEncoder==null)
                     utf16beEncoder = Charset.forName("UTF-16BE").newEncoder();
+                else
+                    utf16beEncoder.reset();
+                
 	        kind = 0x6; // UTF-16-BE
 	        byteBuf = utf16beEncoder.encode(charBuf);
             }
