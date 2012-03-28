@@ -31,6 +31,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -118,7 +119,13 @@ public class XMLPropertyListParser {
     }
 
     private static NSObject parseDocument(Document doc) throws Exception {
-        if (!doc.getDoctype().getName().equals("plist")) {
+        DocumentType docType = doc.getDoctype();
+        if(docType==null) {
+            if(!doc.getDocumentElement().getNodeName().equals("plist")) {
+                throw new UnsupportedOperationException("The given XML document is not a property list.");
+            }
+        }
+        else if (!docType.getName().equals("plist")) {
             throw new UnsupportedOperationException("The given XML document is not a property list.");
         }
 
