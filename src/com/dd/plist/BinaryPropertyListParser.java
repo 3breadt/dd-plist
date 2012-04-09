@@ -82,7 +82,7 @@ public class BinaryPropertyListParser {
     private NSObject doParse(byte[] data) throws Exception {
         bytes = data;
         String magic = new String(copyOfRange(bytes, 0, 8));
-        if (!magic.equals("bplist")) {
+        if (!magic.startsWith("bplist")) {
             throw new Exception("The given data is no binary property list. Wrong magic bytes: " + magic);
         }
         
