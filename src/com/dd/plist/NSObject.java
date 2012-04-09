@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2012 Daniel Dreibrodt
  *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ import java.io.IOException;
  * Abstract interface for any object contained in a property list.
  * The names and functions of the various objects orient themselves
  * towards Apple's Cocoa API.
- * @author Daniel
+ * @author Daniel Dreibrodt
  */
 public abstract class NSObject {
 
@@ -44,6 +44,7 @@ public abstract class NSObject {
 
     /**
      * Assigns IDs to all the objects in this NSObject subtree.
+     * @param out The writer object that handles the binary serialization.
      */
     void assignIDs(BinaryPropertyListWriter out) {
 	out.assignID(this);
@@ -57,7 +58,7 @@ public abstract class NSObject {
 
     /**
      * Generates a valid XML property list including headers using this object as root.
-     * @return The XML representation of the property list
+     * @return The XML representation of the property list including XML header and doctype information.
      */
     public String toXMLPropertyList() {
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -72,6 +73,13 @@ public abstract class NSObject {
         return xml.toString();
     }
 
+    /**
+     * Helper method that adds correct identation to the xml output.
+     * Calling this method will add <code>level</code> number of tab characters
+     * to the <code>xml</code> string.
+     * @param xml The string builder for the XML document.
+     * @param level The level of identation.
+     */
     protected void indent(StringBuilder xml, int level) {
         for(int i=0;i<level;i++)
             xml.append(INDENT);

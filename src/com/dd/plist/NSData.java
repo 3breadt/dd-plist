@@ -48,8 +48,11 @@ public class NSData extends NSObject {
     /**
      * Creates a NSData object from its textual representation, which is a Base64 encoded amount of bytes.
      * @param base64 The Base64 encoded contents of the NSData object.
+     * @throws IOException When the given string is not a proper Base64 formatted string.
      */
-    public NSData(String base64) {
+    public NSData(String base64) throws IOException {
+        //Remove all white spaces from the string so that it is parsed completely
+        //and not just until the first white space occurs.
         String data = base64.replaceAll("\\s+", "");
         bytes = Base64.decode(data);
     }

@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2012 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,10 @@ import java.util.Set;
 /**
  * A NSDictionary is a collection of keys and values, essentially a Hashtable.
  * The keys are simple Strings whereas the values can be any kind of NSObject.
+ * 
+ * You can access the keys through the function <code>allKeys()</code>. Access
+ * to the objects stored for each key is given through the function <code>objectoForKey(String key)</code>.
+ * 
  * @see java.util.Hashtable
  * @see com.dd.plist.NSObject
  * @author Daniel Dreibrodt
@@ -66,31 +70,66 @@ public class NSDictionary extends NSObject {
     public void put(String key, NSObject obj) {
         dict.put(key, obj);
     }
-
+    
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, String obj) {
         put(key, new NSString(obj));
     }
 
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, int obj) {
         put(key, new NSNumber(obj));
     }
 
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, long obj) {
         put(key, new NSNumber(obj));
     }
 
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, double obj) {
         put(key, new NSNumber(obj));
     }
 
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, boolean obj) {
         put(key, new NSNumber(obj));
     }
 
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, Date obj) {
         put(key, new NSDate(obj));
     }
 
+    /**
+     * Puts a new key-value pair into this dictionary.
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, byte[] obj) {
         put(key, new NSData(obj));
     }
@@ -108,6 +147,10 @@ public class NSDictionary extends NSObject {
         return (obj.getClass().equals(this.getClass()) && ((NSDictionary)obj).dict.equals(dict));
     }
 
+    /**
+     * Gets a list of all keys used in this NSDictionary.
+     * @return The list of all keys used in this NSDictionary.
+     */
     public String[] allKeys() {
         return dict.keySet().toArray(new String[0]);
     }

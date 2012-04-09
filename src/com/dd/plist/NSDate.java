@@ -30,7 +30,7 @@ import java.util.TimeZone;
 import java.util.Date;
 
 /**
- * Represents a date
+ * Represents a date.
  * @author Daniel Dreibrodt
  */
 public class NSDate extends NSObject {
