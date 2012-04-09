@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2012 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * Represents an Array
+ * Represents an Array.
  * @author Daniel Dreibrodt
  */
 public class NSArray extends NSObject {

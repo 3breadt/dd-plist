@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2012 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,9 +81,10 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list file.
-     * @param f The XML plist file.
-     * @return The root object of the property list.
-     * @throws Exception
+     * @param f The XML property list file.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
      */
     public static NSObject parse(File f) throws Exception {
         DocumentBuilder docBuilder = getDocBuilder();
@@ -95,9 +96,9 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list from a byte array.
-     * @param bytes The byte array
-     * @return The root object of the property list
-     * @throws Exception
+     * @param bytes The byte array containing the property list's data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(final byte[] bytes) throws Exception {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
@@ -106,9 +107,10 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list from an input stream.
-     * @param is The input stream.
-     * @return The root object of the property list
-     * @throws Exception
+     * @param is The input stream pointing to the property list's data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      */
     public static NSObject parse(InputStream is) throws Exception {
         DocumentBuilder docBuilder = getDocBuilder();
@@ -118,6 +120,12 @@ public class XMLPropertyListParser {
         return parseDocument(doc);
     }
 
+    /**
+     * Parses the XML document by generating the appropriate NSObjects for each XML node.
+     * @param doc The XML document.
+     * @return The root NSObject of the property list contained in the XML document.
+     * @throws Exception If an error occured during parsing.
+     */
     private static NSObject parseDocument(Document doc) throws Exception {
         DocumentType docType = doc.getDoctype();
         if(docType==null) {
@@ -139,9 +147,9 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a node in the XML structure and returns the corresponding NSObject
-     * @param n The XML node
-     * @return The corresponding NSObject
-     * @throws Exception
+     * @param n The XML node.
+     * @return The corresponding NSObject.
+     * @throws Exception If an error occured during parsing the node.
      */
     private static NSObject parseObject(Node n) throws Exception {
         String type = n.getNodeName();
@@ -199,8 +207,8 @@ public class XMLPropertyListParser {
 
     /**
      * Returns all element nodes that are contained in a list of nodes.
-     * @param list The list of nodes to search
-     * @return The sublist of nodes which have an element type.
+     * @param list The list of nodes to search.
+     * @return The sublist containing only nodes representing actual elements.
      */
     private static List<Node> filterElementNodes(NodeList list) {
 	List<Node> result = new ArrayList<Node>(list.getLength());

@@ -29,7 +29,11 @@ import java.io.InputStream;
 import java.math.BigInteger;
 
 /**
- * Parses binary property lists
+ * Parses property lists that are in Apple's binary format.
+ * Use this class when you are sure about the format of the property list.
+ * Otherwise use the PropertyListParser class.
+ * 
+ * Parsing is done by calling the static <code>parse</code> methods.
  * @author Daniel Dreibrodt
  */
 public class BinaryPropertyListParser {
@@ -48,12 +52,21 @@ public class BinaryPropertyListParser {
     private int offsetTableOffset;
     /** The table holding the information at which offset each object is found **/
     private int[] offsetTable;
+    
+    /**
+     * Private constructor so that instantiation is fully controlled by the
+     * static parse methods.
+     * @see BinaryPropertyListParser#parse(byte[])
+     */
+    private BinaryPropertyListParser() {
+        /** empty **/
+    }
 
     /**
-     * Parses a binary property list from a byte array
-     * @param data binary property list content
-     * @return The top PropertyListObject, typically a Dictionary
-     * @throws java.lang.Exception
+     * Parses a binary property list from a byte array.
+     * @param data The binary property list's data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(byte[] data) throws Exception {
         BinaryPropertyListParser parser = new BinaryPropertyListParser();
@@ -61,17 +74,22 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses a binary property list from a byte array
-     * @param data binary property list content
-     * @return The top PropertyListObject, typically a Dictionary
-     * @throws java.lang.Exception
+     * Parses a binary property list from a byte array.
+     * @param data The binary property list's data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws When an error occurs during parsing.
      */
-    public NSObject doParse(byte[] data) throws Exception {
+    private NSObject doParse(byte[] data) throws Exception {
         bytes = data;
         String magic = new String(copyOfRange(bytes, 0, 8));
-        if (!magic.equals("bplist00")) {
+        if (!magic.equals("bplist")) {
             throw new Exception("The given data is no binary property list. Wrong magic bytes: " + magic);
         }
+        
+        int version = Integer.parseInt(magic.substring(6));
+        // 00 - OS X Tiger and earlier
+        // 01 - Leopard
+        // 0? - Snow Leopard and later
 
         /*
          * Handle trailer, last 32 bytes of the file
@@ -106,10 +124,10 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses a binary property list from an InputStream
-     * @param is The input stream
-     * @return The top PropertyListObject, typically a Dictionary
-     * @throws java.lang.Exception
+     * Parses a binary property list from an input stream.
+     * @param is The input stream that points to the property list's data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(InputStream is) throws Exception {
         //Read all bytes into a list
@@ -119,10 +137,10 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses a binary property list file
+     * Parses a binary property list file.
      * @param f The binary property list file
-     * @return The top PropertyListObject, typically a Dictionary
-     * @throws java.lang.Exception
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(File f) throws Exception {
         if (f.length() > Runtime.getRuntime().freeMemory()) {
@@ -134,11 +152,11 @@ public class BinaryPropertyListParser {
     /**
      * Parses an object inside the currently parsed binary property list.
      * For the format specification check
-     * <a href="http://www.opensource.apple.com/source/CF/CF-476.18/CFBinaryPList.c">
+     * <a href="http://www.opensource.apple.com/source/CF/CF-635/CFBinaryPList.c">
      * Apple's binary property list parser implementation</a>.
-     * @param obj The object id
-     * @return The parsed object
-     * @throws java.lang.Exception
+     * @param obj The object ID.
+     * @return The parsed object.
+     * @throws java.lang.Exception When an error occurs during parsing.
      */
     private NSObject parseObject(int obj) throws Exception {
         int offset = offsetTable[obj];
@@ -388,9 +406,9 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses unsigned integers from a byte array
-     * @param bytes
-     * @return the parsed integer
+     * Parses an unsigned integers from a byte array.
+     * @param bytes The byte array containing the unsigned integer.
+     * @return The unsigned integer represented by the given bytes.
      */
     public static final long parseUnsignedInt(byte[] bytes) {
         long l = 0;
@@ -403,9 +421,9 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses longs from a (big-endian) byte array
-     * @param bytes
-     * @return the parsed long integer
+     * Parses longs from a (big-endian) byte array.
+     * @param bytes The bytes representing the long integer.
+     * @return The long integer represented by the given bytes.
      */
     public static final long parseLong(byte[] bytes) {
         long l = 0;
@@ -417,9 +435,9 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses doubles from a (big-endian) byte array
-     * @param bytes
-     * @return the parsed double
+     * Parses doubles from a (big-endian) byte array.
+     * @param bytes The bytes representing the double.
+     * @return The double represented by the given bytes.
      */
     public static final double parseDouble(byte[] bytes) {
 	if (bytes.length == 8) {
@@ -432,11 +450,11 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Copies a part of a byte array into a new array
-     * @param src The source array
-     * @param startIndex The index from which to start copying
-     * @param endIndex The index until which to copy
-     * @return The copied array
+     * Copies a part of a byte array into a new array.
+     * @param src The source array.
+     * @param startIndex The index from which to start copying.
+     * @param endIndex The index until which to copy.
+     * @return The copied array.
      */
     public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
         int length = endIndex - startIndex;
