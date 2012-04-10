@@ -32,15 +32,25 @@ import java.io.IOException;
  */
 public abstract class NSObject {
 
-    public final static String NEWLINE = System.getProperty("line.separator");
-    public final static String INDENT = "\t";
+    /**
+     * The newline character used for generating the XML output.
+     * This constant will be different depending on the operating system on
+     * which you use this library.
+     */
+    final static String NEWLINE = System.getProperty("line.separator");
+    
+    /**
+     * The identation character used for generating the XML output. This is the
+     * tabulator character.
+     */
+    final static String INDENT = "\t";
 
     /**
      * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
      * @param xml The StringBuilder onto which the XML representation is appended.
      * @param level The indentation level of the object.
      */
-    public abstract void toXML(StringBuilder xml, int level);
+    abstract void toXML(StringBuilder xml, int level);
 
     /**
      * Assigns IDs to all the objects in this NSObject subtree.
@@ -80,7 +90,7 @@ public abstract class NSObject {
      * @param xml The string builder for the XML document.
      * @param level The level of identation.
      */
-    protected void indent(StringBuilder xml, int level) {
+    void indent(StringBuilder xml, int level) {
         for(int i=0;i<level;i++)
             xml.append(INDENT);
     }

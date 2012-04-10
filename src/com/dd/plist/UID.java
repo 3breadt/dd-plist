@@ -53,7 +53,7 @@ public class UID extends NSObject {
      * @param level The indentation level
      */
     @Override
-    public void toXML(StringBuilder xml, int level) {
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<string>");
         xml.append(new String(bytes));

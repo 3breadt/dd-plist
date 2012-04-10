@@ -162,7 +162,8 @@ public class NSDictionary extends NSObject {
         return hash;
     }
 
-    public void toXML(StringBuilder xml, int level) {
+    @Override
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<dict>");
         xml.append(NSObject.NEWLINE);
@@ -198,7 +199,8 @@ public class NSDictionary extends NSObject {
 	}
     }
 
-    public void toBinary(BinaryPropertyListWriter out) throws IOException {
+    @Override
+    void toBinary(BinaryPropertyListWriter out) throws IOException {
 	out.writeIntHeader(0xD, dict.size());
 	Set<Map.Entry<String,NSObject>> entries = dict.entrySet();
 	for (Map.Entry<String,NSObject> entry : entries) {

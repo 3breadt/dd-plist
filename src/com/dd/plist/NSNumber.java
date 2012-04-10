@@ -50,6 +50,7 @@ public class NSNumber extends NSObject {
      **/
     public static final int BOOLEAN = 2;
 
+    //Holds the current type of this number
     private int type;
 
     private long longValue;
@@ -239,7 +240,7 @@ public class NSNumber extends NSObject {
     }
 
     @Override
-    public void toXML(StringBuilder xml, int level) {
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         switch(type) {
             case INTEGER : {
@@ -263,6 +264,7 @@ public class NSNumber extends NSObject {
         }
     }
     
+    @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
 	switch (type()) {
 	    case INTEGER : {
