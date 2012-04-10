@@ -39,11 +39,18 @@ import java.io.IOException;
  * @author Daniel Dreibrodt
  */
 public class PropertyListParser {
+    
+    /**
+     * Objects are unneccesary.
+     */
+    private PropertyListParser() {
+        /** empty **/
+    }
 
     /**
      * Reads all bytes from an InputStream and stores them in an array, up to
      * a maximum count.
-     * @param in The InputStream
+     * @param in The InputStream pointing to the data that should be stored in the array.
      * @param max The maximum number of bytes to read.
      **/
     protected static byte[] readAll(InputStream in, int max) throws IOException {

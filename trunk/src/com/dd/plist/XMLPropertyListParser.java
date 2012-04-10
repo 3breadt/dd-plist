@@ -42,6 +42,13 @@ import org.xml.sax.InputSource;
  * @author Daniel Dreibrodt
  */
 public class XMLPropertyListParser {
+    
+    /**
+     * Objects are unneccesary.
+     */
+    private XMLPropertyListParser() {
+        /** empty **/
+    }
 
     private static DocumentBuilderFactory docBuilderFactory = null;
 
