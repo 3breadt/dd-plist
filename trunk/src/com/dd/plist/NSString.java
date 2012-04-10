@@ -80,7 +80,8 @@ public class NSString extends NSObject {
         return content;
     }
 
-    public void toXML(StringBuilder xml, int level) {
+    @Override
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<string>");
         //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
@@ -97,6 +98,7 @@ public class NSString extends NSObject {
     
     private static CharsetEncoder asciiEncoder, utf16beEncoder;
     
+    @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
 	CharBuffer charBuf = CharBuffer.wrap(content);
 	int kind;

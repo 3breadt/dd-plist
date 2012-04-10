@@ -125,7 +125,8 @@ public class NSData extends NSObject {
         return hash;
     }
 
-    public void toXML(StringBuilder xml, int level) {
+    @Override
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<data>");
         xml.append(NSObject.NEWLINE);
@@ -139,6 +140,7 @@ public class NSData extends NSObject {
         xml.append("</data>");
     }
 
+    @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
 	out.writeIntHeader(0x4, bytes.length);
 	out.write(bytes);

@@ -189,7 +189,7 @@ public class NSSet extends NSObject {
      * @param level The indentation level
      */
     @Override
-    public void toXML(StringBuilder xml, int level) {
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<array>");
         xml.append(NSObject.NEWLINE);

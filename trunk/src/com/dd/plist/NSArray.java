@@ -174,7 +174,8 @@ public class NSArray extends NSObject {
         return hash;
     }
 
-    public void toXML(StringBuilder xml, int level) {
+    @Override
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<array>");
         xml.append(NSObject.NEWLINE);
@@ -194,6 +195,7 @@ public class NSArray extends NSObject {
 	}
     }
 
+    @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
 	out.writeIntHeader(0xA, array.length);
 	for (NSObject obj : array) {

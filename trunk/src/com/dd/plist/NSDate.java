@@ -122,13 +122,15 @@ public class NSDate extends NSObject {
         return date.hashCode();
     }
 
-    public void toXML(StringBuilder xml, int level) {
+    @Override
+    void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<date>");
         xml.append(makeDateString(date));
         xml.append("</date>");
     }
 
+    @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
 	out.write(0x33);
 	out.writeDouble((date.getTime() - EPOCH) / 1000.0);
