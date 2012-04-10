@@ -86,7 +86,7 @@ public class BinaryPropertyListParser {
             throw new Exception("The given data is no binary property list. Wrong magic bytes: " + magic);
         }
         
-        int version = Integer.parseInt(magic.substring(6));
+        //int version = Integer.parseInt(magic.substring(6));
         // 00 - OS X Tiger and earlier
         // 01 - Leopard
         // 0? - Snow Leopard and later
