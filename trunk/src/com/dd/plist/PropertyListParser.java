@@ -81,7 +81,7 @@ public class PropertyListParser {
         } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
             return ASCIIPropertyListParser.parse(f);
         } else {
-            throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
+            throw new UnsupportedOperationException("The given data is not a valid property list. For supported format see http://code.google.com/p/plist");
         }
     }
 
@@ -100,7 +100,7 @@ public class PropertyListParser {
         } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
             return ASCIIPropertyListParser.parse(bytes);
         } else {
-            throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
+            throw new UnsupportedOperationException("The given data is not a valid property list. For supported format see http://code.google.com/p/plist");
         }
     }
 
@@ -122,7 +122,7 @@ public class PropertyListParser {
             } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
                 return ASCIIPropertyListParser.parse(is);
             } else {
-                throw new UnsupportedOperationException("The given data is neither a binary nor a XML property list. ASCII property lists are not supported.");
+                throw new UnsupportedOperationException("The given data is not a valid property list. For supported format see http://code.google.com/p/plist");
             }
         } else {
             //Now we have to read everything, because if one parsing method fails
