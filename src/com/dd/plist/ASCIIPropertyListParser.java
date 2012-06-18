@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2012 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /**
- * Parser for ASCII property list. Supports Apple and GnuStep format.
+ * Parser for ASCII property list. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListParser {
@@ -73,20 +73,43 @@ public class ASCIIPropertyListParser {
     private final static Pattern gnuStepRealPattern = Pattern.compile("\\<\\*R[0-9]+(.[0-9]+)?\\>");
     
     
+    /**
+     * Parses an ASCII property list file.
+     * @param f The ASCII property list file.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
+     */
     public static NSObject parse(File f) throws Exception {
         return parse(new Scanner(f));
     }
     
+    /**
+     * Parses an ASCII property list from an input stream.
+     * @param in The input stream that points to the property list's data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
+     */
     public static NSObject parse(InputStream in) throws Exception {
         return parse(new Scanner(in));
     }
     
+    /**
+     * Parses an ASCII property list from a byte array.
+     * @param bytes The ASCII property list data.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing.
+     */
     public static NSObject parse(byte[] bytes) throws Exception {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         return parse(bis);
     }
     
-    
+    /**
+     * Performs the actual parsing of the ASCII property list.
+     * @param s The scanner object wrapping the property list document.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing. 
+     */
     private static NSObject parse(Scanner s) throws Exception {
         s.useDelimiter(scannerDelimiterPattern);
         //A property list has to have a NSArray or NSDictionary as root
@@ -97,6 +120,12 @@ public class ASCIIPropertyListParser {
         }
     }
     
+    /**
+     * Parses an object from the current parsing position in the ASCII property list.
+     * @param s The scanner object wrapping the property list document.
+     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
+     * @throws Exception When an error occurs during parsing. 
+     */
     private static NSObject parseObject(Scanner s) throws Exception {        
         if(s.hasNext(arrayBeginToken)) {
             //NSArray
@@ -192,8 +221,18 @@ public class ASCIIPropertyListParser {
         }
     }
     
+    /**
+     * Used to encode the parsed strings
+     */
     private static CharsetEncoder asciiEncoder;
     
+    /**
+     * Parses a string according to the format specified for ASCII property lists.
+     * Such strings can contain escape sequences which are unescaped in this method.
+     * @param s The escaped string according to the ASCII property list format.
+     * @return The unescaped string in UTF-8 or ASCII format, depending on the contained characters.
+     * @throws Exception If the string could not be properly parsed.
+     */
     public static synchronized String parseQuotedString(String s) throws Exception {
         s = s.substring(1,s.length()-1);
         List<Byte> strBytes = new LinkedList<Byte>();
@@ -217,17 +256,33 @@ public class ASCIIPropertyListParser {
             c = iterator.next();
         }
         byte[] bytArr = new byte[strBytes.size()];
-        for(int i=0;i<bytArr.length;i++)
-            bytArr[i] = strBytes.get(i).byteValue();
+        int i = 0;
+        for(Byte b:strBytes) {
+            bytArr[i] = b.byteValue();
+            i++;
+        }
+        //Build string
         String result = new String(bytArr, "UTF-8");
         CharBuffer charBuf = CharBuffer.wrap(result);
+        
+        //If the string can be represented in the ASCII codepage
+        // --> use ASCII encoding
         if(asciiEncoder == null)
             asciiEncoder = Charset.forName("ASCII").newEncoder();
         if(asciiEncoder.canEncode(charBuf))
             return asciiEncoder.encode(charBuf).asCharBuffer().toString();
+        
+        //The string contains characters outside the ASCII codepage
+        // --> use the UTF-8 encoded string
         return result;
     }
     
+    /**
+     * Unescapes an escaped character sequence, e.g. \\u00FC.
+     * @param iterator The string character iterator pointing to the first character after the backslash
+     * @return The unescaped character as a string.
+     * @throws UnsupportedEncodingException If an invalid Unicode or ASCII escape sequence is found.
+     */
     private static String parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException {        
         char c = iterator.next();
         if(c == '\\') {
