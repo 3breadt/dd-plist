@@ -158,7 +158,8 @@ public class NSArray extends NSObject {
     public NSObject[] objectsAtIndexes(int... indexes) {
         NSObject[] result = new NSObject[indexes.length];
         Arrays.sort(indexes);
-        for(int i=0;i<indexes.length;i++) result[i]=array[indexes[0]];
+        for(int i=0;i<indexes.length;i++)
+            result[i]=array[indexes[i]];
         return result;
     }
 
