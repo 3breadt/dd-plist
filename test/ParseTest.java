@@ -1,6 +1,5 @@
 import com.dd.plist.*;
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import junit.framework.TestCase;
@@ -62,7 +61,7 @@ public class ParseTest extends TestCase {
     }
     
     public static void testASCII() throws Exception {
-        NSObject x = PropertyListParser.parse(new File("test/test1-ascii.plist"));        
+        NSObject x = PropertyListParser.parse(new File("test/test1-ascii.plist"));
         NSDictionary d = (NSDictionary)x;        
         assertTrue(d.count() == 5);        
         assertTrue(((NSString)d.objectForKey("keyA")).toString().equals("valueA"));

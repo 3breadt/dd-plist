@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
@@ -53,11 +54,7 @@ public class NSString extends NSObject {
      * @param string The string that will be contained in the NSString.
      */
     public NSString(String string) {
-        try {
-            content = new String(string.getBytes("UTF-8"), "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            ex.printStackTrace();
-        }
+        content = string;
     }
 
     @Override
@@ -78,12 +75,34 @@ public class NSString extends NSObject {
     @Override
     public String toString() {
         return content;
-    }
+    }    
+    
+    private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     @Override
     void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<string>");
+        
+        //Make sure that the string is encoded in UTF-8 for the XML output
+        synchronized (NSString.class) {
+            if(utf8Encoder==null)
+                utf8Encoder = Charset.forName("UTF-8").newEncoder();
+            else
+                utf8Encoder.reset();
+            
+            try {
+                ByteBuffer byteBuf = utf8Encoder.encode(CharBuffer.wrap(content));
+                byte[] bytes = new byte[byteBuf.remaining()];
+                byteBuf.get(bytes);
+                content = new String(bytes, "UTF-8");
+            } catch (CharacterCodingException ex) {
+                ex.printStackTrace();
+            } catch (UnsupportedEncodingException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
         //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
         //contain the characters < or &. Also the > character should be escaped.
         if(content.contains("&") || content.contains("<") || content.contains(">")) {
@@ -96,7 +115,6 @@ public class NSString extends NSObject {
         xml.append("</string>");
     }
     
-    private static CharsetEncoder asciiEncoder, utf16beEncoder;
     
     @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
