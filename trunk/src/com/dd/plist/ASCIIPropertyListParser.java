@@ -24,6 +24,8 @@ package com.dd.plist;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
@@ -37,41 +39,12 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /**
- * Parser for ASCII property list. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
+ * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
+ * This parser is based on the recursive descent paradigm, but the underlying grammar
+ * is not explicitely defined.
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListParser {
-    
-    private final static Pattern scannerDelimiterPattern = Pattern.compile("(\\s*\\=\\s*)|(\\s*\\;\\s+)|(\\s*\\,\\s+)|(\\s+)");    
-    
-    private final static Pattern arrayBeginToken = Pattern.compile("\\(");
-    private final static Pattern arrayEndToken = Pattern.compile("\\)");
-    
-    private final static Pattern dictionaryBeginToken = Pattern.compile("\\{");
-    private final static Pattern dictionaryEndToken = Pattern.compile("\\}");
-    
-    //ASCII string without spaces, quotes or other tokens
-    private final static Pattern simpleStringPattern = Pattern.compile("[\\x00-\\x7F&&[^\" ,;\\(\\)\\{\\}\\<\\>]]+");
-    //ASCII string within double quotes
-    private final static Pattern quotedStringPattern = Pattern.compile("\"[\\x00-\\x7F]+\"");
-    
-    private final static Pattern dataBeginToken = Pattern.compile("<[0-9A-Fa-f ]*");
-    private final static Pattern dataContentPattern = Pattern.compile("[0-9A-Fa-f ]+");
-    private final static Pattern dataEndToken = Pattern.compile("[0-9A-Fa-f ]*>");
-    
-    private final static Pattern realPattern = Pattern.compile("[0-9]+.[0-9]+");
-    
-    //YYYY-MM-DD HH:MM:SS +/-ZZZZ
-    private final static Pattern gnuStepDateBeginPattern = Pattern.compile("<\\*D[0-9]{4}-[0-1][0-9]-[0-3][0-9]");
-    //yyyy-MM-ddTHH:mm:ssZ
-    private final static Pattern appleDatePattern = Pattern.compile("\"[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\"");
-    
-    private final static Pattern appleBooleanPattern = Pattern.compile("(YES)|(NO)");
-    private final static Pattern gnuStepBooleanPattern = Pattern.compile("(\\<\\*BY\\>)|(\\<\\*BN\\>)");
-    
-    private final static Pattern gnuStepIntPattern = Pattern.compile("\\<\\*I[0-9]+\\>");
-    private final static Pattern gnuStepRealPattern = Pattern.compile("\\<\\*R[0-9]+(.[0-9]+)?\\>");
-    
     
     /**
      * Parses an ASCII property list file.
@@ -80,7 +53,7 @@ public class ASCIIPropertyListParser {
      * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(File f) throws Exception {
-        return parse(new Scanner(f));
+        return parse(new FileInputStream(f));
     }
     
     /**
@@ -90,7 +63,9 @@ public class ASCIIPropertyListParser {
      * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(InputStream in) throws Exception {
-        return parse(new Scanner(in));
+        byte[] buf = PropertyListParser.readAll(in, Integer.MAX_VALUE);
+        in.close();
+        return parse(buf);
     }
     
     /**
@@ -100,126 +75,395 @@ public class ASCIIPropertyListParser {
      * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(byte[] bytes) throws Exception {
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        return parse(bis);
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
+        return parser.parse();
+    }
+    
+    
+    public static final char WHITESPACE_SPACE = ' ';
+    public static final char WHITESPACE_TAB = '\t';
+    public static final char WHITESPACE_NEWLINE = '\n';
+    public static final char WHITESPACE_CARRIAGE_RETURN = '\r';
+    
+    public static final char ARRAY_BEGIN_TOKEN = '(';
+    public static final char ARRAY_END_TOKEN = ')';
+    public static final char ARRAY_ITEM_DELIMITER_TOKEN = ',';
+    
+    public static final char DICTIONARY_BEGIN_TOKEN = '{';
+    public static final char DICTIONARY_END_TOKEN = '}';
+    public static final char DICTIONARY_ASSIGN_TOKEN = '=';
+    public static final char DICTIONARY_ITEM_DELIMITER_TOKEN = ';';
+    
+    public static final char QUOTEDSTRING_BEGIN_TOKEN = '"';
+    public static final char QUOTEDSTRING_END_TOKEN = '"';
+    public static final char QUOTEDSTRING_ESCAPE_TOKEN = '\\';
+    
+    public static final char DATA_BEGIN_TOKEN = '<';
+    public static final char DATA_END_TOKEN = '>';
+    
+    public static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
+    public static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
+    public static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
+    public static final char DATA_GSBOOL_TRUE_TOKEN = 'Y';
+    public static final char DATA_GSBOOL_FALSE_TOKEN = 'N';
+    public static final char DATA_GSINT_BEGIN_TOKEN = 'I';
+    public static final char DATA_GSREAL_BEGIN_TOKEN = 'R';
+    
+    public static final char DATE_DATE_FIELD_DELIMITER = '-';
+    public static final char DATE_TIME_FIELD_DELIMITER = ':';
+    public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
+    public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
+    public static final char DATE_APPLE_END_TOKEN = 'Z';
+    
+    /** Property list source data */
+    private byte[] data;
+    /** Current parsing index */
+    private int index;
+   
+    /**
+     * Creates a new parser for the given property list content.
+     * @param propertyListContent The content of the property list that is to be parsed.
+     */
+    private ASCIIPropertyListParser(byte[] propertyListContent) {
+        data = propertyListContent;
     }
     
     /**
-     * Performs the actual parsing of the ASCII property list.
-     * @param s The scanner object wrapping the property list document.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing. 
+     * Checks whether the given symbols can be accepted, that is, if one
+     * of the given symbols is found at the current parsing position.
+     * @param acceptableSymbols The symbols to check.
+     * @return Whether one of the symbols can be accepted or not.
      */
-    private static NSObject parse(Scanner s) throws Exception {
-        s.useDelimiter(scannerDelimiterPattern);
-        //A property list has to have a NSArray or NSDictionary as root
-        if(s.hasNext(arrayBeginToken) || s.hasNext(dictionaryBeginToken)) {
-            return parseObject(s);
-        } else {
-            throw new ParseException("Expected '"+arrayBeginToken+"' or '"+dictionaryBeginToken+"' but found "+s.next(), 0);
+    private boolean accept(char... acceptableSymbols) {
+        boolean symbolPresent = false;
+        for(char c:acceptableSymbols) {
+            if(data[index]==c)
+                symbolPresent = true;
+        }
+        return symbolPresent;
+    }
+    
+    /**
+     * Checks whether the given symbol can be accepted, that is, if 
+     * the given symbols is found at the current parsing position.
+     * @param acceptableSymbol The symbol to check.
+     * @return Whether the symbol can be accepted or not.
+     */
+    private boolean accept(char acceptableSymbol) {
+        return data[index]==acceptableSymbol;
+    }
+    
+    /**
+     * Expects the input to have one of the given symbols at the current parsing position.
+     * @param expectedSymbols The expected symbols.
+     * @throws ParseException If none of the expected symbols could be found.
+     */
+    private void expect(char... expectedSymbols) throws ParseException {
+        if(!accept(expectedSymbols)) {
+            String excString = "Expected '"+expectedSymbols[0]+"'";
+            for(int i=1;i<expectedSymbols.length;i++) {
+                excString += " or '"+expectedSymbols[i]+"'";
+            }
+            excString += " but found '"+(char)data[index]+"'";
+            throw new ParseException(excString, index);
         }
     }
     
     /**
-     * Parses an object from the current parsing position in the ASCII property list.
-     * @param s The scanner object wrapping the property list document.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing. 
+     * Expects the input to have the given symbol at the current parsing position.
+     * @param expectedSymbol The expected symbol.
+     * @throws ParseException If the expected symbol could be found.
      */
-    private static NSObject parseObject(Scanner s) throws Exception {        
-        if(s.hasNext(arrayBeginToken)) {
-            //NSArray
-            s.next();
-            List<NSObject> arrayObjects = new LinkedList<NSObject>();
-            int len = 0;
-            while(!s.hasNext(arrayEndToken)) {
-                NSObject o = parseObject(s);
-                arrayObjects.add(o);
-                len++;
+    private void expect(char expectedSymbol) throws ParseException {
+        if(!accept(expectedSymbol))
+            throw new ParseException("Expected '"+expectedSymbol+"' but found '"+data[index]+"'", index);
+    }
+    
+    /**
+     * Reads an expected symbol.
+     * @param symbol The symbol to read.
+     * @throws ParseException If the expected symbol could not be read.
+     */
+    private void read(char symbol) throws ParseException {
+        expect(symbol);
+        index++;
+    }
+    
+    /**
+     * Skips the current symbol.
+     */
+    private void skip() {
+        index++;
+    }
+    
+    /**
+     * Skips all whitespaces from the current parsing position onward.
+     */
+    private void skipWhitespaces() {
+        while(accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB))
+            skip();
+    }
+    
+    /**
+     * Reads input until one of the given symbols is found.
+     * @param symbols The symbols that can occur after the string to read.
+     * @return The input until one the given symbols.
+     */
+    private String readInputUntil(char... symbols) {
+        String s = "";
+        while(!accept(symbols)) {
+            s += (char)data[index];
+            skip();
+        }
+        return s;
+    }
+    
+    /**
+     * Reads input until the given symbol is found.
+     * @param symbols The symbol that can occur after the string to read.
+     * @return The input until the given symbol.
+     */
+    private String readInputUntil(char symbol) {
+        String s = "";
+        while(!accept(symbol)) {
+            s += (char)data[index];
+            skip();
+        }
+        return s;
+    }
+    
+    /**
+     * Parses the property list from the beginning and returns the root object
+     * of the property list.
+     * @return The root object of the property list. This can either be a NSDictionary or a NSArray.
+     * @throws ParseException When an error occured during parsing
+     */
+    public NSObject parse() throws ParseException {
+        index = 0;
+        skipWhitespaces();
+        expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN);
+        try {
+            return parseObject();
+        } catch(ArrayIndexOutOfBoundsException ex) {
+            ex.printStackTrace();
+            throw new ParseException("Reached end of input unexpectedly.", index);
+        }
+    }
+    
+    /**
+     * Parses the NSObject found at the current position in the property list
+     * data stream.
+     * @return The parsed NSObject.
+     * @see ASCIIPropertyListParser#index
+     */
+    private NSObject parseObject() throws ParseException {
+        switch(data[index]) {
+            case ARRAY_BEGIN_TOKEN : {
+                return parseArray();
             }
-            if(!s.hasNext(arrayEndToken)) {
-                throw new ParseException("Expected '"+arrayEndToken+"' but found "+s.next(), 0);
+            case DICTIONARY_BEGIN_TOKEN : {
+                return parseDictionary();
             }
-            s.next();
-            NSArray array = new NSArray(arrayObjects.toArray(new NSObject[len]));
-            return array;
-        } else if(s.hasNext(dictionaryBeginToken)) {
-            //NSDictionary
-            s.next();
-            NSDictionary dict = new NSDictionary();
-            while(!s.hasNext(dictionaryEndToken)) {
-                String key = "";
-                if(s.hasNext(simpleStringPattern)) {
-                    key = s.next(simpleStringPattern);
-                } else if(s.hasNext(quotedStringPattern)) {
-                    key = parseQuotedString(s.next(quotedStringPattern));
+            case DATA_BEGIN_TOKEN : {
+                return parseData();
+            }
+            case QUOTEDSTRING_BEGIN_TOKEN : {
+                String quotedString = parseQuotedString();
+                //apple dates are quoted strings of length 20 and after the 4 year digits a dash is found
+                if(quotedString.length()==20 && quotedString.charAt(4)==DATE_DATE_FIELD_DELIMITER) {
+                    try {
+                        NSDate date = new NSDate(quotedString);
+                        return date;
+                    } catch(Exception ex) {
+                        //not a date? --> return string
+                        return new NSString(quotedString);
+                    }
                 } else {
-                    throw new ParseException("Expected String but found "+s.next(), 0);
-                }                
-                NSObject value = parseObject(s);                
-                dict.put(key, value);                
+                    return new NSString(quotedString);
+                }
             }
-            if(!s.hasNext(dictionaryEndToken)) {
-                throw new ParseException("Expected '"+dictionaryEndToken+"' but found "+s.next(), 0);
+            default : {
+                //0-9
+                if(data[index] > 0x2F && data[index] < 0x3A) {
+                    //int, real or date
+                    return parseNumerical();
+                } else {
+                    //non-numerical -> string or boolean
+                    String parsedString = parseString();
+                    if(parsedString.equals("YES")) {
+                        return new NSNumber(true);
+                    } else if(parsedString.equals("NO")) {
+                        return new NSNumber(false);
+                    } else {
+                        return new NSString(parsedString);
+                    }
+                }
             }
-            s.next();
-            return dict;
-        } else if(s.hasNext(gnuStepDateBeginPattern)) {
-            //NSDate
-            String dateString = s.next(); //<*DYYYY-MM-DD
-            dateString += " "+s.next(); //HH:MM:SS
-            dateString += " "+s.next(); //+/-ZZZZ>
-            return new NSDate(dateString.substring(3, dateString.length()-1));
-        } else if(s.hasNext(appleDatePattern)) {
-            //NSDate
-            return new NSDate(s.next().replaceAll("\"",""));
-        } else if(s.hasNextInt()) {
-            //NSNumber: int
-            return new NSNumber(s.nextInt());
-        } else if(s.hasNext(realPattern)) {
-            //NSNumber: real
-            return new NSNumber(Double.parseDouble(s.next()));
-        } else if (s.hasNext(appleBooleanPattern)) {
-            //NSNumber: bool
-            return new NSNumber(s.next().equals("YES"));
-        } else if (s.hasNext(gnuStepBooleanPattern)) {
-            //NSNumber: bool
-            return new NSNumber(s.next().equals("<*BY>"));
-        } else if (s.hasNext(gnuStepIntPattern)) {
-            //NSNumber: int
-            String token = s.next();
-            return new NSNumber(Integer.parseInt(token.substring(3,token.length()-1)));
-        } else if (s.hasNext(gnuStepRealPattern)) {
-            //NSNumber: real
-            String token = s.next();
-            return new NSNumber(Double.parseDouble(token.substring(3,token.length()-1)));
-        } else if(s.hasNext(dataBeginToken)) {            
-            //NSData
-            String data = s.next().replaceFirst("<", "");
-            while(!s.hasNext(dataEndToken))
-                data += s.next(dataContentPattern);
-            data += s.next().replaceAll(">", "");
-            int numBytes = data.length()/2;
+        }
+    }
+    
+    /**
+     * Parses an array from the current parsing position.
+     * The prerequisite for calling this method is, that an array begin token has been read.
+     * @return The array found at the parsing position.
+     */
+    private NSArray parseArray() throws ParseException {
+        //Skip begin token
+        skip();
+        skipWhitespaces();
+        List<NSObject> objects = new LinkedList<NSObject>();
+        while(!accept(ARRAY_END_TOKEN)) {
+            objects.add(parseObject());
+            skipWhitespaces();
+            if(accept(ARRAY_ITEM_DELIMITER_TOKEN)) {
+                skip();
+            } else {
+                break; //must have reached end of array
+            }
+            skipWhitespaces();
+        }
+        //parse end token
+        read(ARRAY_END_TOKEN);        
+        return new NSArray(objects.toArray(new NSObject[objects.size()]));
+    }    
+    
+    /**
+     * Parses a dictionary from the current parsing position.
+     * The prerequisite for calling this method is, that a dictionary begin token has been read.
+     * @return The dictionary found at the parsing position.
+     */
+    private NSDictionary parseDictionary() throws ParseException {
+        //Skip begin token
+        skip();
+        skipWhitespaces();
+        NSDictionary dict = new NSDictionary();
+        while(!accept(DICTIONARY_END_TOKEN)) {
+            //Parse key
+            String keyString;
+            if(accept(QUOTEDSTRING_BEGIN_TOKEN)) {
+                keyString = parseQuotedString();
+            } else {
+                keyString = parseString();
+            }
+            skipWhitespaces();
+            
+            //Parse assign token
+            read(DICTIONARY_ASSIGN_TOKEN);
+            skipWhitespaces();
+            
+            NSObject object = parseObject();            
+            dict.put(keyString, object);
+            
+            read(DICTIONARY_ITEM_DELIMITER_TOKEN);
+            skipWhitespaces();
+        }
+        //skip end token
+        skip();
+        return dict;
+    }
+    
+    /**
+     * Parses a data object from th current parsing position.
+     * This can either be a NSData object or a GnuStep NSNumber or NSDate.
+     * The prerequisite for calling this method is, that a data begin token has been read.
+     * @return The data object found at the parsing position.
+     */
+    private NSObject parseData() throws ParseException {
+        NSObject obj = null;
+        //Skip begin token        
+        skip();
+        if(accept(DATA_GSOBJECT_BEGIN_TOKEN)) {
+            skip();
+            expect(DATA_GSBOOL_BEGIN_TOKEN, DATA_GSDATE_BEGIN_TOKEN, DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN);
+            if(accept(DATA_GSBOOL_BEGIN_TOKEN)) {
+                skip();
+                NSNumber bool;
+                expect(DATA_GSBOOL_TRUE_TOKEN, DATA_GSBOOL_FALSE_TOKEN);                
+                if(accept(DATA_GSBOOL_TRUE_TOKEN)) {
+                    obj = new NSNumber(true);
+                } else {
+                    obj = new NSNumber(false);
+                }
+                //Skip the parsed boolean token
+                skip();
+            } else if(accept(DATA_GSDATE_BEGIN_TOKEN)) {
+                skip();
+                String dateString = readInputUntil(DATA_END_TOKEN);
+                obj = new NSDate(dateString);
+            } else if(accept(DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN)) {
+                skip();
+                String numberString = readInputUntil(DATA_END_TOKEN);
+                obj = new NSNumber(numberString);                
+            }
+            //parse data end token
+            read(DATA_END_TOKEN);
+        } else {
+            String dataString = readInputUntil(DATA_END_TOKEN);
+            dataString = dataString.replaceAll("\\s+", "");
+            
+            int numBytes = dataString.length()/2;
             byte[] bytes = new byte[numBytes];
             for(int i=0;i<bytes.length;i++) {
-                String byteString = data.substring(i*2, i*2+2);
+                String byteString = dataString.substring(i*2, i*2+2);
                 int byteValue = Integer.parseInt(byteString, 16);
                 bytes[i] = (byte)byteValue;
             }
-            return new NSData(bytes);
-        } else if(s.hasNext(quotedStringPattern)) {
-            //NSString
-            String str = parseQuotedString(s.next());            
-            return new NSString(str);
-        } else if(s.hasNext(simpleStringPattern)) {
-            //NSString
-            String str = s.next();
-            return new NSString(str);
+            obj = new NSData(bytes);
+            
+            //skip end token
+            skip();
         }
-        else {
-            throw new ParseException("Expected a NSObject but found "+s.next(), 0);
-        }
+        
+        return obj;
     }
+    
+    /**
+     * Parses a quoted string from the current parsing position.
+     * The prerequisite for calling this method is, that a quoted string begin token has been read.
+     * @return The quoted string found at the parsing method with all special characters unescaped.
+     * @throws ParseException If an error occured during parsing.
+     */
+    private String parseQuotedString() throws ParseException {
+        //Skip begin token
+        skip();
+        String quotedString = "";
+        while(data[index]!=QUOTEDSTRING_END_TOKEN || data[index-1]==QUOTEDSTRING_ESCAPE_TOKEN) {
+            quotedString += (char)data[index];
+            skip();
+        }
+        String unescapedString;
+        try {
+            unescapedString = parseQuotedString(quotedString);
+        } catch(Exception ex) {
+            throw new ParseException("The quoted string could not be parsed.", index);
+        }
+        //skip end token
+        skip();
+        return unescapedString;
+    }
+    
+    /**
+     * Parses a plain string from the current parsing position.
+     * The string is made up of all characters to the next whitespace, delimiter token or assignment token.
+     * @return The string found at the current parsing position.
+     */
+    private String parseString() {
+        String parsedString = readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE, WHITESPACE_CARRIAGE_RETURN,
+                ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN);
+        return parsedString;
+    }
+    
+    private NSObject parseNumerical() throws ParseException {
+        String numericalString = parseString();
+        //GnuStep Date strings have a - after the 4 year digits
+        if(numericalString.length()>4 && numericalString.charAt(4)==DATE_DATE_FIELD_DELIMITER) {
+            //date
+            return new NSDate(numericalString);
+        } else {
+            //real or int
+            return new NSNumber(numericalString);
+        }
+    }    
     
     /**
      * Used to encode the parsed strings
@@ -229,12 +473,11 @@ public class ASCIIPropertyListParser {
     /**
      * Parses a string according to the format specified for ASCII property lists.
      * Such strings can contain escape sequences which are unescaped in this method.
-     * @param s The escaped string according to the ASCII property list format.
+     * @param s The escaped string according to the ASCII property list format, without leading and trailing quotation marks.
      * @return The unescaped string in UTF-8 or ASCII format, depending on the contained characters.
      * @throws Exception If the string could not be properly parsed.
      */
     public static synchronized String parseQuotedString(String s) throws Exception {
-        s = s.substring(1,s.length()-1);
         List<Byte> strBytes = new LinkedList<Byte>();
         StringCharacterIterator iterator = new StringCharacterIterator(s);
         char c = iterator.current();
