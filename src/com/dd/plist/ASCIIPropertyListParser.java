@@ -22,10 +22,8 @@
  */
 package com.dd.plist;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
@@ -35,8 +33,6 @@ import java.text.ParseException;
 import java.text.StringCharacterIterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Pattern;
 
 /**
  * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
@@ -427,8 +423,15 @@ public class ASCIIPropertyListParser {
         //Skip begin token
         skip();
         String quotedString = "";
-        while(data[index]!=QUOTEDSTRING_END_TOKEN || data[index-1]==QUOTEDSTRING_ESCAPE_TOKEN) {
+        boolean unescapedBackslash = true;
+        while(data[index]!=QUOTEDSTRING_END_TOKEN || (data[index-1]==QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)) {
             quotedString += (char)data[index];
+            if(accept(QUOTEDSTRING_ESCAPE_TOKEN)) {
+                if(data[index-1]==QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)
+                    unescapedBackslash = false;
+                else
+                    unescapedBackslash = true;
+            }
             skip();
         }
         String unescapedString;
