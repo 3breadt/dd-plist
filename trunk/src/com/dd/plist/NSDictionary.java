@@ -135,6 +135,14 @@ public class NSDictionary extends NSObject {
     }
 
     /**
+     * Removes a key from this dictionary
+     * @param key The key
+     */
+    public void remove(String key){
+        dict.remove(key);
+    }
+
+    /**
      * Counts the number of contained key-value pairs.
      * @return The size of this NSDictionary.
      */

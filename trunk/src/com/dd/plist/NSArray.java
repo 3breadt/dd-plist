@@ -61,6 +61,19 @@ public class NSArray extends NSObject {
     }
 
     /**
+     * Remove the i-th element from the array
+     * @param i The index of the object
+     */
+    public void remove(int i){
+        if ((i>=array.length) || (i<0))
+            throw new ArrayIndexOutOfBoundsException("invalid index:"+i+";the array length is "+array.length);
+        NSObject[] newArray = new NSObject[array.length-1];
+        System.arraycopy(array,0,newArray,0,i);
+        System.arraycopy(array,i+1,newArray,i,array.length-i-1);
+        array = newArray;
+    }
+
+    /**
      * Stores an object at the specified index.
      * If there was another object stored at that index it will be replaced.
      * Equivalent to <code>getArray()[key] = value</code>.
