@@ -174,4 +174,92 @@ public class PropertyListParser {
 	NSObject root = parse(in);
 	saveAsBinary(root, out);
     }
+    
+    /**
+     * Saves a property list with the given object as root into a ASCII file.
+     * @param root The root object.
+     * @param out The output file.
+     * @throws IOException When an error occurs during the writing process.
+     */
+    public static void saveAsASCII(NSDictionary root, File out) throws IOException {
+	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        w.write(root.toASCIIPropertyList());
+        w.close();
+    }
+    
+    /**
+     * Saves a property list with the given object as root into a ASCII file.
+     * @param root The root object.
+     * @param out The output file.
+     * @throws IOException When an error occurs during the writing process.
+     */
+    public static void saveAsASCII(NSArray root, File out) throws IOException {
+	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        w.write(root.toASCIIPropertyList());
+        w.close();
+    }
+
+    /**
+     * Converts a given property list file into ASCII format.
+     * @param in The source file.
+     * @param out The target file.
+     * @throws Exception When an error occurs during parsing or converting.
+     */
+    public static void convertToASCII(File in, File out) throws Exception {
+        NSObject root = parse(in);
+        try {
+            saveAsASCII((NSDictionary)root, out);
+        } catch(Exception ex) {
+            try {
+                saveAsASCII((NSArray)root, out);
+            } catch(Exception ex2) {
+                throw new Exception("The root of the given input property list "
+                        + "is neither a Dictionary nor an Array!");
+            }
+        }        
+    }
+    
+    /**
+     * Saves a property list with the given object as root into a ASCII file.
+     * @param root The root object.
+     * @param out The output file.
+     * @throws IOException When an error occurs during the writing process.
+     */
+    public static void saveAsGnuStepASCII(NSDictionary root, File out) throws IOException {
+	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        w.write(root.toGnuStepASCIIPropertyList());
+        w.close();
+    }
+    
+    /**
+     * Saves a property list with the given object as root into a ASCII file.
+     * @param root The root object.
+     * @param out The output file.
+     * @throws IOException When an error occurs during the writing process.
+     */
+    public static void saveAsGnuStepASCII(NSArray root, File out) throws IOException {
+	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        w.write(root.toGnuStepASCIIPropertyList());
+        w.close();
+    }
+
+    /**
+     * Converts a given property list file into ASCII format.
+     * @param in The source file.
+     * @param out The target file.
+     * @throws Exception When an error occurs during parsing or converting.
+     */
+    public static void convertToGnuStepASCII(File in, File out) throws Exception {
+        NSObject root = parse(in);
+        try {
+            saveAsGnuStepASCII((NSDictionary)root, out);
+        } catch(Exception ex) {
+            try {
+                saveAsGnuStepASCII((NSArray)root, out);
+            } catch(Exception ex2) {
+                throw new Exception("The root of the given input property list "
+                        + "is neither a Dictionary nor an Array!");
+            }
+        }        
+    }
 }

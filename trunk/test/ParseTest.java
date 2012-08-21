@@ -78,4 +78,22 @@ public class ParseTest extends TestCase {
         NSObject y = PropertyListParser.parse(new File("test/test1-ascii-gnustep.plist"));
         assertTrue(x.equals(y));
     }
+    
+    public static void testASCIIWriting() throws Exception {
+    	File in = new File("test/test1.plist");
+    	File out = new File("test/temp/test1-ascii-out.plist");
+    	NSDictionary x = (NSDictionary)PropertyListParser.parse(in);
+    	PropertyListParser.saveAsASCII(x, out);
+    	NSDictionary y = (NSDictionary)PropertyListParser.parse(out);
+    	assertTrue(x.equals(y));
+    }
+    
+    public static void testGnuStepASCIIWriting() throws Exception {
+    	File in = new File("test/test1.plist");
+    	File out = new File("test/temp/test1-ascii-gnustep-out.plist");
+    	NSDictionary x = (NSDictionary)PropertyListParser.parse(in);
+    	PropertyListParser.saveAsGnuStepASCII(x, out);
+    	NSObject y = PropertyListParser.parse(out);
+    	assertTrue(x.equals(y));
+    }
 }

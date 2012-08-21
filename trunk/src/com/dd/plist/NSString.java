@@ -145,4 +145,59 @@ public class NSString extends NSObject {
 	out.writeIntHeader(kind, content.length());
 	out.write(bytes);
     }
+
+    @Override
+    protected void toASCII(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append("\"");
+        //According to https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
+        //non-ASCII characters are not escaped but simply written into the 
+        //file, thus actually violating the ASCII plain text format
+        ascii.append(content);
+        ascii.append("\"");        
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append("\"");
+        ascii.append(escapeStringForASCII(content));
+        ascii.append("\"");
+    }
+    
+    /**
+     * Escapes a string for use in ASCII property lists.
+     * @param s The unescaped string.
+     * @return The escaped string.
+     */
+    static String escapeStringForASCII(String s) {
+        String out = "";
+        char[] cArray = s.toCharArray();
+        for(int i=0;i<cArray.length;i++) {
+            char c = cArray[i];
+            if(c > 127) {
+                //non-ASCII Unicode
+                out += "\\U";
+                String hex = Integer.toHexString(c);
+                while(hex.length() < 4)
+                    hex = "0"+hex;
+                out += hex;
+            } else if(c == '\\') {
+                out += "\\\\";
+            } else if(c == '\"') {
+                out += "\\\"";
+            } else if(c == '\b') {
+                out += "\\b";
+            } else if(c == '\n') {
+                out += "\\n";
+            } else if(c == '\r') {
+                out += "\\r";
+            } else if(c == '\t') {
+                out += "\\t";
+            } else {
+                out += c;
+            }
+        }
+        return out;
+    }
 }

@@ -151,6 +151,30 @@ public class NSNumber extends NSObject {
     public int type() {
         return type;
     }
+    
+    /**
+     * Checks whether the value of this NSNumber is a boolean.
+     * @return Whether the number's value is a boolean.
+     */
+    public boolean isBoolean() {
+        return type == BOOLEAN;
+    }
+    
+    /**
+     * Checks whether the value of this NSNumber is an integer.
+     * @return Whether the number's value is an integer.
+     */
+    public boolean isInteger() {
+        return type == INTEGER;
+    }
+    
+    /**
+     * Checks whether the value of this NSNumber is a real number.
+     * @return Whether the number's value is a real number.
+     */
+    public boolean isReal() {
+        return type == REAL;
+    }
 
     /**
      * The number's boolean value.
@@ -296,5 +320,46 @@ public class NSNumber extends NSObject {
 		break;
 	    }
 	}
+    }
+    
+    @Override
+    protected void toASCII(StringBuilder ascii, int level) {
+        //Although Apple's documentation does not explicitly say so, unqouted
+        //strings are also allowed in ASCII property lists
+        //Use this to represent numbers which anyhow contain now spaces, so
+        //that a clearer distinction between numbers and strings is made
+        //Also booleans are represented as YES and NO as in GnuStep
+        indent(ascii, level);
+        if(type==BOOLEAN) {
+            ascii.append(boolValue?"YES":"NO");
+        } else {
+            ascii.append(toString());
+        }
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        switch(type) {
+            case INTEGER : {
+                ascii.append("<*I");
+                ascii.append(toString());
+                ascii.append(">");
+                break;
+            }
+            case REAL : {
+                ascii.append("<*R");
+                ascii.append(toString());
+                ascii.append(">");
+                break;
+            }
+            case BOOLEAN : {
+                if(boolValue) {
+                    ascii.append("<*BY>");
+                } else {
+                    ascii.append("<*BN>");
+                }
+            }
+        }
     }
 }

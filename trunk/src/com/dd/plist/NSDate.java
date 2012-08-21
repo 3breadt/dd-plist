@@ -76,6 +76,17 @@ public class NSDate extends NSObject {
     }
     
     /**
+     * Generates a String representation of a Java Date object. The string
+     * is formatted according to the specification for GnuStep ASCII property
+     * list dates.
+     * @param date The date which should be represented.
+     * @return The string representation of the date.
+     */
+    private static synchronized String makeDateStringGnuStep(Date date) {
+        return sdfGnuStep.format(date);
+    }
+    
+    /**
      * Creates a date from its binary representation.
      * @param bytes The date bytes
      */
@@ -144,5 +155,21 @@ public class NSDate extends NSObject {
     @Override
     public String toString() {
         return date.toString();
+    }
+
+    @Override
+    protected void toASCII(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append("\"");
+        ascii.append(makeDateString(date));
+        ascii.append("\"");
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append("<*D");
+        ascii.append(makeDateStringGnuStep(date));
+        ascii.append(">");
     }
 }

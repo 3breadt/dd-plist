@@ -38,6 +38,16 @@ import java.util.List;
  * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
  * This parser is based on the recursive descent paradigm, but the underlying grammar
  * is not explicitely defined.
+ * 
+ * Resources on ASCII property list format:
+ * <ul>
+ * <li><a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html>
+ * Property List Programming Guide - Old-Style ASCII Property Lists
+ * </a></li>
+ * <li><a href="http://www.gnustep.org/resources/documentation/Developer/Base/Reference/NSPropertyList.html">
+ * GnuStep - NSPropertyListSerialization class documentation
+ * </a></li>
+ * </ul>
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListParser {
@@ -172,7 +182,7 @@ public class ASCIIPropertyListParser {
      */
     private void expect(char expectedSymbol) throws ParseException {
         if(!accept(expectedSymbol))
-            throw new ParseException("Expected '"+expectedSymbol+"' but found '"+data[index]+"'", index);
+            throw new ParseException("Expected '"+expectedSymbol+"' but found '"+(char)data[index]+"'", index);
     }
     
     /**
@@ -452,7 +462,7 @@ public class ASCIIPropertyListParser {
      */
     private String parseString() {
         String parsedString = readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE, WHITESPACE_CARRIAGE_RETURN,
-                ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN);
+                ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN, ARRAY_END_TOKEN);
         return parsedString;
     }
     
