@@ -56,7 +56,12 @@ public class UID extends NSObject {
     void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<string>");
-        xml.append(new String(bytes));
+        for(int i=0;i<bytes.length;i++) {
+            byte b = bytes[i];            
+            if(b < 16)
+                xml.append("0");
+            xml.append(Integer.toHexString(b));
+        }
         xml.append("</string>");
     }
 
@@ -64,5 +69,23 @@ public class UID extends NSObject {
     void toBinary(BinaryPropertyListWriter out) throws IOException {
 	out.write(0x80 + bytes.length - 1);
 	out.write(bytes);
+    }
+
+    @Override
+    protected void toASCII(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append("\"");
+        for(int i=0;i<bytes.length;i++) {
+            byte b = bytes[i];            
+            if(b < 16)
+                ascii.append("0");
+            ascii.append(Integer.toHexString(b));
+        }
+        ascii.append("\"");
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        toASCII(ascii, level);
     }
 }

@@ -218,4 +218,97 @@ public class NSDictionary extends NSObject {
 	    out.writeID(out.getID(entry.getValue()));
 	}
     }
+    
+    /**
+     * Generates a valid ASCII property list which has this NSDictionary as its
+     * root object. The generated property list complies with the format as
+     * described in <a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html">
+     * Property List Programming Guide - Old-Style ASCII Property Lists</a>.
+     * @return ASCII representation of this object.
+     */
+    public String toASCIIPropertyList() {
+        StringBuilder ascii = new StringBuilder();
+        toASCII(ascii, 0);
+        ascii.append(NEWLINE);
+        return ascii.toString();
+    }
+    
+    /**
+     * Generates a valid ASCII property list in GnuStep format which has this
+     * NSDictionary as its root object. The generated property list complies with
+     * the format as described in <a href="http://www.gnustep.org/resources/documentation/Developer/Base/Reference/NSPropertyList.html">
+     * GnuStep - NSPropertyListSerialization class documentation
+     * </a>
+     * @return GnuStep ASCII representation of this object.
+     */
+    public String toGnuStepASCIIPropertyList() {
+        StringBuilder ascii = new StringBuilder();
+        toASCIIGnuStep(ascii, 0);
+        ascii.append(NEWLINE);
+        return ascii.toString();
+    }
+
+    @Override
+    protected void toASCII(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
+        ascii.append(NSObject.NEWLINE);
+        String[] keys = dict.keySet().toArray(new String[0]);
+        for (int i=0;i<keys.length;i++) {
+            String key = keys[i];
+            NSObject val = objectForKey(key);
+            indent(ascii, level+1);
+            ascii.append("\"");
+            ascii.append(NSString.escapeStringForASCII(key));
+            ascii.append("\" =");
+            Class<?> objClass = val.getClass();
+            if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {              
+                ascii.append(NEWLINE);                
+                val.toASCII(ascii, level+2);
+            } else {
+                ascii.append(" ");
+                val.toASCII(ascii, 0);
+            }
+            ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
+            if(i!=keys.length-1) {
+                ascii.append(NEWLINE);
+            } else if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {
+                ascii.append(NEWLINE);
+                indent(ascii, level);
+            }
+        }
+        ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
+        ascii.append(NSObject.NEWLINE);
+        String[] keys = dict.keySet().toArray(new String[0]);
+        for (int i=0;i<keys.length;i++) {
+            String key = keys[i];
+            NSObject val = objectForKey(key);
+            indent(ascii, level+1);
+            ascii.append("\"");
+            ascii.append(NSString.escapeStringForASCII(key));
+            ascii.append("\" =");
+            Class<?> objClass = val.getClass();
+            if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {              
+                ascii.append(NEWLINE);                
+                val.toASCIIGnuStep(ascii, level+2);
+            } else {
+                ascii.append(" ");
+                val.toASCIIGnuStep(ascii, 0);
+            }
+            ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
+            if(i!=keys.length-1) {
+                ascii.append(NEWLINE);
+            } else if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {
+                ascii.append(NEWLINE);
+                indent(ascii, level);
+            }
+        }
+        ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
+    }
 }

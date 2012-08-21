@@ -217,4 +217,14 @@ public class NSSet extends NSObject {
 	}
     }
 
+    @Override
+    protected void toASCII(StringBuilder xml, int level) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder xml, int level) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

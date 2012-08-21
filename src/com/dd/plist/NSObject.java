@@ -44,6 +44,13 @@ public abstract class NSObject {
      * tabulator character.
      */
     final static String INDENT = "\t";
+    
+    /**
+     * The maximum length of the text lines to be used when generating
+     * ASCII property lists. But this number is only a guideline it is not
+     * guaranteed that it will not be overstepped.
+     */
+    final static int ASCII_LINE_LENGTH = 80;
 
     /**
      * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
@@ -82,6 +89,23 @@ public abstract class NSObject {
         xml.append("</plist>");
         return xml.toString();
     }
+    
+    /**
+     * Generates the ASCII representation of this object.
+     * The generated ASCII representation does not end with a newline.
+     * Complies with https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
+     * @param ascii The StringBuilder onto which the ASCII representation is appended.
+     * @param level The indentation level of the object.
+     */
+    protected abstract void toASCII(StringBuilder ascii, int level);
+    
+    /**
+     * Generates the ASCII representation of this object in the GnuStep format.
+     * The generated ASCII representation does not end with a newline.
+     * @param ascii The StringBuilder onto which the ASCII representation is appended.
+     * @param level The indentation level of the object.
+     */
+    protected abstract void toASCIIGnuStep(StringBuilder ascii, int level);
 
     /**
      * Helper method that adds correct identation to the xml output.

@@ -216,4 +216,91 @@ public class NSArray extends NSObject {
 	    out.writeID(out.getID(obj));
 	}
     }
+    
+    /**
+     * Generates a valid ASCII property list which has this NSArray as its
+     * root object. The generated property list complies with the format as
+     * described in <a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html">
+     * Property List Programming Guide - Old-Style ASCII Property Lists</a>.
+     * @return ASCII representation of this object.
+     */
+    public String toASCIIPropertyList() {
+        StringBuilder ascii = new StringBuilder();
+        toASCII(ascii, 0);
+        ascii.append(NEWLINE);
+        return ascii.toString();
+    }
+    
+    /**
+     * Generates a valid ASCII property list in GnuStep format which has this
+     * NSArray as its root object. The generated property list complies with
+     * the format as described in <a href="http://www.gnustep.org/resources/documentation/Developer/Base/Reference/NSPropertyList.html">
+     * GnuStep - NSPropertyListSerialization class documentation
+     * </a>
+     * @return GnuStep ASCII representation of this object.
+     */
+    public String toGnuStepASCIIPropertyList() {
+        StringBuilder ascii = new StringBuilder();
+        toASCIIGnuStep(ascii, 0);
+        ascii.append(NEWLINE);
+        return ascii.toString();
+    }
+
+    @Override
+    protected void toASCII(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
+        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
+        for(int i=0;i<array.length;i++) {
+            Class<?> objClass = array[i].getClass();
+            if((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
+                    && indexOfLastNewLine != ascii.length()) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+                array[i].toASCII(ascii, level+1);
+            } else {
+                if(i!=0)
+                    ascii.append(" ");
+                array[i].toASCII(ascii, 0);
+            }
+                        
+            if(i!=array.length-1)
+                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
+            
+            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+            }            
+        }
+        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
+    }
+
+    @Override
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
+        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
+        for(int i=0;i<array.length;i++) {
+            Class<?> objClass = array[i].getClass();
+            if((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
+                    && indexOfLastNewLine != ascii.length()) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+                array[i].toASCIIGnuStep(ascii, level+1);
+            } else {
+                if(i!=0)
+                    ascii.append(" ");
+                array[i].toASCIIGnuStep(ascii, 0);
+            }
+                        
+            if(i!=array.length-1)
+                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
+            
+            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+            }            
+        }
+        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
+    }
 }
