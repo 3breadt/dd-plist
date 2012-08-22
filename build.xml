@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name="plist" default="compile" basedir=".">
-  <property name="source"     value="src"   />
-  <property name="build"      value="build" />
+  <property name="source"     value="src/main/java" />
+  <property name="test-src"   value="src/test/java" />
+  <property name="build"      value="target" />
   <property name="doc"        value="doc" />
-  <property name="dist"       value="dist"  />
+  <property name="dist"       value="target"  />
   <property name="jar"        value="dd-plist.jar" />
-  <property name="testtemp"   value="test/temp" />
   
   <target name="init">
-    <mkdir dir="${build}" />
+    <mkdir dir="${build}/classes" />
+    <!--mkdir dir="${build}/test-classes" /-->
     <mkdir dir="${dist}" />
     <mkdir dir="${doc}" />
-    <mkdir dir="${testtemp}" />
   </target>
   
   <target name="clean">
     <delete dir="${build}" />
     <delete dir="${dist}" />
     <delete dir="${doc}"/>
-    <delete dir="${testtemp}"/>
   </target>
   
   <target name="compile" depends="init">
@@ -46,7 +45,7 @@
     </javadoc>
   </target>
 
-  <target name="package" depends="jar,javadoc,test">
+  <target name="package" depends="jar,javadoc">
     <zip destfile="${dist}/dd-plist.zip">
       <fileset dir="${dist}" includes="${jar}" />
       <fileset dir="." includes="*.txt" />
@@ -54,15 +53,17 @@
     </zip>
   </target>
   
-  <path id="classpath.test">
-    <pathelement location="test/junit-4.10.jar"/>
+  <!-- Testing should now be done in Maven as the junit.jar is no longer maintained in the repo -->
+  
+  <!--path id="classpath.test">
+    <!pathelement location="test/junit-4.10.jar"/>
     <pathelement location="${dist}/${jar}"/>
     <pathelement location="${testtemp}"/>
   </path>
 
   <target name="test" depends="jar">
-    <javac srcdir="test"
-           destdir="${testtemp}"
+    <javac srcdir="${test-src}"
+           destdir="${build}/test-classes"
 	   encoding="utf8"
            debug="on" debuglevel="lines,vars,source"
            includeantruntime="false">
@@ -70,11 +71,11 @@
     </javac>
     <junit haltonfailure="yes">
       <batchtest>
-	<fileset dir="${testtemp}" includes="*Test.class"/>
+	<fileset dir="${build}/test-classes" includes="*Test.class"/>
       </batchtest>
       <formatter type="plain" usefile="false"/>
       <classpath refid="classpath.test"/>
     </junit>
-  </target>
+  </target-->
 
 </project>

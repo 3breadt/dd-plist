@@ -1,0 +1,25 @@
+<assembly>
+	<id>sources</id>
+	<formats>
+		<format>jar</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<files>
+		<file>
+			<source>build.xml</source>
+        </file>
+        <file>
+			<source>pom.xml</source>
+        </file>
+    </files>
+	<fileSets>
+		<fileSet>
+			<directory>src</directory>
+			<outputDirectory>src</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>test-files</directory>
+			<outputDirectory>test-files</outputDirectory>
+		</fileSet>
+	</fileSets>
+</assembly>
