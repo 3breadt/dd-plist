@@ -40,7 +40,7 @@ try {
   String name = rootDict.objectForKey("Name").toString();
   NSObject[] parameters = ((NSArray)rootDict.objectForKey("Parameters")).getArray();
   for(NSObject param:parameters) {
-    if(param.getClass().equals(NSNumber.class) {
+    if(param.getClass().equals(NSNumber.class)) {
       NSNumber num = (NSNumber)param;
       switch(num.type()) {
         case NSNumber.BOOLEAN : {
@@ -59,7 +59,7 @@ try {
           //...
           break;
         }
-    } 
+    }
     // else...
   }
 } catch(Exception ex) {
