@@ -251,7 +251,6 @@ public class ASCIIPropertyListParser {
         try {
             return parseObject();
         } catch(ArrayIndexOutOfBoundsException ex) {
-            ex.printStackTrace();
             throw new ParseException("Reached end of input unexpectedly.", index);
         }
     }
