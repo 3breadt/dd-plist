@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
@@ -55,6 +54,30 @@ public class NSString extends NSObject {
      */
     public NSString(String string) {
         content = string;
+    }
+    
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String c) {
+        content = c;
+    }
+    
+    public void append(NSString s) {
+        append(s.getContent());
+    }
+    
+    public void append(String s) {
+        content += s;
+    }
+    
+    public void prepend(String s) {
+        content = s + content;
+    }
+    
+    public void prepend(NSString s) {
+        prepend(s.getContent());
     }
 
     @Override
@@ -96,10 +119,8 @@ public class NSString extends NSObject {
                 byte[] bytes = new byte[byteBuf.remaining()];
                 byteBuf.get(bytes);
                 content = new String(bytes, "UTF-8");
-            } catch (CharacterCodingException ex) {
-                ex.printStackTrace();
-            } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
+            } catch (Exception ex) {
+                throw new RuntimeException("Could not encode the NSString into UTF-8: "+String.valueOf(ex.getMessage()));
             }
         }
         

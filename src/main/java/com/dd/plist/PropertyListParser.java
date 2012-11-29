@@ -26,9 +26,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 
 /**
  * This class provides methods to parse property lists. It can handle files,
@@ -76,12 +76,10 @@ public class PropertyListParser {
         fis.close();
         if (magicString.startsWith("bplist")) {
             return BinaryPropertyListParser.parse(f);
-        } else if (magicString.startsWith("<?xml")) {
-            return XMLPropertyListParser.parse(f);
         } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
             return ASCIIPropertyListParser.parse(f);
         } else {
-            throw new UnsupportedOperationException("The given data is not a valid property list. For supported format see http://code.google.com/p/plist");
+            return XMLPropertyListParser.parse(f);
         }
     }
 
@@ -95,12 +93,10 @@ public class PropertyListParser {
         String magicString = new String(bytes, 0, 8);
         if (magicString.startsWith("bplist")) {
             return BinaryPropertyListParser.parse(bytes);
-        } else if (magicString.startsWith("<?xml")) {
-            return XMLPropertyListParser.parse(bytes);
         } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
             return ASCIIPropertyListParser.parse(bytes);
         } else {
-            throw new UnsupportedOperationException("The given data is not a valid property list. For supported format see http://code.google.com/p/plist");
+            return XMLPropertyListParser.parse(bytes);
         }
     }
 
@@ -117,12 +113,10 @@ public class PropertyListParser {
             is.reset();
             if (magicString.startsWith("bplist")) {
                 return BinaryPropertyListParser.parse(is);
-            } else if (magicString.startsWith("<?xml")) {
-                return XMLPropertyListParser.parse(is);
             } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
                 return ASCIIPropertyListParser.parse(is);
-            } else {
-                throw new UnsupportedOperationException("The given data is not a valid property list. For supported format see http://code.google.com/p/plist");
+            } else {                
+                return XMLPropertyListParser.parse(is);
             }
         } else {
             //Now we have to read everything, because if one parsing method fails
