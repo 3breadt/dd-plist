@@ -56,4 +56,8 @@ public class IssueTest extends TestCase {
         assertTrue(emojiString.equals(y1.objectForKey("emojiString").toString()));
         assertTrue(emojiString.equals(y2.objectForKey("emojiString").toString()));
     }
+    
+    public static void testIssue30() throws Exception {
+        NSArray arr = (NSArray)PropertyListParser.parse(new File("test-files/issue30.plist"));
+    }
 }

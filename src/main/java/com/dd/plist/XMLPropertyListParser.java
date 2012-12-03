@@ -144,12 +144,26 @@ public class XMLPropertyListParser {
             throw new UnsupportedOperationException("The given XML document is not a property list.");
         }
 
-        //Skip all #TEXT nodes and take the first element node we find as root
-        List<Node> rootNodes = filterElementNodes(doc.getDocumentElement().getChildNodes());
-        if(rootNodes.size() > 0)
-            return parseObject(rootNodes.get(0));
-        else
-            throw new Exception("No root node found!");
+        Node rootNode = null;
+        
+        if(doc.getDocumentElement().getNodeName().equals("plist")) {
+            //Root element wrapped in plist tag
+            List<Node> rootNodes = filterElementNodes(doc.getDocumentElement().getChildNodes());
+            if(rootNodes.isEmpty()) {
+                throw new Exception("The given property list has no root element!");
+            }
+            else if(rootNodes.size() == 1) {
+                rootNode = rootNodes.get(0);
+            }
+            else {
+                throw new Exception("The given property list has more than one root element!");
+            }
+        } else {
+            //Root NSObject not wrapped in plist-tag
+            rootNode = doc.getDocumentElement();
+        }
+        
+        return parseObject(rootNode);
     }
 
     /**
