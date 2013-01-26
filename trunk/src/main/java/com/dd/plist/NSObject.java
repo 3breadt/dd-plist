@@ -22,7 +22,13 @@
  */
 package com.dd.plist;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract interface for any object contained in a property list.
@@ -117,5 +123,182 @@ public abstract class NSObject {
     void indent(StringBuilder xml, int level) {
         for(int i=0;i<level;i++)
             xml.append(INDENT);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSString wrap(String value) {
+        return new NSString(value);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSNumber wrap(long value) {
+        return new NSNumber(value);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSNumber wrap(double value) {
+        return new NSNumber(value);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSNumber wrap(boolean value) {
+        return new NSNumber(value);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSDate wrap(Date value) {
+        return new NSDate(value);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSData wrap(byte[] value) {
+        return new NSData(value);
+    }
+    
+    /**
+     * Wraps the given value inside a NSObject.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     */
+    public static NSData wrap(Serializable value) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(value);
+        oos.close();
+        
+        return wrap(baos.toByteArray());
+    }
+    
+    /**
+     * Creates a NSArray with the contents of the given array.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     * @throws RuntimeException When one of the objects contained in the array cannot be represented by a NSObject.
+     */
+    public static NSArray wrap(Object[] value) {
+        NSArray arr = new NSArray(value.length);
+        for(int i=0; i<value.length; i++) {
+            arr.setValue(i, wrap(value[i]));
+        }
+        return arr;
+    }
+    
+    /**
+     * Creates a NSDictionary with the contents of the given map.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     * @throws RuntimeException When one of the values contained in the map cannot be represented by a NSObject.
+     */
+    public static NSDictionary wrap(Map<String, Object> value) {
+        NSDictionary dict = new NSDictionary();
+        for(String key:value.keySet())
+            dict.put(key, wrap(value.get(key)));
+        return dict;
+    }
+    
+    /**
+     * Creates a NSSet with the contents of this set.
+     * @param value The value to represent as a NSObject.
+     * @return A NSObject representing the given value.
+     * @throws RuntimeException When one of the values contained in the set cannot be represented by a NSObject.
+     */
+    public static NSSet wrap(Set<Object> value) {
+        NSSet set = new NSSet();
+        for(Object o:value.toArray())
+            set.addObject(wrap(o));
+        return set;
+    }
+    
+    /**
+     * Creates a NSObject representing the given Java Object.
+     * Numerics of type bool, int, long, short, byte, float or double are wrapped as NSNumber objects.
+     * Strings are wrapped as NSString objects abd byte arrays as NSData objects.
+     * Serializable classes are serialized and their data is stored in NSData objects.
+     * Arrays are converted to NSArrays where each array member is converted to a NSObject by the above rules.     
+     * @param o The object to represent.
+     * @return A NSObject equivalent to the given object.
+     */
+    public static NSObject wrap(Object o) {        
+        Class c = o.getClass();        
+        if(Boolean.class.isAssignableFrom(c)) {
+            return wrap((boolean)(Boolean)o);
+        }
+        if(Integer.class.isAssignableFrom(c)) {
+            return wrap((int)(Integer)o);
+        }
+        if(Long.class.isAssignableFrom(c)) {
+            return wrap((long)(Long)o);
+        }
+        if(Short.class.isAssignableFrom(c)) {
+            return wrap((int)(Short)o);
+        }
+        if(Byte.class.isAssignableFrom(c)) {
+            return wrap((int)(Byte)o);
+        }
+        if(Float.class.isAssignableFrom(c)) {
+            return wrap((double)(Float)o);
+        }
+        if(Double.class.isAssignableFrom(c)) {
+            return wrap((double)(Double)o);
+        }
+        if(String.class.equals(c)) {
+            return wrap((String)o);
+        }
+        if(byte[].class.equals(c)) {
+            return wrap((byte[])o);
+        }
+        if(Object[].class.isAssignableFrom(c)) {
+            return wrap((Object[])o);
+        }
+        if(c.isAssignableFrom(Serializable.class)) {
+            try {
+                return wrap((Serializable)o);
+            } catch(IOException ex) {
+                return wrapSerialized(o);
+            }
+        }
+        return wrapSerialized(o);
+    }
+    
+    /**
+     * Serializes the given object using Java's default object serialization
+     * and wraps the serialized object in a NSData object.
+     * @param o The object to serialize and wrap.
+     * @return A NSData object
+     * @throws RuntimeException When the object could not be serialized.
+     */
+    private static NSData wrapSerialized(Object o) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(o);
+            return new NSData(baos.toByteArray());
+        } catch(IOException ex) {
+            throw new RuntimeException("The given object of class "+o.getClass().toString()+" could not be serialized and stored in a NSData object.");
+        }
     }
 }

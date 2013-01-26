@@ -56,26 +56,50 @@ public class NSString extends NSObject {
         content = string;
     }
     
+    /**
+     * Gets this strings content.
+     * @return This NSString as Java String object.
+     */
     public String getContent() {
         return content;
     }
     
+    /**
+     * Sets the contents of this string.
+     * @param c The new content of this string object.
+     */
     public void setContent(String c) {
         content = c;
     }
     
+    /**
+     * Appends a string to this string.
+     * @param s The string to append.
+     */
     public void append(NSString s) {
         append(s.getContent());
     }
     
+    /**
+     * Appends a string to this string.
+     * @param s The string to append.
+     */
     public void append(String s) {
         content += s;
     }
     
+    /**
+     * Prepends a string to this string.
+     * @param s The string to prepend.
+     */
     public void prepend(String s) {
         content = s + content;
     }
     
+    /**
+     * Prepends a string to this string.
+     * @param s The string to prepend.
+     */
     public void prepend(NSString s) {
         prepend(s.getContent());
     }

@@ -100,4 +100,27 @@ public class ParseTest extends TestCase {
     	NSObject y = PropertyListParser.parse(out);
     	assertTrue(x.equals(y));
     }
+    
+    public static void testWrap() throws Exception {
+        boolean b = false;
+        byte byt = 24;
+        short sh = 12;
+        int i = 42;
+        long l = 1234234234;
+        float f = 124.3f;
+        double d = 32.0;
+        String s = "Hello World";
+        byte[] lesbytes = new byte[] {(byte)0x00, (byte)0xAF, (byte)0xAF};
+        Object[] lesobjects = new Object[] {b, byt, sh, i, l, f, d, s, lesbytes};
+        assertTrue(NSObject.wrap(b).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(byt).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(sh).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(i).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(l).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(f).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(d).getClass().equals(NSNumber.class));
+        assertTrue(NSObject.wrap(s).getClass().equals(NSString.class));
+        assertTrue(NSObject.wrap(lesbytes).getClass().equals(NSData.class));
+        assertTrue(NSObject.wrap(lesobjects).getClass().equals(NSArray.class));
+    }
 }

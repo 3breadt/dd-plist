@@ -465,15 +465,23 @@ public class ASCIIPropertyListParser {
         return parsedString;
     }
     
-    private NSObject parseNumerical() throws ParseException {
-        String numericalString = parseString();
-        //GnuStep Date strings have a - after the 4 year digits
-        if(numericalString.length()>4 && numericalString.charAt(4)==DATE_DATE_FIELD_DELIMITER) {
-            //date
-            return new NSDate(numericalString);
-        } else {
-            //real or int
-            return new NSNumber(numericalString);
+    /**
+     * Attempts to parse a plain string as a number or date.
+     * @return A NSNumber or NSDate if the string represents such an object. Otherwise a NSString is returned.
+     */
+    private NSObject parseNumerical() {
+        String numericalString = parseString();        
+        try {
+            //GnuStep Date strings have a - after the 4 year digits        
+            if(numericalString.length()>4 && numericalString.charAt(4)==DATE_DATE_FIELD_DELIMITER) {
+                //date
+                return new NSDate(numericalString);
+            } else {
+                //real or int
+                return new NSNumber(numericalString);
+            }
+        } catch(ParseException ex) {
+            return new NSString(numericalString);
         }
     }    
     
