@@ -183,7 +183,8 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * There is no XML representation specified for sets.
+     * Returns the XML representantion for this set.
+     * There is no official XML representation specified for sets.
      * In this implementation it is represented by an array.
      * @param xml The XML StringBuilder
      * @param level The indentation level
@@ -217,14 +218,78 @@ public class NSSet extends NSObject {
 	}
     }
 
+    /**
+     * Returns the ASCII representation of this set.
+     * There is no official ASCII representation for sets.
+     * In this implementation sets are represented as arrays.
+     * @param ascii
+     * @param level 
+     */
     @Override
-    protected void toASCII(StringBuilder xml, int level) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    protected void toASCII(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        NSObject[] array = allObjects();
+        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
+        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
+        for(int i=0;i<array.length;i++) {
+            Class<?> objClass = array[i].getClass();
+            if((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
+                    && indexOfLastNewLine != ascii.length()) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+                array[i].toASCII(ascii, level+1);
+            } else {
+                if(i!=0)
+                    ascii.append(" ");
+                array[i].toASCII(ascii, 0);
+            }
+                        
+            if(i!=array.length-1)
+                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
+            
+            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+            }            
+        }
+        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
     }
 
+    /**
+     * Returns the ASCII representation of this set according to the GnuStep format.
+     * There is no official ASCII representation for sets.
+     * In this implementation sets are represented as arrays.
+     * @param ascii
+     * @param level 
+     */
     @Override
-    protected void toASCIIGnuStep(StringBuilder xml, int level) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        indent(ascii, level);
+        NSObject[] array = allObjects();
+        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
+        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
+        for(int i=0;i<array.length;i++) {
+            Class<?> objClass = array[i].getClass();
+            if((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
+                    && indexOfLastNewLine != ascii.length()) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+                array[i].toASCIIGnuStep(ascii, level+1);
+            } else {
+                if(i!=0)
+                    ascii.append(" ");
+                array[i].toASCIIGnuStep(ascii, 0);
+            }
+                        
+            if(i!=array.length-1)
+                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
+            
+            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
+                ascii.append(NEWLINE);
+                indexOfLastNewLine = ascii.length();
+            }            
+        }
+        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
     }
 
 }

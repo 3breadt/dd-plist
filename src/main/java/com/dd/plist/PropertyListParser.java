@@ -63,6 +63,16 @@ public class PropertyListParser {
 	}
 	return buf.toByteArray();
     }
+    
+    /**
+     * Parses a property list from a file.
+     * @param filePath Path to the property list file.
+     * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws Exception If an error occurred while parsing.
+     */
+    public static NSObject parse(String filePath) throws Exception {
+        return parse(new File(filePath));
+    }
 
     /**
      * Parses a property list from a file.
@@ -132,6 +142,9 @@ public class PropertyListParser {
      * @throws IOException When an error occurs during the writing process.
      */
     public static void saveAsXML(NSObject root, File out) throws IOException {
+        File parent = out.getParentFile();
+        if(!parent.exists())
+            parent.mkdirs();
 	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "UTF-8");
         w.write(root.toXMLPropertyList());
         w.close();
@@ -155,6 +168,9 @@ public class PropertyListParser {
      * @throws IOException When an error occurs during the writing process.
      */
     public static void saveAsBinary(NSObject root, File out) throws IOException {
+        File parent = out.getParentFile();
+        if(!parent.exists())
+            parent.mkdirs();
 	BinaryPropertyListWriter.write(out, root);
     }
     
@@ -176,6 +192,9 @@ public class PropertyListParser {
      * @throws IOException When an error occurs during the writing process.
      */
     public static void saveAsASCII(NSDictionary root, File out) throws IOException {
+        File parent = out.getParentFile();
+        if(!parent.exists())
+            parent.mkdirs();
 	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toASCIIPropertyList());
         w.close();
@@ -220,6 +239,9 @@ public class PropertyListParser {
      * @throws IOException When an error occurs during the writing process.
      */
     public static void saveAsGnuStepASCII(NSDictionary root, File out) throws IOException {
+        File parent = out.getParentFile();
+        if(!parent.exists())
+            parent.mkdirs();
 	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toGnuStepASCIIPropertyList());
         w.close();
@@ -232,6 +254,9 @@ public class PropertyListParser {
      * @throws IOException When an error occurs during the writing process.
      */
     public static void saveAsGnuStepASCII(NSArray root, File out) throws IOException {
+        File parent = out.getParentFile();
+        if(!parent.exists())
+            parent.mkdirs();
 	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toGnuStepASCIIPropertyList());
         w.close();

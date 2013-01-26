@@ -24,6 +24,7 @@
 package com.dd.plist;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,6 +53,16 @@ public class NSDictionary extends NSObject {
         //With a linked HashMap the order of elements in the dictionary is kept.
         dict = new LinkedHashMap<String, NSObject>();
     }
+    
+    /**
+     * Gets the hashmap which stores the keys and values of this dictionary.
+     * Changes to the hashmap's contents are directly reflected in this
+     * dictionary.
+     * @return The hashmap which is used by this dictionary to store its contents.
+     */
+    public HashMap<String, NSObject> getHashMap() {
+        return dict;
+    }
 
     /**
      * Gets the NSObject stored for the given key.
@@ -78,15 +89,6 @@ public class NSDictionary extends NSObject {
      */
     public void put(String key, String obj) {
         put(key, new NSString(obj));
-    }
-
-    /**
-     * Puts a new key-value pair into this dictionary.
-     * @param key The key.
-     * @param obj The value.
-     */
-    public void put(String key, int obj) {
-        put(key, new NSNumber(obj));
     }
 
     /**
@@ -140,6 +142,127 @@ public class NSDictionary extends NSObject {
      */
     public void remove(String key){
         dict.remove(key);
+    }
+    
+    /**
+     * Removes all key-value pairs from this dictionary.
+     */
+    public void clear() {
+        dict.clear();
+    }
+    
+    /**
+     * Checks whether a given key is contained in this dictionary.
+     * @param key The key that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsKey(String key) {
+        return dict.containsKey(key);
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(NSObject val) {
+        return dict.containsValue(val);
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(String val) {
+        for(NSObject o:dict.values()) {
+            if(o.getClass().equals(NSString.class)) {
+                NSString str = (NSString)o;
+                if(str.getContent().equals(val))
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(long val) {
+        for(NSObject o:dict.values()) {
+            if(o.getClass().equals(NSNumber.class)) {
+                NSNumber num = (NSNumber)o;
+                if(num.isInteger() && num.intValue() == val)
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(double val) {
+        for(NSObject o:dict.values()) {
+            if(o.getClass().equals(NSNumber.class)) {
+                NSNumber num = (NSNumber)o;
+                if(num.isReal() && num.doubleValue() == val)
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(boolean val) {
+        for(NSObject o:dict.values()) {
+            if(o.getClass().equals(NSNumber.class)) {
+                NSNumber num = (NSNumber)o;
+                if(num.isBoolean() && num.boolValue() == val)
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(Date val) {
+        for(NSObject o:dict.values()) {
+            if(o.getClass().equals(NSDate.class)) {
+                NSDate dat = (NSDate)o;
+                if(dat.getDate().equals(val))
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks whether a given value is contained in this dictionary.
+     * @param val The value that will be searched for.
+     * @return Whether the key is contained in this dictionary.
+     */
+    public boolean containsValue(byte[] val) {
+        for(NSObject o:dict.values()) {
+            if(o.getClass().equals(NSData.class)) {
+                NSData dat = (NSData)o;
+                if(Arrays.equals(dat.bytes(), val))
+                    return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -252,7 +375,7 @@ public class NSDictionary extends NSObject {
     protected void toASCII(StringBuilder ascii, int level) {
         indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
-        ascii.append(NSObject.NEWLINE);
+        ascii.append(NEWLINE);
         String[] keys = dict.keySet().toArray(new String[0]);
         for (int i=0;i<keys.length;i++) {
             String key = keys[i];
@@ -263,20 +386,16 @@ public class NSDictionary extends NSObject {
             ascii.append("\" =");
             Class<?> objClass = val.getClass();
             if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {              
-                ascii.append(NEWLINE);                
+                ascii.append(NEWLINE);
                 val.toASCII(ascii, level+2);
             } else {
                 ascii.append(" ");
                 val.toASCII(ascii, 0);
             }
             ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
-            if(i!=keys.length-1) {
-                ascii.append(NEWLINE);
-            } else if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {
-                ascii.append(NEWLINE);
-                indent(ascii, level);
-            }
+            ascii.append(NEWLINE);
         }
+        indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
     }
 
@@ -284,7 +403,7 @@ public class NSDictionary extends NSObject {
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
         indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
-        ascii.append(NSObject.NEWLINE);
+        ascii.append(NEWLINE);
         String[] keys = dict.keySet().toArray(new String[0]);
         for (int i=0;i<keys.length;i++) {
             String key = keys[i];
@@ -302,13 +421,9 @@ public class NSDictionary extends NSObject {
                 val.toASCIIGnuStep(ascii, 0);
             }
             ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
-            if(i!=keys.length-1) {
-                ascii.append(NEWLINE);
-            } else if(objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class)) {
-                ascii.append(NEWLINE);
-                indent(ascii, level);
-            }
-        }
+            ascii.append(NEWLINE);
+        }        
+        indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
     }
 }
