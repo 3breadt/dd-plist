@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 /**
@@ -145,7 +146,19 @@ public class PropertyListParser {
         File parent = out.getParentFile();
         if(!parent.exists())
             parent.mkdirs();
-	OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "UTF-8");
+        FileOutputStream fous = new FileOutputStream(out);
+	saveAsXML(root, fous);
+        fous.close();
+    }
+    
+    /**
+     * Saves a property list with the given object as root in XML format into an output stream.
+     * @param root The root object.
+     * @param out The output stream.
+     * @throws IOException When an error occurs during the writing process.
+     */
+    public static void saveAsXML(NSObject root, OutputStream out) throws IOException {
+	OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
         w.write(root.toXMLPropertyList());
         w.close();
     }
@@ -171,6 +184,16 @@ public class PropertyListParser {
         File parent = out.getParentFile();
         if(!parent.exists())
             parent.mkdirs();
+	BinaryPropertyListWriter.write(out, root);
+    }
+    
+    /**
+     * Saves a property list with the given object as root in binary format into an output stream.
+     * @param root The root object.
+     * @param out The output stream.
+     * @throws IOException When an error occurs during the writing process.
+     */
+    public static void saveAsBinary(NSObject root, OutputStream out) throws IOException {
 	BinaryPropertyListWriter.write(out, root);
     }
     
