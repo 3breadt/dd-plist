@@ -38,7 +38,7 @@ import java.util.List;
  * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
  * This parser is based on the recursive descent paradigm, but the underlying grammar
  * is not explicitely defined.
- * 
+ *
  * Resources on ASCII property list format:
  * <ul>
  * <li><a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html>
@@ -51,7 +51,7 @@ import java.util.List;
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListParser {
-    
+
     /**
      * Parses an ASCII property list file.
      * @param f The ASCII property list file.
@@ -61,7 +61,7 @@ public class ASCIIPropertyListParser {
     public static NSObject parse(File f) throws Exception {
         return parse(new FileInputStream(f));
     }
-    
+
     /**
      * Parses an ASCII property list from an input stream.
      * @param in The input stream that points to the property list's data.
@@ -73,7 +73,7 @@ public class ASCIIPropertyListParser {
         in.close();
         return parse(buf);
     }
-    
+
     /**
      * Parses an ASCII property list from a byte array.
      * @param bytes The ASCII property list data.
@@ -84,29 +84,28 @@ public class ASCIIPropertyListParser {
         ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
         return parser.parse();
     }
-    
-    
+
     public static final char WHITESPACE_SPACE = ' ';
     public static final char WHITESPACE_TAB = '\t';
     public static final char WHITESPACE_NEWLINE = '\n';
     public static final char WHITESPACE_CARRIAGE_RETURN = '\r';
-    
+
     public static final char ARRAY_BEGIN_TOKEN = '(';
     public static final char ARRAY_END_TOKEN = ')';
     public static final char ARRAY_ITEM_DELIMITER_TOKEN = ',';
-    
+
     public static final char DICTIONARY_BEGIN_TOKEN = '{';
     public static final char DICTIONARY_END_TOKEN = '}';
     public static final char DICTIONARY_ASSIGN_TOKEN = '=';
     public static final char DICTIONARY_ITEM_DELIMITER_TOKEN = ';';
-    
+
     public static final char QUOTEDSTRING_BEGIN_TOKEN = '"';
     public static final char QUOTEDSTRING_END_TOKEN = '"';
     public static final char QUOTEDSTRING_ESCAPE_TOKEN = '\\';
-    
+
     public static final char DATA_BEGIN_TOKEN = '<';
     public static final char DATA_END_TOKEN = '>';
-    
+
     public static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
     public static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
     public static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
@@ -114,23 +113,23 @@ public class ASCIIPropertyListParser {
     public static final char DATA_GSBOOL_FALSE_TOKEN = 'N';
     public static final char DATA_GSINT_BEGIN_TOKEN = 'I';
     public static final char DATA_GSREAL_BEGIN_TOKEN = 'R';
-    
+
     public static final char DATE_DATE_FIELD_DELIMITER = '-';
     public static final char DATE_TIME_FIELD_DELIMITER = ':';
     public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
     public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
     public static final char DATE_APPLE_END_TOKEN = 'Z';
- 
+
     public static final char COMMENT_BEGIN_TOKEN = '/';
     public static final char MULTILINE_COMMENT_SECOND_TOKEN = '*';
     public static final char SINGLELINE_COMMENT_SECOND_TOKEN = '/';
     public static final char MULTILINE_COMMENT_END_TOKEN = '/';
-    
+
     /** Property list source data */
     private byte[] data;
     /** Current parsing index */
     private int index;
-   
+
     /**
      * Creates a new parser for the given property list content.
      * @param propertyListContent The content of the property list that is to be parsed.
@@ -139,6 +138,19 @@ public class ASCIIPropertyListParser {
         data = propertyListContent;
     }
     
+    /**
+     * Checks whether the given sequence of symbols can be accepted.
+     * @param sequence The sequence of tokens to look for.
+     * @return Whether the given tokens occur at the current parsing position.
+     */
+    private boolean acceptSequence(char... sequence) {
+        for(int i=0; i<sequence.length; i++) {
+            if(data[index+i] != sequence[i])
+                return false;
+        }
+        return true;
+    }
+
     /**
      * Checks whether the given symbols can be accepted, that is, if one
      * of the given symbols is found at the current parsing position.
@@ -153,9 +165,9 @@ public class ASCIIPropertyListParser {
         }
         return symbolPresent;
     }
-    
+
     /**
-     * Checks whether the given symbol can be accepted, that is, if 
+     * Checks whether the given symbol can be accepted, that is, if
      * the given symbols is found at the current parsing position.
      * @param acceptableSymbol The symbol to check.
      * @return Whether the symbol can be accepted or not.
@@ -163,7 +175,7 @@ public class ASCIIPropertyListParser {
     private boolean accept(char acceptableSymbol) {
         return data[index]==acceptableSymbol;
     }
-    
+
     /**
      * Expects the input to have one of the given symbols at the current parsing position.
      * @param expectedSymbols The expected symbols.
@@ -179,7 +191,7 @@ public class ASCIIPropertyListParser {
             throw new ParseException(excString, index);
         }
     }
-    
+
     /**
      * Expects the input to have the given symbol at the current parsing position.
      * @param expectedSymbol The expected symbol.
@@ -189,7 +201,7 @@ public class ASCIIPropertyListParser {
         if(!accept(expectedSymbol))
             throw new ParseException("Expected '"+expectedSymbol+"' but found '"+(char)data[index]+"'", index);
     }
-    
+
     /**
      * Reads an expected symbol.
      * @param symbol The symbol to read.
@@ -199,7 +211,7 @@ public class ASCIIPropertyListParser {
         expect(symbol);
         index++;
     }
-    
+
     /**
      * Skips the current symbol.
      */
@@ -208,35 +220,47 @@ public class ASCIIPropertyListParser {
     }
     
     /**
-     * Skips all whitespaces from the current parsing position onward.
+     * Skips several symbols
+     * @param numSymbols The amount of symbols to skip.
      */
-    private void skipWhitespaces() {
-    	 while(accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB))
-             skip();
-         skipComments();
-         while(accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB))
-             skip();
+    private void skip(int numSymbols) {
+        index += numSymbols;
+    }
+
+    /**
+     * Skips all whitespaces and comments from the current parsing position onward.
+     */
+    private void skipWhitespacesAndComments() {
+        boolean commentSkipped;
+        do {
+            commentSkipped = false;
+            
+            //Skip whitespaces
+            while (accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB)) {
+                skip();
+            }
+
+            //Skip single line comments "//..."
+            if (acceptSequence(COMMENT_BEGIN_TOKEN, SINGLELINE_COMMENT_SECOND_TOKEN)) {
+                skip(2);
+                readInputUntil(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE);
+                commentSkipped = true;
+            }
+            //Skip multi line comments "/* ... */"
+            else if (acceptSequence(COMMENT_BEGIN_TOKEN, MULTILINE_COMMENT_SECOND_TOKEN)) {
+                skip(2);
+                while (true) {
+                    if (acceptSequence(MULTILINE_COMMENT_SECOND_TOKEN, MULTILINE_COMMENT_END_TOKEN)) {
+                        skip(2);
+                        break;
+                    }
+                    skip();
+                }
+                commentSkipped = true;
+            }
+        } while(commentSkipped); //if a comment was skipped more whitespace or another comment can follow, so skip again
     }
     
-    private void skipComments() {
-		
-    	if(!accept(COMMENT_BEGIN_TOKEN))
-    		return;
-    	skip();//Skip begin token
-    	if(accept(MULTILINE_COMMENT_SECOND_TOKEN)){
-    		while(true){
-    			if(accept(MULTILINE_COMMENT_SECOND_TOKEN) && data[index+1] == MULTILINE_COMMENT_END_TOKEN ){
-    				skip();
-    				break;
-    			}
-    			skip();
-    		}
-    	}else if(accept(SINGLELINE_COMMENT_SECOND_TOKEN)){
-    		readInputUntil(WHITESPACE_CARRIAGE_RETURN,WHITESPACE_NEWLINE);
-    		skip();
-    	}
-		skipWhitespaces();
-	}
     /**
      * Reads input until one of the given symbols is found.
      * @param symbols The symbols that can occur after the string to read.
@@ -250,7 +274,7 @@ public class ASCIIPropertyListParser {
         }
         return s;
     }
-    
+
     /**
      * Reads input until the given symbol is found.
      * @param symbols The symbol that can occur after the string to read.
@@ -264,7 +288,7 @@ public class ASCIIPropertyListParser {
         }
         return s;
     }
-    
+
     /**
      * Parses the property list from the beginning and returns the root object
      * of the property list.
@@ -273,7 +297,7 @@ public class ASCIIPropertyListParser {
      */
     public NSObject parse() throws ParseException {
         index = 0;
-        skipWhitespaces();
+        skipWhitespacesAndComments();
         expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
         try {
             return parseObject();
@@ -281,7 +305,7 @@ public class ASCIIPropertyListParser {
             throw new ParseException("Reached end of input unexpectedly.", index);
         }
     }
-    
+
     /**
      * Parses the NSObject found at the current position in the property list
      * data stream.
@@ -333,7 +357,7 @@ public class ASCIIPropertyListParser {
             }
         }
     }
-    
+
     /**
      * Parses an array from the current parsing position.
      * The prerequisite for calling this method is, that an array begin token has been read.
@@ -342,23 +366,23 @@ public class ASCIIPropertyListParser {
     private NSArray parseArray() throws ParseException {
         //Skip begin token
         skip();
-        skipWhitespaces();
+        skipWhitespacesAndComments();
         List<NSObject> objects = new LinkedList<NSObject>();
         while(!accept(ARRAY_END_TOKEN)) {
             objects.add(parseObject());
-            skipWhitespaces();
+            skipWhitespacesAndComments();
             if(accept(ARRAY_ITEM_DELIMITER_TOKEN)) {
                 skip();
             } else {
                 break; //must have reached end of array
             }
-            skipWhitespaces();
+            skipWhitespacesAndComments();
         }
         //parse end token
-        read(ARRAY_END_TOKEN);        
+        read(ARRAY_END_TOKEN);
         return new NSArray(objects.toArray(new NSObject[objects.size()]));
-    }    
-    
+    }
+
     /**
      * Parses a dictionary from the current parsing position.
      * The prerequisite for calling this method is, that a dictionary begin token has been read.
@@ -367,7 +391,7 @@ public class ASCIIPropertyListParser {
     private NSDictionary parseDictionary() throws ParseException {
         //Skip begin token
         skip();
-        skipWhitespaces();
+        skipWhitespacesAndComments();
         NSDictionary dict = new NSDictionary();
         while(!accept(DICTIONARY_END_TOKEN)) {
             //Parse key
@@ -377,23 +401,23 @@ public class ASCIIPropertyListParser {
             } else {
                 keyString = parseString();
             }
-            skipWhitespaces();
-            
+            skipWhitespacesAndComments();
+
             //Parse assign token
             read(DICTIONARY_ASSIGN_TOKEN);
-            skipWhitespaces();
-            
-            NSObject object = parseObject();            
+            skipWhitespacesAndComments();
+
+            NSObject object = parseObject();
             dict.put(keyString, object);
-            skipWhitespaces();
+            skipWhitespacesAndComments();
             read(DICTIONARY_ITEM_DELIMITER_TOKEN);
-            skipWhitespaces();
+            skipWhitespacesAndComments();
         }
         //skip end token
         skip();
         return dict;
     }
-    
+
     /**
      * Parses a data object from th current parsing position.
      * This can either be a NSData object or a GnuStep NSNumber or NSDate.
@@ -402,7 +426,7 @@ public class ASCIIPropertyListParser {
      */
     private NSObject parseData() throws ParseException {
         NSObject obj = null;
-        //Skip begin token        
+        //Skip begin token
         skip();
         if(accept(DATA_GSOBJECT_BEGIN_TOKEN)) {
             skip();
@@ -410,7 +434,7 @@ public class ASCIIPropertyListParser {
             if(accept(DATA_GSBOOL_BEGIN_TOKEN)) {
                 skip();
                 NSNumber bool;
-                expect(DATA_GSBOOL_TRUE_TOKEN, DATA_GSBOOL_FALSE_TOKEN);                
+                expect(DATA_GSBOOL_TRUE_TOKEN, DATA_GSBOOL_FALSE_TOKEN);
                 if(accept(DATA_GSBOOL_TRUE_TOKEN)) {
                     obj = new NSNumber(true);
                 } else {
@@ -425,14 +449,14 @@ public class ASCIIPropertyListParser {
             } else if(accept(DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN)) {
                 skip();
                 String numberString = readInputUntil(DATA_END_TOKEN);
-                obj = new NSNumber(numberString);                
+                obj = new NSNumber(numberString);
             }
             //parse data end token
             read(DATA_END_TOKEN);
         } else {
             String dataString = readInputUntil(DATA_END_TOKEN);
             dataString = dataString.replaceAll("\\s+", "");
-            
+
             int numBytes = dataString.length()/2;
             byte[] bytes = new byte[numBytes];
             for(int i=0;i<bytes.length;i++) {
@@ -441,14 +465,14 @@ public class ASCIIPropertyListParser {
                 bytes[i] = (byte)byteValue;
             }
             obj = new NSData(bytes);
-            
+
             //skip end token
             skip();
         }
-        
+
         return obj;
     }
-    
+
     /**
      * Parses a quoted string from the current parsing position.
      * The prerequisite for calling this method is, that a quoted string begin token has been read.
@@ -480,7 +504,7 @@ public class ASCIIPropertyListParser {
         skip();
         return unescapedString;
     }
-    
+
     /**
      * Parses a plain string from the current parsing position.
      * The string is made up of all characters to the next whitespace, delimiter token or assignment token.
@@ -491,15 +515,15 @@ public class ASCIIPropertyListParser {
                 ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN, ARRAY_END_TOKEN);
         return parsedString;
     }
-    
+
     /**
      * Attempts to parse a plain string as a number or date.
      * @return A NSNumber or NSDate if the string represents such an object. Otherwise a NSString is returned.
      */
     private NSObject parseNumerical() {
-        String numericalString = parseString();        
+        String numericalString = parseString();
         try {
-            //GnuStep Date strings have a - after the 4 year digits        
+            //GnuStep Date strings have a - after the 4 year digits
             if(numericalString.length()>4 && numericalString.charAt(4)==DATE_DATE_FIELD_DELIMITER) {
                 //date
                 return new NSDate(numericalString);
@@ -510,13 +534,13 @@ public class ASCIIPropertyListParser {
         } catch(ParseException ex) {
             return new NSString(numericalString);
         }
-    }    
-    
+    }
+
     /**
      * Used to encode the parsed strings
      */
     private static CharsetEncoder asciiEncoder;
-    
+
     /**
      * Parses a string according to the format specified for ASCII property lists.
      * Such strings can contain escape sequences which are unescaped in this method.
@@ -528,7 +552,7 @@ public class ASCIIPropertyListParser {
         List<Byte> strBytes = new LinkedList<Byte>();
         StringCharacterIterator iterator = new StringCharacterIterator(s);
         char c = iterator.current();
-        
+
         while(iterator.getIndex() < iterator.getEndIndex()) {
             switch(c) {
                 case '\\' : { //An escaped sequence is following
@@ -554,26 +578,26 @@ public class ASCIIPropertyListParser {
         //Build string
         String result = new String(bytArr, "UTF-8");
         CharBuffer charBuf = CharBuffer.wrap(result);
-        
+
         //If the string can be represented in the ASCII codepage
         // --> use ASCII encoding
         if(asciiEncoder == null)
             asciiEncoder = Charset.forName("ASCII").newEncoder();
         if(asciiEncoder.canEncode(charBuf))
             return asciiEncoder.encode(charBuf).asCharBuffer().toString();
-        
+
         //The string contains characters outside the ASCII codepage
         // --> use the UTF-8 encoded string
         return result;
     }
-    
+
     /**
      * Unescapes an escaped character sequence, e.g. \\u00FC.
      * @param iterator The string character iterator pointing to the first character after the backslash
      * @return The unescaped character as a string.
      * @throws UnsupportedEncodingException If an invalid Unicode or ASCII escape sequence is found.
      */
-    private static String parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException {        
+    private static String parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException {
         char c = iterator.next();
         if(c == '\\') {
             return new String(new byte[]{0, '\\'}, "UTF-8");
@@ -608,5 +632,5 @@ public class ASCIIPropertyListParser {
             return new String(stringBytes, "UTF-8");
         }
     }
-    
+
 }
