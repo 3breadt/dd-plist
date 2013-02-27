@@ -87,7 +87,7 @@ public class PropertyListParser {
         fis.close();
         if (magicString.startsWith("bplist")) {
             return BinaryPropertyListParser.parse(f);
-        } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
+        } else if (magicString.trim().startsWith("(") || magicString.trim().startsWith("{") || magicString.trim().startsWith("/")) {
             return ASCIIPropertyListParser.parse(f);
         } else {
             return XMLPropertyListParser.parse(f);
@@ -104,7 +104,7 @@ public class PropertyListParser {
         String magicString = new String(bytes, 0, 8);
         if (magicString.startsWith("bplist")) {
             return BinaryPropertyListParser.parse(bytes);
-        } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
+        } else if (magicString.trim().startsWith("(") || magicString.trim().startsWith("{") || magicString.trim().startsWith("/")) {
             return ASCIIPropertyListParser.parse(bytes);
         } else {
             return XMLPropertyListParser.parse(bytes);
@@ -124,7 +124,7 @@ public class PropertyListParser {
             is.reset();
             if (magicString.startsWith("bplist")) {
                 return BinaryPropertyListParser.parse(is);
-            } else if (magicString.startsWith("(") || magicString.startsWith("{")) {
+            } else if (magicString.trim().startsWith("(") || magicString.trim().startsWith("{") || magicString.trim().startsWith("/")) {
                 return ASCIIPropertyListParser.parse(is);
             } else {                
                 return XMLPropertyListParser.parse(is);
