@@ -60,4 +60,8 @@ public class IssueTest extends TestCase {
     public static void testIssue30() throws Exception {
         NSArray arr = (NSArray)PropertyListParser.parse(new File("test-files/issue30.plist"));
     }
+    
+    public static void testIssue33() throws Exception {
+        NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
+    }
 }

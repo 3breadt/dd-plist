@@ -120,6 +120,11 @@ public class ASCIIPropertyListParser {
     public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
     public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
     public static final char DATE_APPLE_END_TOKEN = 'Z';
+ 
+    public static final char COMMENT_BEGIN_TOKEN = '/';
+    public static final char MULTILINE_COMMENT_SECOND_TOKEN = '*';
+    public static final char SINGLELINE_COMMENT_SECOND_TOKEN = '/';
+    public static final char MULTILINE_COMMENT_END_TOKEN = '/';
     
     /** Property list source data */
     private byte[] data;
@@ -206,10 +211,32 @@ public class ASCIIPropertyListParser {
      * Skips all whitespaces from the current parsing position onward.
      */
     private void skipWhitespaces() {
-        while(accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB))
-            skip();
+    	 while(accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB))
+             skip();
+         skipComments();
+         while(accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB))
+             skip();
     }
     
+    private void skipComments() {
+		
+    	if(!accept(COMMENT_BEGIN_TOKEN))
+    		return;
+    	skip();//Skip begin token
+    	if(accept(MULTILINE_COMMENT_SECOND_TOKEN)){
+    		while(true){
+    			if(accept(MULTILINE_COMMENT_SECOND_TOKEN) && data[index+1] == MULTILINE_COMMENT_END_TOKEN ){
+    				skip();
+    				break;
+    			}
+    			skip();
+    		}
+    	}else if(accept(SINGLELINE_COMMENT_SECOND_TOKEN)){
+    		readInputUntil(WHITESPACE_CARRIAGE_RETURN,WHITESPACE_NEWLINE);
+    		skip();
+    	}
+		skipWhitespaces();
+	}
     /**
      * Reads input until one of the given symbols is found.
      * @param symbols The symbols that can occur after the string to read.
@@ -247,7 +274,7 @@ public class ASCIIPropertyListParser {
     public NSObject parse() throws ParseException {
         index = 0;
         skipWhitespaces();
-        expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN);
+        expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
         try {
             return parseObject();
         } catch(ArrayIndexOutOfBoundsException ex) {
@@ -358,7 +385,7 @@ public class ASCIIPropertyListParser {
             
             NSObject object = parseObject();            
             dict.put(keyString, object);
-            
+            skipWhitespaces();
             read(DICTIONARY_ITEM_DELIMITER_TOKEN);
             skipWhitespaces();
         }
