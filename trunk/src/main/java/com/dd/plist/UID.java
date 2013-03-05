@@ -26,6 +26,7 @@ import java.io.IOException;
 
 /**
  * A UID. Only found in binary property lists that are keyed archives.
+ *
  * @author Daniel Dreibrodt
  */
 public class UID extends NSObject {
@@ -49,16 +50,17 @@ public class UID extends NSObject {
     /**
      * There is no XML representation specified for UIDs.
      * In this implementation UIDs are represented as strings in the XML output.
-     * @param xml The xml StringBuilder
+     *
+     * @param xml   The xml StringBuilder
      * @param level The indentation level
      */
     @Override
     void toXML(StringBuilder xml, int level) {
         indent(xml, level);
         xml.append("<string>");
-        for(int i=0;i<bytes.length;i++) {
-            byte b = bytes[i];            
-            if(b < 16)
+        for (int i = 0; i < bytes.length; i++) {
+            byte b = bytes[i];
+            if (b < 16)
                 xml.append("0");
             xml.append(Integer.toHexString(b));
         }
@@ -67,17 +69,17 @@ public class UID extends NSObject {
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-	out.write(0x80 + bytes.length - 1);
-	out.write(bytes);
+        out.write(0x80 + bytes.length - 1);
+        out.write(bytes);
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
         indent(ascii, level);
         ascii.append("\"");
-        for(int i=0;i<bytes.length;i++) {
-            byte b = bytes[i];            
-            if(b < 16)
+        for (int i = 0; i < bytes.length; i++) {
+            byte b = bytes[i];
+            if (b < 16)
                 ascii.append("0");
             ascii.append(Integer.toHexString(b));
         }

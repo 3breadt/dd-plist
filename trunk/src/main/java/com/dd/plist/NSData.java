@@ -31,6 +31,7 @@ import java.util.Arrays;
 
 /**
  * NSData objects are wrappers for byte buffers.
+ *
  * @author Daniel Dreibrodt
  */
 public class NSData extends NSObject {
@@ -39,6 +40,7 @@ public class NSData extends NSObject {
 
     /**
      * Creates the NSData object from the binary representation of it.
+     *
      * @param bytes The raw data contained in the NSData object.
      */
     public NSData(byte[] bytes) {
@@ -47,6 +49,7 @@ public class NSData extends NSObject {
 
     /**
      * Creates a NSData object from its textual representation, which is a Base64 encoded amount of bytes.
+     *
      * @param base64 The Base64 encoded contents of the NSData object.
      * @throws IOException When the given string is not a proper Base64 formatted string.
      */
@@ -59,9 +62,10 @@ public class NSData extends NSObject {
 
     /**
      * Creates a NSData object from a file. Using the files contents as the contents of this NSData object.
+     *
      * @param file The file containing the data.
      * @throws FileNotFoundException If the file could not be found.
-     * @throws IOException If the file could not be read.
+     * @throws IOException           If the file could not be read.
      */
     public NSData(File file) throws FileNotFoundException, IOException {
         bytes = new byte[(int) file.length()];
@@ -72,6 +76,7 @@ public class NSData extends NSObject {
 
     /**
      * The bytes contained in this NSData object.
+     *
      * @return The data as bytes
      */
     public byte[] bytes() {
@@ -80,6 +85,7 @@ public class NSData extends NSObject {
 
     /**
      * Gets the amount of data stored in this object.
+     *
      * @return The number of bytes contained in this object.
      */
     public int length() {
@@ -88,7 +94,8 @@ public class NSData extends NSObject {
 
     /**
      * Loads the bytes from this NSData object into a byte buffer
-     * @param buf The byte buffer which will contain the data
+     *
+     * @param buf    The byte buffer which will contain the data
      * @param length The amount of data to copy
      */
     public void getBytes(ByteBuffer buf, int length) {
@@ -97,9 +104,10 @@ public class NSData extends NSObject {
 
     /**
      * Loads the bytes from this NSData object into a byte buffer
-     * @param buf The byte buffer which will contain the data
+     *
+     * @param buf        The byte buffer which will contain the data
      * @param rangeStart The start index
-     * @param rangeStop The stop index
+     * @param rangeStop  The stop index
      */
     public void getBytes(ByteBuffer buf, int rangeStart, int rangeStop) {
         buf.put(bytes, rangeStart, Math.min(bytes.length, rangeStop));
@@ -107,6 +115,7 @@ public class NSData extends NSObject {
 
     /**
      * Gets the Base64 encoded data contained in this NSData object.
+     *
      * @return The Base64 encoded data as a <code>String</code>.
      */
     public String getBase64EncodedData() {
@@ -132,7 +141,7 @@ public class NSData extends NSObject {
         xml.append(NSObject.NEWLINE);
         String base64 = getBase64EncodedData();
         for (String line : base64.split("\n")) {
-            indent(xml, level+1);
+            indent(xml, level + 1);
             xml.append(line);
             xml.append(NSObject.NEWLINE);
         }
@@ -142,8 +151,8 @@ public class NSData extends NSObject {
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-	out.writeIntHeader(0x4, bytes.length);
-	out.write(bytes);
+        out.writeIntHeader(0x4, bytes.length);
+        out.write(bytes);
     }
 
     @Override
@@ -151,15 +160,15 @@ public class NSData extends NSObject {
         indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DATA_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for(int i=0;i<bytes.length;i++) {
+        for (int i = 0; i < bytes.length; i++) {
             int b = bytes[i] & 0xFF;
-            if(b < 16)
+            if (b < 16)
                 ascii.append("0");
             ascii.append(Integer.toHexString(b));
-            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
+            if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
                 ascii.append(NEWLINE);
                 indexOfLastNewLine = ascii.length();
-            } else if((i+1)%2==0 && i!=bytes.length-1) {
+            } else if ((i + 1) % 2 == 0 && i != bytes.length - 1) {
                 ascii.append(" ");
             }
         }

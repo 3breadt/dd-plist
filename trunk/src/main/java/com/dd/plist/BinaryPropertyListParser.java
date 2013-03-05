@@ -32,30 +32,48 @@ import java.math.BigInteger;
  * Parses property lists that are in Apple's binary format.
  * Use this class when you are sure about the format of the property list.
  * Otherwise use the PropertyListParser class.
- * 
+ * <p/>
  * Parsing is done by calling the static <code>parse</code> methods.
+ *
  * @author Daniel Dreibrodt
  */
 public class BinaryPropertyListParser {
 
-    /** property list in bytes **/
+    private int majorVersion, minorVersion;
+
+    /**
+     * property list in bytes *
+     */
     private byte[] bytes;
-    /** Length of an offset definition in bytes **/
+    /**
+     * Length of an offset definition in bytes *
+     */
     private int offsetSize;
-    /** Length of an object reference in bytes **/
+    /**
+     * Length of an object reference in bytes *
+     */
     private int objectRefSize;
-    /** Number of objects stored in this property list **/
+    /**
+     * Number of objects stored in this property list *
+     */
     private int numObjects;
-    /** Reference to the top object of the property list **/
+    /**
+     * Reference to the top object of the property list *
+     */
     private int topObject;
-    /** Offset of the offset table from the beginning of the file **/
+    /**
+     * Offset of the offset table from the beginning of the file *
+     */
     private int offsetTableOffset;
-    /** The table holding the information at which offset each object is found **/
+    /**
+     * The table holding the information at which offset each object is found *
+     */
     private int[] offsetTable;
-    
+
     /**
      * Private constructor so that instantiation is fully controlled by the
      * static parse methods.
+     *
      * @see BinaryPropertyListParser#parse(byte[])
      */
     private BinaryPropertyListParser() {
@@ -64,6 +82,7 @@ public class BinaryPropertyListParser {
 
     /**
      * Parses a binary property list from a byte array.
+     *
      * @param data The binary property list's data.
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
@@ -75,9 +94,10 @@ public class BinaryPropertyListParser {
 
     /**
      * Parses a binary property list from a byte array.
+     *
      * @param data The binary property list's data.
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws When an error occurs during parsing.
+     * @throws Exception When an error occurs during parsing.
      */
     private NSObject doParse(byte[] data) throws Exception {
         bytes = data;
@@ -85,11 +105,20 @@ public class BinaryPropertyListParser {
         if (!magic.startsWith("bplist")) {
             throw new Exception("The given data is no binary property list. Wrong magic bytes: " + magic);
         }
-        
-        //int version = Integer.parseInt(magic.substring(6));
-        // 00 - OS X Tiger and earlier
-        // 01 - Leopard
-        // 0? - Snow Leopard and later
+
+        majorVersion = magic.charAt(6) - 0x30; //ASCII number
+        minorVersion = magic.charAt(7) - 0x30; //ASCII number
+
+        // 0.0 - OS X Tiger and earlier
+        // 0.1 - Leopard
+        // 0.? - Snow Leopard
+        // 1.5 - Lion
+        // 2.0 - Snow Lion
+
+        if (majorVersion > 0) {
+            throw new Exception("Unsupported binary property list format: v" + majorVersion + "." + minorVersion + ". " +
+                    "Version 1.0 and later are not yet supported.");
+        }
 
         /*
          * Handle trailer, last 32 bytes of the file
@@ -125,19 +154,21 @@ public class BinaryPropertyListParser {
 
     /**
      * Parses a binary property list from an input stream.
+     *
      * @param is The input stream that points to the property list's data.
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
      */
     public static NSObject parse(InputStream is) throws Exception {
         //Read all bytes into a list
-	byte[] buf = PropertyListParser.readAll(is, Integer.MAX_VALUE);
+        byte[] buf = PropertyListParser.readAll(is, Integer.MAX_VALUE);
         is.close();
         return parse(buf);
     }
 
     /**
      * Parses a binary property list file.
+     *
      * @param f The binary property list file
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
@@ -152,8 +183,9 @@ public class BinaryPropertyListParser {
     /**
      * Parses an object inside the currently parsed binary property list.
      * For the format specification check
-     * <a href="http://www.opensource.apple.com/source/CF/CF-635/CFBinaryPList.c">
+     * <a href="http://www.opensource.apple.com/source/CF/CF-744/CFBinaryPList.c">
      * Apple's binary property list parser implementation</a>.
+     *
      * @param obj The object ID.
      * @return The parsed object.
      * @throws java.lang.Exception When an error occurs during parsing.
@@ -168,7 +200,7 @@ public class BinaryPropertyListParser {
                 //Simple
                 switch (objInfo) {
                     case 0x0: {
-                        //null
+                        //null object (v1.0 and later)
                         return null;
                     }
                     case 0x8: {
@@ -178,6 +210,21 @@ public class BinaryPropertyListParser {
                     case 0x9: {
                         //true
                         return new NSNumber(true);
+                    }
+                    case 0xC: {
+                        //URL with no base URL (v1.0 and later)
+                        //TODO
+                        break;
+                    }
+                    case 0xD: {
+                        //URL with base URL (v1.0 and later)
+                        //TODO
+                        break;
+                    }
+                    case 0xE: {
+                        //16-byte UUID (v1.0 and later)
+                        //TODO
+                        break;
                     }
                     case 0xF: {
                         //filler byte
@@ -207,29 +254,16 @@ public class BinaryPropertyListParser {
             case 0x3: {
                 //Date
                 if (objInfo != 0x3) {
-                    System.err.println("Unknown date type :" + objInfo + ". Parsing anyway...");
+                    System.err.println("BinaryPropertyListParser: Unknown date type :" + objInfo + ". Attempting to parse anyway...");
                 }
                 return new NSDate(copyOfRange(bytes, offset + 1, offset + 9));
             }
             case 0x4: {
                 //Data
-                int dataoffset = 1;
-                int length = objInfo;
-                if (objInfo == 0xF) {
-                    int int_type = bytes[offset + 1];
-                    int intType = (int_type & 0xF0) / 0xF;
-                    if (intType != 0x1) {
-                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
-                    }
-                    int intInfo = int_type & 0x0F;
-                    int intLength = (int) Math.pow(2, intInfo);
-                    dataoffset = 2 + intLength;
-                    if (intLength < 3) {
-                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
-                    } else {
-                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
-                    }
-                }
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int dataoffset = lenAndoffset[1];
+
                 if (length < Runtime.getRuntime().freeMemory()) {
                     return new NSData(copyOfRange(bytes, offset + dataoffset, offset + dataoffset + length));
                 } else {
@@ -238,23 +272,10 @@ public class BinaryPropertyListParser {
             }
             case 0x5: {
                 //ASCII String
-                int length = objInfo;
-                int stroffset = 1;
-                if (objInfo == 0xF) {
-                    int int_type = bytes[offset + 1];
-                    int intType = (int_type & 0xF0) / 0xF;
-                    if (intType != 0x1) {
-                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
-                    }
-                    int intInfo = int_type & 0x0F;
-                    int intLength = (int) Math.pow(2, intInfo);
-                    stroffset = 2 + intLength;
-                    if (intLength < 3) {
-                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
-                    } else {
-                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
-                    }
-                }
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int stroffset = lenAndoffset[1];
+
                 if (length < Runtime.getRuntime().freeMemory()) {
                     return new NSString(copyOfRange(bytes, offset + stroffset, offset + stroffset + length), "ASCII");
                 } else {
@@ -263,25 +284,12 @@ public class BinaryPropertyListParser {
             }
             case 0x6: {
                 //UTF-16-BE String
-                int length = objInfo;
-                int stroffset = 1;
-                if (objInfo == 0xF) {
-                    int int_type = bytes[offset + 1];
-                    int intType = (int_type & 0xF0) / 0xF;
-                    if (intType != 0x1) {
-                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
-                    }
-                    int intInfo = int_type & 0x0F;
-                    int intLength = (int) Math.pow(2, intInfo);
-                    stroffset = 2 + intLength;
-                    if (intLength < 3) {
-                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
-                    } else {
-                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
-                    }
-                }
-		//length is String length -> to get byte length multiply by 2, as 1 character takes 2 bytes in UTF-16
-		length *= 2;
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int stroffset = lenAndoffset[1];
+
+                //length is String length -> to get byte length multiply by 2, as 1 character takes 2 bytes in UTF-16
+                length *= 2;
                 if (length < Runtime.getRuntime().freeMemory()) {
                     return new NSString(copyOfRange(bytes, offset + stroffset, offset + stroffset + length), "UTF-16BE");
                 } else {
@@ -299,23 +307,10 @@ public class BinaryPropertyListParser {
             }
             case 0xA: {
                 //Array
-                int length = objInfo;
-                int arrayoffset = 1;
-                if (objInfo == 0xF) {
-                    int int_type = bytes[offset + 1];
-                    int intType = (int_type & 0xF0) / 0xF;
-                    if (intType != 0x1) {
-                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
-                    }
-                    int intInfo = int_type & 0x0F;
-                    int intLength = (int) Math.pow(2, intInfo);
-                    arrayoffset = 2 + intLength;
-                    if (intLength < 3) {
-                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
-                    } else {
-                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
-                    }
-                }
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int arrayoffset = lenAndoffset[1];
+
                 if (length * objectRefSize > Runtime.getRuntime().freeMemory()) {
                     throw new Exception("To little heap space available!");
                 }
@@ -329,56 +324,48 @@ public class BinaryPropertyListParser {
                 return array;
 
             }
+            case 0xB: {
+                //Ordered set
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int contentOffset = lenAndoffset[1];
+
+                if (length * objectRefSize > Runtime.getRuntime().freeMemory()) {
+                    throw new Exception("To little heap space available!");
+                }
+                NSSet set = new NSSet(true);
+                for (int i = 0; i < length; i++) {
+                    int objRef = (int) parseUnsignedInt(copyOfRange(bytes,
+                            offset + contentOffset + i * objectRefSize,
+                            offset + contentOffset + (i + 1) * objectRefSize));
+                    set.addObject(parseObject(objRef));
+                }
+                return set;
+            }
             case 0xC: {
                 //Set
-                int length = objInfo;
-                int arrayoffset = 1;
-                if (objInfo == 0xF) {
-                    int int_type = bytes[offset + 1];
-                    int intType = (int_type & 0xF0) / 0xF;
-                    if (intType != 0x1) {
-                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
-                    }
-                    int intInfo = int_type & 0x0F;
-                    int intLength = (int) Math.pow(2, intInfo);
-                    arrayoffset = 2 + intLength;
-                    if (intLength < 3) {
-                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
-                    } else {
-                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
-                    }
-                }
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int contentOffset = lenAndoffset[1];
+
                 if (length * objectRefSize > Runtime.getRuntime().freeMemory()) {
                     throw new Exception("To little heap space available!");
                 }
                 NSSet set = new NSSet();
                 for (int i = 0; i < length; i++) {
                     int objRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + arrayoffset + i * objectRefSize,
-                            offset + arrayoffset + (i + 1) * objectRefSize));                    
+                            offset + contentOffset + i * objectRefSize,
+                            offset + contentOffset + (i + 1) * objectRefSize));
                     set.addObject(parseObject(objRef));
                 }
                 return set;
             }
             case 0xD: {
                 //Dictionary
-                int length = objInfo;
-                int dictoffset = 1;
-                if (objInfo == 0xF) {
-                    int int_type = bytes[offset + 1];
-                    int intType = (int_type & 0xF0) / 0xF;
-                    if (intType != 0x1) {
-                        System.err.println("UNEXPECTED LENGTH-INT TYPE! " + intType);
-                    }
-                    int intInfo = int_type & 0x0F;
-                    int intLength = (int) Math.pow(2, intInfo);
-                    dictoffset = 2 + intLength;
-                    if (intLength < 3) {
-                        length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
-                    } else {
-                        length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
-                    }
-                }
+                int[] lenAndoffset = readLengthAndOffset(objInfo, offset);
+                int length = lenAndoffset[0];
+                int contentOffset = lenAndoffset[1];
+
                 if (length * 2 * objectRefSize > Runtime.getRuntime().freeMemory()) {
                     throw new Exception("To little heap space available!");
                 }
@@ -386,14 +373,13 @@ public class BinaryPropertyListParser {
                 NSDictionary dict = new NSDictionary();
                 for (int i = 0; i < length; i++) {
                     int keyRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + dictoffset + i * objectRefSize,
-                            offset + dictoffset + (i + 1) * objectRefSize));
+                            offset + contentOffset + i * objectRefSize,
+                            offset + contentOffset + (i + 1) * objectRefSize));
                     int valRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + dictoffset + (length * objectRefSize) + i * objectRefSize,
-                            offset + dictoffset + (length * objectRefSize) + (i + 1) * objectRefSize));
+                            offset + contentOffset + (length * objectRefSize) + i * objectRefSize,
+                            offset + contentOffset + (length * objectRefSize) + (i + 1) * objectRefSize));
                     NSObject key = parseObject(keyRef);
                     NSObject val = parseObject(valRef);
-                    //System.out.println("  DICT #"+obj+": Mapped "+key.toString()+" to "+val.toString());
                     dict.put(key.toString(), val);
                 }
                 return dict;
@@ -406,7 +392,36 @@ public class BinaryPropertyListParser {
     }
 
     /**
+     * Reads the length for arrays, sets and dictionaries.
+     *
+     * @param objInfo Object information byte.
+     * @param offset  Offset in the byte array at which the object is located.
+     * @return An array with the length two. First entry is the length, second entry the offset at which the content starts.
+     */
+    private int[] readLengthAndOffset(int objInfo, int offset) {
+        int length = objInfo;
+        int stroffset = 1;
+        if (objInfo == 0xF) {
+            int int_type = bytes[offset + 1];
+            int intType = (int_type & 0xF0) >> 4;
+            if (intType != 0x1) {
+                System.err.println("BinaryPropertyListParser: Length integer has an unexpected type" + intType + ". Attempting to parse anyway...");
+            }
+            int intInfo = int_type & 0x0F;
+            int intLength = (int) Math.pow(2, intInfo);
+            stroffset = 2 + intLength;
+            if (intLength < 3) {
+                length = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
+            } else {
+                length = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
+            }
+        }
+        return new int[]{length, stroffset};
+    }
+
+    /**
      * Parses an unsigned integers from a byte array.
+     *
      * @param bytes The byte array containing the unsigned integer.
      * @return The unsigned integer represented by the given bytes.
      */
@@ -422,6 +437,7 @@ public class BinaryPropertyListParser {
 
     /**
      * Parses longs from a (big-endian) byte array.
+     *
      * @param bytes The bytes representing the long integer.
      * @return The long integer represented by the given bytes.
      */
@@ -436,14 +452,15 @@ public class BinaryPropertyListParser {
 
     /**
      * Parses doubles from a (big-endian) byte array.
+     *
      * @param bytes The bytes representing the double.
      * @return The double represented by the given bytes.
      */
     public static final double parseDouble(byte[] bytes) {
-	if (bytes.length == 8) {
+        if (bytes.length == 8) {
             return Double.longBitsToDouble(parseLong(bytes));
         } else if (bytes.length == 4) {
-            return Float.intBitsToFloat((int)parseLong(bytes));
+            return Float.intBitsToFloat((int) parseLong(bytes));
         } else {
             throw new IllegalArgumentException("bad byte array length " + bytes.length);
         }
@@ -451,9 +468,10 @@ public class BinaryPropertyListParser {
 
     /**
      * Copies a part of a byte array into a new array.
-     * @param src The source array.
+     *
+     * @param src        The source array.
      * @param startIndex The index from which to start copying.
-     * @param endIndex The index until which to copy.
+     * @param endIndex   The index until which to copy.
      * @return The copied array.
      */
     public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {

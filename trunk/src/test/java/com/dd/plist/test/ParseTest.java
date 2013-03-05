@@ -1,10 +1,11 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
+import junit.framework.TestCase;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
-import junit.framework.TestCase;
 
 public class ParseTest extends TestCase {
 
@@ -12,11 +13,9 @@ public class ParseTest extends TestCase {
      * Test the xml reader/writer
      */
     public static void testXml() throws Exception {
-    	System.out.println(new File("test-files/"));
-    
         // parse an example plist file
         NSObject x = PropertyListParser.parse(new File("test-files/test1.plist"));
-        
+
         // check the data in it
         NSDictionary d = (NSDictionary)x;
         assertTrue(d.count() == 5);
@@ -31,7 +30,7 @@ public class ParseTest extends TestCase {
         assertTrue(a.objectAtIndex(1).equals(new NSNumber(false)));
         assertTrue(a.objectAtIndex(2).equals(new NSNumber(87)));
         assertTrue(a.objectAtIndex(3).equals(new NSNumber(3.14159)));
-        
+
         // read/write it, make sure we get the same thing
         PropertyListParser.saveAsXML(x, new File("test-files/out-testXml.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testXml.plist"));
@@ -43,7 +42,7 @@ public class ParseTest extends TestCase {
      */
     public static void testBinary() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1.plist"));
-        
+
         // save and load as binary
         PropertyListParser.saveAsBinary(x, new File("test-files/out-testBinary.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testBinary.plist"));
@@ -52,22 +51,32 @@ public class ParseTest extends TestCase {
 
     /**
      *  NSSet only occurs in binary property lists, so we have to test it separately.
+     *  NSSets are not yet supported in reading/writing, as binary property list format v1+ is required.
      */
-    public static void testSet() throws Exception {
+    /*public static void testSet() throws Exception {
         NSSet s = new NSSet();
         s.addObject(new NSNumber(1));
-        s.addObject(new NSNumber(2));
         s.addObject(new NSNumber(3));
-        
-        PropertyListParser.saveAsBinary(s, new File("test-files/out-testSet.plist"));
-        NSObject t = PropertyListParser.parse(new File("test-files/out-testSet.plist"));
-        assertTrue(s.equals(t));
-    }
-    
+        s.addObject(new NSNumber(2));
+
+        NSSet orderedSet = new NSSet(true);
+        s.addObject(new NSNumber(1));
+        s.addObject(new NSNumber(3));
+        s.addObject(new NSNumber(2));
+
+        NSDictionary dict = new NSDictionary();
+        dict.put("set1", s);
+        dict.put("set2", orderedSet);
+
+        PropertyListParser.saveAsBinary(dict, new File("test-files/out-testSet.plist"));
+        NSObject parsedRoot = PropertyListParser.parse(new File("test-files/out-testSet.plist"));
+        assertTrue(parsedRoot.equals(dict));
+    }*/
+
     public static void testASCII() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii.plist"));
-        NSDictionary d = (NSDictionary)x;        
-        assertTrue(d.count() == 5);        
+        NSDictionary d = (NSDictionary)x;
+        assertTrue(d.count() == 5);
         assertTrue(((NSString)d.objectForKey("keyA")).toString().equals("valueA"));
         assertTrue(((NSString)d.objectForKey("key&B")).toString().equals("value&B"));
         assertTrue(((NSDate)d.objectForKey("date")).getDate().equals(new Date(1322472090000L)));
@@ -82,7 +91,7 @@ public class ParseTest extends TestCase {
         NSObject y = PropertyListParser.parse(new File("test-files/test1-ascii-gnustep.plist"));
         assertTrue(x.equals(y));
     }
-    
+
     public static void testASCIIWriting() throws Exception {
     	File in = new File("test-files/test1.plist");
     	File out = new File("test-files/out-test1-ascii.plist");
@@ -91,7 +100,7 @@ public class ParseTest extends TestCase {
     	NSDictionary y = (NSDictionary)PropertyListParser.parse(out);
     	assertTrue(x.equals(y));
     }
-    
+
     public static void testGnuStepASCIIWriting() throws Exception {
     	File in = new File("test-files/test1.plist");
     	File out = new File("test-files/out-test1-ascii-gnustep.plist");
@@ -100,7 +109,7 @@ public class ParseTest extends TestCase {
     	NSObject y = PropertyListParser.parse(out);
     	assertTrue(x.equals(y));
     }
-    
+
     public static void testWrap() throws Exception {
         boolean b = false;
         byte byt = 24;
