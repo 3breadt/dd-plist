@@ -31,6 +31,7 @@ import java.util.TimeZone;
 
 /**
  * Represents a date.
+ *
  * @author Daniel Dreibrodt
  */
 public class NSDate extends NSObject {
@@ -44,14 +45,16 @@ public class NSDate extends NSObject {
 
     private static final SimpleDateFormat sdfDefault = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat sdfGnuStep = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
-    static { 
+
+    static {
         sdfDefault.setTimeZone(TimeZone.getTimeZone("GMT"));
         sdfGnuStep.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
-    
+
     /**
      * Parses the XML date string and creates a Java Date object from it.
      * This function is synchronized as SimpleDateFormat is not thread-safe.
+     *
      * @param textRepresentation The date string as found in the XML property list
      * @return The parsed Date
      * @throws ParseException If the given string cannot be parsed.
@@ -60,44 +63,48 @@ public class NSDate extends NSObject {
     private static synchronized Date parseDateString(String textRepresentation) throws ParseException {
         try {
             return sdfDefault.parse(textRepresentation);
-        } catch(ParseException ex) {
+        } catch (ParseException ex) {
             return sdfGnuStep.parse(textRepresentation);
         }
     }
-    
+
     /**
      * Generates a String representation of a Java Date object. The string
      * is formatted according to the specification for XML property list dates.
+     *
      * @param date The date which should be represented.
      * @return The string representation of the date.
      */
     private static synchronized String makeDateString(Date date) {
         return sdfDefault.format(date);
     }
-    
+
     /**
      * Generates a String representation of a Java Date object. The string
      * is formatted according to the specification for GnuStep ASCII property
      * list dates.
+     *
      * @param date The date which should be represented.
      * @return The string representation of the date.
      */
     private static synchronized String makeDateStringGnuStep(Date date) {
         return sdfGnuStep.format(date);
     }
-    
+
     /**
      * Creates a date from its binary representation.
+     *
      * @param bytes The date bytes
      */
     public NSDate(byte[] bytes) {
         //dates are 8 byte big-endian double, seconds since the epoch
-        date = new Date(EPOCH + (long)(1000 * BinaryPropertyListParser.parseDouble(bytes)));
+        date = new Date(EPOCH + (long) (1000 * BinaryPropertyListParser.parseDouble(bytes)));
     }
-    
+
     /**
      * Parses a date from its textual representation.
      * That representation has the following pattern: <code>yyyy-MM-dd'T'HH:mm:ss'Z'</code>
+     *
      * @param textRepresentation The textual representation of the date (ISO 8601 format)
      * @throws ParseException When the date could not be parsed, i.e. it does not match the expected pattern.
      */
@@ -107,16 +114,18 @@ public class NSDate extends NSObject {
 
     /**
      * Creates a NSDate from a Java Date
+     *
      * @param d The date
      */
     public NSDate(Date d) {
-        if(d==null)
+        if (d == null)
             throw new IllegalArgumentException("Date cannot be null");
         date = d;
     }
 
     /**
      * Gets the date.
+     *
      * @return The date.
      */
     public Date getDate() {
@@ -143,14 +152,15 @@ public class NSDate extends NSObject {
 
     @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
-	out.write(0x33);
-	out.writeDouble((date.getTime() - EPOCH) / 1000.0);
+        out.write(0x33);
+        out.writeDouble((date.getTime() - EPOCH) / 1000.0);
     }
 
     /**
      * Generates a string representation of the date.
-     * @see java.util.Date#toString()
+     *
      * @return A string representation of the date.
+     * @see java.util.Date#toString()
      */
     @Override
     public String toString() {

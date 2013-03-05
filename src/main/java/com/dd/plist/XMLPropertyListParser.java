@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2012 Daniel Dreibrodt
+ * Copyright (C) 2013 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,28 @@
  */
 package com.dd.plist;
 
+import org.w3c.dom.*;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentType;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
 
 /**
- * Parses XML property lists
+ * Parses XML property lists.
+ *
  * @author Daniel Dreibrodt
  */
 public class XMLPropertyListParser {
-    
+
     /**
-     * Objects are unneccesary.
+     * Instantiation is prohibited.
      */
     private XMLPropertyListParser() {
         /** empty **/
@@ -55,39 +54,42 @@ public class XMLPropertyListParser {
     /**
      * Initialize the document builder factory so that it can be reuused and does not need to
      * be reinitialized for each new parsing.
+     *
      * @throws ParserConfigurationException If the parser configuration is not supported on your system.
      */
     private static synchronized void initDocBuilderFactory() throws ParserConfigurationException {
         docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setIgnoringComments(true);
-	docBuilderFactory.setCoalescing(true);
+        docBuilderFactory.setCoalescing(true);
     }
 
     /**
      * Gets a DocumentBuilder to parse a XML property list.
      * As DocumentBuilders are not thread-safe a new DocBuilder is generated for each request.
+     *
      * @return A new DocBuilder that can parse property lists w/o an internet connection.
      */
     private static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
-        if(docBuilderFactory==null)
+        if (docBuilderFactory == null)
             initDocBuilderFactory();
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-	docBuilder.setEntityResolver(new EntityResolver() {
-		public InputSource resolveEntity(String publicId, String systemId) {
-		    if ("-//Apple Computer//DTD PLIST 1.0//EN".equals(publicId) || // older publicId
-			"-//Apple//DTD PLIST 1.0//EN".equals(publicId)) { // newer publicId
-			// return a dummy, zero length DTD so we don't have to fetch
-			// it from the network.
-			return new InputSource(new ByteArrayInputStream(new byte[0]));
-		    }
-		    return null;
-		}
-	    });
+        docBuilder.setEntityResolver(new EntityResolver() {
+            public InputSource resolveEntity(String publicId, String systemId) {
+                if ("-//Apple Computer//DTD PLIST 1.0//EN".equals(publicId) || // older publicId
+                        "-//Apple//DTD PLIST 1.0//EN".equals(publicId)) { // newer publicId
+                    // return a dummy, zero length DTD so we don't have to fetch
+                    // it from the network.
+                    return new InputSource(new ByteArrayInputStream(new byte[0]));
+                }
+                return null;
+            }
+        });
         return docBuilder;
     }
 
     /**
      * Parses a XML property list file.
+     *
      * @param f The XML property list file.
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
@@ -103,6 +105,7 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list from a byte array.
+     *
      * @param bytes The byte array containing the property list's data.
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
@@ -114,6 +117,7 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list from an input stream.
+     *
      * @param is The input stream pointing to the property list's data.
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
@@ -129,45 +133,44 @@ public class XMLPropertyListParser {
 
     /**
      * Parses the XML document by generating the appropriate NSObjects for each XML node.
+     *
      * @param doc The XML document.
      * @return The root NSObject of the property list contained in the XML document.
      * @throws Exception If an error occured during parsing.
      */
     private static NSObject parseDocument(Document doc) throws Exception {
         DocumentType docType = doc.getDoctype();
-        if(docType==null) {
-            if(!doc.getDocumentElement().getNodeName().equals("plist")) {
+        if (docType == null) {
+            if (!doc.getDocumentElement().getNodeName().equals("plist")) {
                 throw new UnsupportedOperationException("The given XML document is not a property list.");
             }
-        }
-        else if (!docType.getName().equals("plist")) {
+        } else if (!docType.getName().equals("plist")) {
             throw new UnsupportedOperationException("The given XML document is not a property list.");
         }
 
         Node rootNode = null;
-        
-        if(doc.getDocumentElement().getNodeName().equals("plist")) {
+
+        if (doc.getDocumentElement().getNodeName().equals("plist")) {
             //Root element wrapped in plist tag
             List<Node> rootNodes = filterElementNodes(doc.getDocumentElement().getChildNodes());
-            if(rootNodes.isEmpty()) {
+            if (rootNodes.isEmpty()) {
                 throw new Exception("The given property list has no root element!");
-            }
-            else if(rootNodes.size() == 1) {
+            } else if (rootNodes.size() == 1) {
                 rootNode = rootNodes.get(0);
-            }
-            else {
+            } else {
                 throw new Exception("The given property list has more than one root element!");
             }
         } else {
             //Root NSObject not wrapped in plist-tag
             rootNode = doc.getDocumentElement();
         }
-        
+
         return parseObject(rootNode);
     }
 
     /**
      * Parses a node in the XML structure and returns the corresponding NSObject
+     *
      * @param n The XML node.
      * @return The corresponding NSObject.
      * @throws Exception If an error occured during parsing the node.
@@ -177,67 +180,93 @@ public class XMLPropertyListParser {
         if (type.equals("dict")) {
             NSDictionary dict = new NSDictionary();
             List<Node> children = filterElementNodes(n.getChildNodes());
-	    for (int i = 0; i < children.size(); i += 2) {
-		Node key = children.get(i);
-		Node val = children.get(i+1);
-                
-                String keyString = key.getChildNodes().item(0).getNodeValue();
-                
-                //Workaround for buggy behavior of the Android XML parser, which
-                //separates certain Strings into several nodes
-                for(int j=1;j<key.getChildNodes().getLength();j++)
-                    keyString += key.getChildNodes().item(j).getNodeValue();
-                
-		dict.put(keyString, parseObject(val));
+            for (int i = 0; i < children.size(); i += 2) {
+                Node key = children.get(i);
+                Node val = children.get(i + 1);
+
+                String keyString = getNodeTextContents(key);
+
+                dict.put(keyString, parseObject(val));
             }
             return dict;
         } else if (type.equals("array")) {
             List<Node> children = filterElementNodes(n.getChildNodes());
-	    NSArray array = new NSArray(children.size());
-	    for (int i = 0; i < children.size(); i++) {
-		array.setValue(i, parseObject(children.get(i)));
-	    }
-	    return array;
+            NSArray array = new NSArray(children.size());
+            for (int i = 0; i < children.size(); i++) {
+                array.setValue(i, parseObject(children.get(i)));
+            }
+            return array;
         } else if (type.equals("true")) {
             return new NSNumber(true);
         } else if (type.equals("false")) {
             return new NSNumber(false);
         } else if (type.equals("integer")) {
-            return new NSNumber(n.getChildNodes().item(0).getNodeValue());
+            return new NSNumber(getNodeTextContents(n));
         } else if (type.equals("real")) {
-            return new NSNumber(n.getChildNodes().item(0).getNodeValue());
+            return new NSNumber(getNodeTextContents(n));
         } else if (type.equals("string")) {
-            NodeList children = n.getChildNodes();
-            if (children.getLength() == 0) {
-                return new NSString(""); //Empty string
-            } else {
-                String string = children.item(0).getNodeValue();
-                //Workaround for buggy behavior of the Android XML parser, which
-                //separates certain Strings into several nodes
-                for(int i=1;i<children.getLength();i++)
-                    string += children.item(i).getNodeValue();
-                return new NSString(string);
-            }
+            return new NSString(getNodeTextContents(n));
         } else if (type.equals("data")) {
-            return new NSData(n.getChildNodes().item(0).getNodeValue());
+            return new NSData(getNodeTextContents(n));
         } else if (type.equals("date")) {
-            return new NSDate(n.getChildNodes().item(0).getNodeValue());
+            return new NSDate(getNodeTextContents(n));
         }
         return null;
     }
 
     /**
      * Returns all element nodes that are contained in a list of nodes.
+     *
      * @param list The list of nodes to search.
      * @return The sublist containing only nodes representing actual elements.
      */
     private static List<Node> filterElementNodes(NodeList list) {
-	List<Node> result = new ArrayList<Node>(list.getLength());
-	for (int i=0; i<list.getLength(); i++) {
-	    if (list.item(i).getNodeType()==Node.ELEMENT_NODE) {
-		result.add(list.item(i));
-	    }
-	}
-	return result;
+        List<Node> result = new ArrayList<Node>(list.getLength());
+        for (int i = 0; i < list.getLength(); i++) {
+            if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                result.add(list.item(i));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns a node's text content.
+     * This method will return the text value represented by the node's direct children.
+     * If the given node is a TEXT or CDATA node, then its value is returned.
+     *
+     * @param n The node.
+     * @return The node's text content.
+     */
+    private static String getNodeTextContents(Node n) {
+        if (n.getNodeType() == Node.TEXT_NODE || n.getNodeType() == Node.CDATA_SECTION_NODE) {
+            Text txtNode = (Text) n;
+            String content = txtNode.getWholeText(); //This concatenates any adjacent text/cdata/entity nodes
+            if (content == null)
+                return "";
+            else
+                return content;
+        } else {
+            if (n.hasChildNodes()) {
+                NodeList children = n.getChildNodes();
+
+                for (int i = 0; i < children.getLength(); i++) {
+                    //Skip any non-text nodes, like comments or entities
+                    Node child = children.item(i);
+                    if (child.getNodeType() == Node.TEXT_NODE || child.getNodeType() == Node.CDATA_SECTION_NODE) {
+                        Text txtNode = (Text) child;
+                        String content = txtNode.getWholeText(); //This concatenates any adjacent text/cdata/entity nodes
+                        if (content == null)
+                            return "";
+                        else
+                            return content;
+                    }
+                }
+
+                return "";
+            } else {
+                return "";
+            }
+        }
     }
 }
