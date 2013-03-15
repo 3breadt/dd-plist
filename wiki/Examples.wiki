@@ -6,14 +6,13 @@
 == Parsing ==
 
 You can feed the `PropertyListParser` with a `File`, an `InputStream`s or a `byte` array.
-The `parse` method of the `PropertyListParser` will parse the input and give you a `NSObject` as result. Generally this is a `NSDictionary`.
-
-_Note: Only binary and XML property lists are supported. The deprecated ASCII format is not supported._
+The `parse` method of the `PropertyListParser` will parse the input and give you a `NSObject` as result. Generally this is a `NSDictionary` but it can also be a `NSArray`.
 
 _Note: Property lists created by `NSKeyedArchiver` are not yet supported_
 
 You can then navigate the contents of the property lists using the various classes extending `NSObject`. These are modeled in such a way as to closely resemble the respective Cocoa classes.
 
+You can also directly convert the contained `NSObject`s into native Java objects with the `NSObject`'s .toJavaObject() method.
 
 == Creation ==
 
