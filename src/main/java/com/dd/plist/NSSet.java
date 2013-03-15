@@ -197,6 +197,14 @@ public class NSSet extends NSObject {
         return set.iterator();
     }
 
+    /**
+     * Gets the underlying data structure in which this NSSets stores its content.
+     * @return A Set object.
+     */
+    Set<NSObject> getSet() {
+        return set;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;

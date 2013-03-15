@@ -129,6 +129,16 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
+     * Creates an integer number.
+     *
+     * @param l The long integer value.
+     */
+    public NSNumber(long l) {
+        doubleValue = longValue = l;
+        type = INTEGER;
+    }
+
+    /**
      * Creates a real number.
      *
      * @param d The real value.
