@@ -3,9 +3,9 @@ package com.dd.plist.test;
 import com.dd.plist.*;
 import junit.framework.TestCase;
 
+import javax.swing.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 
 public class ParseTest extends TestCase {
 
@@ -111,25 +111,92 @@ public class ParseTest extends TestCase {
     }
 
     public static void testWrap() throws Exception {
-        boolean b = false;
+        boolean bool = true;
         byte byt = 24;
-        short sh = 12;
+        short shrt = 12;
         int i = 42;
-        long l = 1234234234;
-        float f = 124.3f;
-        double d = 32.0;
-        String s = "Hello World";
-        byte[] lesbytes = new byte[] {(byte)0x00, (byte)0xAF, (byte)0xAF};
-        Object[] lesobjects = new Object[] {b, byt, sh, i, l, f, d, s, lesbytes};
-        assertTrue(NSObject.wrap(b).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(byt).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(sh).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(i).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(l).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(f).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(d).getClass().equals(NSNumber.class));
-        assertTrue(NSObject.wrap(s).getClass().equals(NSString.class));
-        assertTrue(NSObject.wrap(lesbytes).getClass().equals(NSData.class));
-        assertTrue(NSObject.wrap(lesobjects).getClass().equals(NSArray.class));
+        long lng = 30000000000l;
+        float flt = 124.3f;
+        double dbl = 32.0;
+        Date date = new java.util.Date();
+        String string = "Hello World";
+        byte[] bytes = new byte[] {(byte)0x00, (byte)0xAF, (byte)0xAF};
+        JFrame frame = new JFrame();
+        Object[] array = new Object[] {bool, byt, shrt, i, lng, flt, dbl, date, string, bytes};
+        LinkedList<Object> list = new LinkedList<Object>();
+        for(Object o:array)
+            list.add(o);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("int", i);
+        map.put("long", lng);
+        map.put("date", date);
+
+        NSObject wrappedO = NSObject.wrap((Object)bool);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue(wrappedO.toJavaObject().equals(bool));
+
+        wrappedO = NSObject.wrap((Object)byt);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue((Integer)wrappedO.toJavaObject() == byt);
+
+        wrappedO = NSObject.wrap((Object)shrt);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue((Integer)wrappedO.toJavaObject() == shrt);
+
+        wrappedO = NSObject.wrap((Object)i);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue((Integer)wrappedO.toJavaObject() == i);
+
+        wrappedO = NSObject.wrap((Object)lng);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue((Long)wrappedO.toJavaObject() == lng);
+
+        wrappedO = NSObject.wrap((Object)flt);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue((Double)wrappedO.toJavaObject() == flt);
+
+        wrappedO = NSObject.wrap((Object)dbl);
+        assertTrue(wrappedO.getClass().equals(NSNumber.class));
+        assertTrue((Double)wrappedO.toJavaObject() == dbl);
+
+        wrappedO = NSObject.wrap((Object)date);
+        assertTrue(wrappedO.getClass().equals(NSDate.class));
+        assertTrue(((Date)wrappedO.toJavaObject()).equals(date));
+
+        wrappedO = NSObject.wrap((Object)string);
+        assertTrue(wrappedO.getClass().equals(NSString.class));
+        assertTrue(((String)wrappedO.toJavaObject()).equals(string));
+
+        wrappedO = NSObject.wrap((Object)bytes);
+        assertTrue(wrappedO.getClass().equals(NSData.class));
+        byte[] data = (byte[])wrappedO.toJavaObject();
+        assertTrue(data.length == bytes.length);
+        for(int x=0; x<bytes.length;x++)
+            assertTrue(data[x] == bytes[x]);
+
+        wrappedO = NSObject.wrap((Object)array);
+        assertTrue(wrappedO.getClass().equals(NSArray.class));
+        Object[] objArray = (Object[])wrappedO.toJavaObject();
+        assertTrue(objArray.length == array.length);
+
+        wrappedO = NSObject.wrap((Object)list);
+        assertTrue(wrappedO.getClass().equals(NSArray.class));
+        objArray = (Object[])wrappedO.toJavaObject();
+        assertTrue(objArray.length == array.length);
+
+        assertTrue(NSObject.wrap((Object)frame).getClass().equals(NSData.class));
+
+        wrappedO = NSObject.wrap((Object)map);
+        assertTrue(wrappedO.getClass().equals(NSDictionary.class));
+        NSDictionary dict = (NSDictionary)wrappedO;
+        assertTrue(((NSNumber)dict.objectForKey("int")).longValue() == i);
+        assertTrue(((NSNumber)dict.objectForKey("long")).longValue() == lng);
+        assertTrue(((NSDate)dict.objectForKey("date")).getDate().equals(date));
+        Object unwrappedO = wrappedO.toJavaObject();
+        Map map2 = (Map)unwrappedO;
+        assertTrue(((Integer)map.get("int")) == i);
+        assertTrue(((Long)map.get("long")) == lng);
+        assertTrue(((Date)map.get("date")).equals(date));
     }
 }

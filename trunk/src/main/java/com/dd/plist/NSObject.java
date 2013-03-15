@@ -25,10 +25,7 @@ package com.dd.plist;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Abstract interface for any object contained in a property list.
@@ -194,21 +191,6 @@ public abstract class NSObject {
     }
 
     /**
-     * Wraps the given value inside a NSObject.
-     *
-     * @param value The value to represent as a NSObject.
-     * @return A NSObject representing the given value.
-     */
-    public static NSData wrap(Serializable value) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(value);
-        oos.close();
-
-        return wrap(baos.toByteArray());
-    }
-
-    /**
      * Creates a NSArray with the contents of the given array.
      *
      * @param value The value to represent as a NSObject.
@@ -253,15 +235,29 @@ public abstract class NSObject {
 
     /**
      * Creates a NSObject representing the given Java Object.
+     *
      * Numerics of type bool, int, long, short, byte, float or double are wrapped as NSNumber objects.
+     *
      * Strings are wrapped as NSString objects abd byte arrays as NSData objects.
+     *
+     * Date objects are wrapped as NSDate objects.
+     *
      * Serializable classes are serialized and their data is stored in NSData objects.
-     * Arrays are converted to NSArrays where each array member is converted to a NSObject by the above rules.
+     *
+     * Arrays and Collection objects are converted to NSArrays where each array member is wrapped into a NSObject.
+     *
+     * Map objects are converted to NSDictionaries. Each key is converted to a string and each value wrapped into a NSObject.
      *
      * @param o The object to represent.
      * @return A NSObject equivalent to the given object.
      */
     public static NSObject wrap(Object o) {
+        if(o == null)
+            return null;
+
+        if(o instanceof NSObject)
+            return (NSObject)o;
+
         Class<? extends Object> c = o.getClass();
         if (Boolean.class.isAssignableFrom(c)) {
             return wrap((boolean) (Boolean) o);
@@ -287,18 +283,28 @@ public abstract class NSObject {
         if (String.class.equals(c)) {
             return wrap((String) o);
         }
+        if (Date.class.equals(c)) {
+            return wrap((Date)o);
+        }
         if (byte[].class.equals(c)) {
             return wrap((byte[]) o);
         }
         if (Object[].class.isAssignableFrom(c)) {
             return wrap((Object[]) o);
         }
-        if (c.isAssignableFrom(Serializable.class)) {
-            try {
-                return wrap((Serializable) o);
-            } catch (IOException ex) {
-                return wrapSerialized(o);
+        if (Map.class.isAssignableFrom(c)) {
+            Map map = (Map)o;
+            Set keys = map.keySet();
+            NSDictionary dict = new NSDictionary();
+            for(Object key:keys) {
+                Object val = map.get(key);
+                dict.put(String.valueOf(key), wrap(val));
             }
+            return dict;
+        }
+        if (Collection.class.isAssignableFrom(c)) {
+            Collection coll = (Collection)o;
+            return wrap(coll.toArray());
         }
         return wrapSerialized(o);
     }
@@ -311,7 +317,8 @@ public abstract class NSObject {
      * @return A NSData object
      * @throws RuntimeException When the object could not be serialized.
      */
-    private static NSData wrapSerialized(Object o) {
+    public static NSData wrapSerialized(Object o) {
+        System.out.println("serializing manually");
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -319,6 +326,82 @@ public abstract class NSObject {
             return new NSData(baos.toByteArray());
         } catch (IOException ex) {
             throw new RuntimeException("The given object of class " + o.getClass().toString() + " could not be serialized and stored in a NSData object.");
+        }
+    }
+
+    /**
+     * Converts this NSObject into an equivalent object
+     * of the Java Runtime Environment.
+     * <ul>
+     * <li>NSArray objects are converted to arrays.</li>
+     * <li>NSDictionary objects are converted to objects extending the java.util.Map class.</li>
+     * <li>NSSet objects are converted to objects extending the java.util.Set class.</li>
+     * <li>NSNumber objects are converted to primitive number values (int, long, double or boolean).</li>
+     * <li>NSString objects are converted to String objects.</li>
+     * <li>NSData objects are converted to byte arrays.</li>
+     * <li>NSDate objects are converted to java.util.Date objects.</li>
+     * <li>UID objects are converted to byte arrays.</li>
+     * </ul>
+     * @return A native java object representing this NSObject's value.
+     */
+    public Object toJavaObject() {
+        if(this instanceof NSArray) {
+            NSObject[] arrayA = ((NSArray)this).getArray();
+            Object[] arrayB = new Object[arrayA.length];
+            for(int i = 0; i < arrayA.length; i++) {
+                arrayB[i] = arrayA[i].toJavaObject();
+            }
+            return arrayA;
+        } else if (this instanceof NSDictionary) {
+            HashMap<String, NSObject> hashMapA = ((NSDictionary)this).getHashMap();
+            HashMap<String, Object> hashMapB = new HashMap<String, Object>(hashMapA.size());
+            for(String key:hashMapA.keySet()) {
+                hashMapB.put(key, hashMapA.get(key).toJavaObject());
+            }
+            return hashMapB;
+        } else if(this instanceof NSSet) {
+            Set<NSObject> setA = ((NSSet)this).getSet();
+            Set<Object> setB;
+            if(setA instanceof LinkedHashSet) {
+                setB = new LinkedHashSet<Object>(setA.size());
+            } else {
+                setB = new TreeSet<Object>();
+            }
+            for(NSObject o:setA) {
+                setB.add(o.toJavaObject());
+            }
+            return setB;
+        } else if(this instanceof NSNumber) {
+            NSNumber num = (NSNumber)this;
+            switch(num.type()) {
+                case NSNumber.INTEGER : {
+                    long longVal = num.longValue();
+                    if(longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
+                        return longVal;
+                    } else {
+                        return num.intValue();
+                    }
+                }
+                case NSNumber.REAL : {
+                    return num.doubleValue();
+                }
+                case NSNumber.BOOLEAN : {
+                    return num.boolValue();
+                }
+                default : {
+                    return num.doubleValue();
+                }
+            }
+        } else if(this instanceof NSString) {
+            return ((NSString)this).getContent();
+        } else if(this instanceof NSData) {
+            return ((NSData)this).bytes();
+        } else if(this instanceof NSDate) {
+            return ((NSDate)this).getDate();
+        } else if(this instanceof UID) {
+            return ((UID)this).getBytes();
+        } else {
+            return this;
         }
     }
 }
