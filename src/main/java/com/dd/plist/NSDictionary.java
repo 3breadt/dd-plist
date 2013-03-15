@@ -81,6 +81,16 @@ public class NSDictionary extends NSObject {
      * @param key The key.
      * @param obj The value.
      */
+    public void put(String key, Object obj) {
+        dict.put(key, NSObject.wrap(obj));
+    }
+
+    /**
+     * Puts a new key-value pair into this dictionary.
+     *
+     * @param key The key.
+     * @param obj The value.
+     */
     public void put(String key, NSObject obj) {
         dict.put(key, obj);
     }
