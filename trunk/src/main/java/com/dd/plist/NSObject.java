@@ -351,7 +351,7 @@ public abstract class NSObject {
             for(int i = 0; i < arrayA.length; i++) {
                 arrayB[i] = arrayA[i].toJavaObject();
             }
-            return arrayA;
+            return arrayB;
         } else if (this instanceof NSDictionary) {
             HashMap<String, NSObject> hashMapA = ((NSDictionary)this).getHashMap();
             HashMap<String, Object> hashMapB = new HashMap<String, Object>(hashMapA.size());
