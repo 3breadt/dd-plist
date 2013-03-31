@@ -393,21 +393,15 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     public int compareTo(Object o) {
+        double x = doubleValue();
+        double y;
         if (o instanceof NSNumber) {
             NSNumber num = (NSNumber) o;
-            switch (num.type()) {
-                case INTEGER: {
-                    return Long.compare(longValue(), num.longValue());
-                }
-                case REAL: {
-                    return Double.compare(doubleValue(), num.doubleValue());
-                }
-                default: {
-                    return Long.compare(longValue(), num.longValue());
-                }
-            }
+            y = num.doubleValue();
+            return (x < y) ? -1 : ((x == y) ? 0 : 1);
         } else if (o instanceof Number) {
-            return Double.compare(doubleValue(), ((Number) o).doubleValue());
+            y = ((Number) o).doubleValue();
+            return (x < y) ? -1 : ((x == y) ? 0 : 1);
         } else {
             return -1;
         }
