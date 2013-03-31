@@ -90,9 +90,11 @@ public class NSDictionary extends NSObject {
      *
      * @param key The key.
      * @param obj The value.
+     * @return The value previously associated to the given key,
+     *         or null, if no value was associated to it.
      */
-    public void put(String key, NSObject obj) {
-        dict.put(key, obj);
+    public NSObject put(String key, NSObject obj) {
+        return dict.put(key, obj);
     }
 
     /**
