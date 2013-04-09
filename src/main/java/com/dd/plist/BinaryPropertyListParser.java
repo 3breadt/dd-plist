@@ -71,12 +71,12 @@ public class BinaryPropertyListParser {
     private int[] offsetTable;
 
     /**
-     * Private constructor so that instantiation is fully controlled by the
+     * Protected constructor so that instantiation is fully controlled by the
      * static parse methods.
      *
      * @see BinaryPropertyListParser#parse(byte[])
      */
-    private BinaryPropertyListParser() {
+    protected BinaryPropertyListParser() {
         /** empty **/
     }
 

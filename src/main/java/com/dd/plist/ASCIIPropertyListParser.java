@@ -139,6 +139,13 @@ public class ASCIIPropertyListParser {
     private int index;
 
     /**
+     * Only allow subclasses to change instantiation.
+     */
+    protected ASCIIPropertyListParser() {
+
+    }
+
+    /**
      * Creates a new parser for the given property list content.
      *
      * @param propertyListContent The content of the property list that is to be parsed.

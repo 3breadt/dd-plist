@@ -43,9 +43,9 @@ import java.util.List;
 public class XMLPropertyListParser {
 
     /**
-     * Instantiation is prohibited.
+     * Instantiation is prohibited by outside classes.
      */
-    private XMLPropertyListParser() {
+    protected XMLPropertyListParser() {
         /** empty **/
     }
 
