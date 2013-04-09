@@ -44,7 +44,7 @@ public class PropertyListParser {
     /**
      * Objects are unneccesary.
      */
-    private PropertyListParser() {
+    protected PropertyListParser() {
         /** empty **/
     }
 
