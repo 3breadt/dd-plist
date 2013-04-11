@@ -25,6 +25,7 @@ package com.dd.plist;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,13 +37,14 @@ import java.util.Set;
  * The keys are simple Strings whereas the values can be any kind of NSObject.
  * <p/>
  * You can access the keys through the function <code>allKeys()</code>. Access
- * to the objects stored for each key is given through the function <code>objectoForKey(String key)</code>.
+ * to the objects stored for each key is given through the function
+ * <code>objectoForKey(String key)</code>.
  *
  * @author Daniel Dreibrodt
  * @see java.util.Hashtable
  * @see com.dd.plist.NSObject
  */
-public class NSDictionary extends NSObject {
+public class NSDictionary extends NSObject  implements Map<String, NSObject> {
 
     private HashMap<String, NSObject> dict;
 
@@ -85,6 +87,65 @@ public class NSDictionary extends NSObject {
         dict.put(key, NSObject.wrap(obj));
     }
 
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#size()
+	 */
+    public int size() {
+        return dict.size();
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#isEmpty()
+	 */
+    public boolean isEmpty() {
+        return dict.isEmpty();
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#containsKey(java.lang.Object)
+	 */
+    public boolean containsKey(Object key) {
+        return dict.containsKey(key);
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#containsValue(java.lang.Object)
+	 */
+    public boolean containsValue(Object value) {
+        NSObject wrap = NSObject.wrap(value);
+        return dict.containsValue(wrap);
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#get(java.lang.Object)
+	 */
+    public NSObject get(Object key) {
+        return dict.get(key);
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#putAll(java.util.Map)
+	 */
+    public void putAll(Map<? extends String, ? extends NSObject> values) {
+        for (Object object : values.entrySet()) {
+            @SuppressWarnings("unchecked")
+            Map.Entry<String, NSObject> entry = (Map.Entry<String, NSObject>) object;
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
     /**
      * Puts a new key-value pair into this dictionary.
      *
@@ -97,14 +158,15 @@ public class NSDictionary extends NSObject {
         return dict.put(key, obj);
     }
 
+
     /**
      * Puts a new key-value pair into this dictionary.
      *
      * @param key The key.
      * @param obj The value.
      */
-    public void put(String key, String obj) {
-        put(key, new NSString(obj));
+    public NSObject put(String key, String obj) {
+        return put(key, new NSString(obj));
     }
 
     /**
@@ -113,8 +175,8 @@ public class NSDictionary extends NSObject {
      * @param key The key.
      * @param obj The value.
      */
-    public void put(String key, long obj) {
-        put(key, new NSNumber(obj));
+    public NSObject put(String key, long obj) {
+        return put(key, new NSNumber(obj));
     }
 
     /**
@@ -123,8 +185,8 @@ public class NSDictionary extends NSObject {
      * @param key The key.
      * @param obj The value.
      */
-    public void put(String key, double obj) {
-        put(key, new NSNumber(obj));
+    public NSObject put(String key, double obj) {
+        return put(key, new NSNumber(obj));
     }
 
     /**
@@ -133,8 +195,8 @@ public class NSDictionary extends NSObject {
      * @param key The key.
      * @param obj The value.
      */
-    public void put(String key, boolean obj) {
-        put(key, new NSNumber(obj));
+    public NSObject put(String key, boolean obj) {
+        return put(key, new NSNumber(obj));
     }
 
     /**
@@ -143,8 +205,8 @@ public class NSDictionary extends NSObject {
      * @param key The key.
      * @param obj The value.
      */
-    public void put(String key, Date obj) {
-        put(key, new NSDate(obj));
+    public NSObject put(String key, Date obj) {
+        return put(key, new NSDate(obj));
     }
 
     /**
@@ -153,24 +215,62 @@ public class NSDictionary extends NSObject {
      * @param key The key.
      * @param obj The value.
      */
-    public void put(String key, byte[] obj) {
-        put(key, new NSData(obj));
+    public NSObject put(String key, byte[] obj) {
+        return put(key, new NSData(obj));
     }
 
     /**
      * Removes a key-value pair from this dictionary.
      *
      * @param key The key
+     * @return the value previously associated to the given key.
      */
-    public void remove(String key) {
-        dict.remove(key);
+    public NSObject remove(String key) {
+        return dict.remove(key);
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#remove(java.lang.Object)
+	 */
+    public NSObject remove(Object key) {
+        return dict.remove(key);
     }
 
     /**
      * Removes all key-value pairs from this dictionary.
+     * @see java.util.Map#clear()
      */
     public void clear() {
         dict.clear();
+    }
+
+    /*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.Map#keySet()
+	 */
+    public Set<String> keySet() {
+        return dict.keySet();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.util.Map#values()
+     */
+    public Collection<NSObject> values() {
+        return dict.values();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.util.Map#entrySet()
+     */
+    public Set<Entry<String, NSObject>> entrySet() {
+        return dict.entrySet();
     }
 
     /**
