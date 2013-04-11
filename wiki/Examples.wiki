@@ -12,11 +12,11 @@ _Note: Property lists created by `NSKeyedArchiver` are not yet supported_
 
 You can then navigate the contents of the property lists using the various classes extending `NSObject`. These are modeled in such a way as to closely resemble the respective Cocoa classes.
 
-You can also directly convert the contained `NSObject`s into native Java objects with the `NSObject`'s .toJavaObject() method.
+You can also directly convert the contained `NSObject`s into native Java objects with the `NSObject`'s .toJavaObject() method. Using this method you can avoid working with `NSObject`s altogether.
 
 == Creation ==
 
-You can create your own property list using the various constructors of the different `NSObject` classes.
+You can create your own property list using the various constructors of the different `NSObject` classes. Or you can wrap existing native Java structures with the method `NSObject.wrap(Object o)`. Just make sure that the root object of the property list is either a `NSDictionary` (can be created from objects of the type `Map<String, Object>`) or an `NSArray` (can be created from object arrays).
 
 For building a XML property list you can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
 
