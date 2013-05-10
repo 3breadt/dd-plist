@@ -109,6 +109,9 @@ public class NSNumber extends NSObject implements Comparable<Object> {
             } catch (Exception ex2) {
                 try {
                     boolValue = text.toLowerCase().equals("true") || text.toLowerCase().equals("yes");
+                    if(!boolValue && !(text.toLowerCase().equals("false") || text.toLowerCase().equals("no"))) {
+                        throw new Exception("not a boolean");
+                    }
                     type = BOOLEAN;
                     doubleValue = longValue = boolValue ? 1 : 0;
                 } catch (Exception ex3) {

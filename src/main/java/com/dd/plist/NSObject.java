@@ -318,7 +318,6 @@ public abstract class NSObject {
      * @throws RuntimeException When the object could not be serialized.
      */
     public static NSData wrapSerialized(Object o) {
-        System.out.println("serializing manually");
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);

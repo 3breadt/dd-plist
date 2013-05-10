@@ -207,8 +207,9 @@ public class NSString extends NSObject implements Comparable<Object> {
         ascii.append("\"");
         //According to https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
         //non-ASCII characters are not escaped but simply written into the
-        //file, thus actually violating the ASCII plain text format
-        ascii.append(content);
+        //file, thus actually violating the ASCII plain text format.
+        //We will escape the string anyway because current Xcode project files (ASCII property lists) also escape their strings.
+        ascii.append(escapeStringForASCII(content));
         ascii.append("\"");
     }
 
