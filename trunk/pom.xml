@@ -8,7 +8,7 @@
 	<groupId>com.googlecode.plist</groupId>
 	<artifactId>dd-plist</artifactId>
 	<packaging>jar</packaging>
-	<version>1.3</version>
+	<version>1.4-SNAPSHOT</version>
 	<name>dd-plist</name>
 	<url>http://plist.googlecode.com</url>
 	<description>
@@ -49,9 +49,9 @@
 		<url>http://code.google.com/p/plist/issues</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://plist.googlecode.com/svn/tags/dd-plist-1.3</connection>
-		<developerConnection>scm:svn:https://plist.googlecode.com/svn/tags/dd-plist-1.3</developerConnection>
-		<url>http://code.google.com/p/plist/source/browse/tags/dd-plist-1.3</url>
+		<connection>scm:svn:http://plist.googlecode.com/svn/trunk/</connection>
+		<developerConnection>scm:svn:https://plist.googlecode.com/svn/trunk/</developerConnection>
+		<url>http://code.google.com/p/plist/source/browse/trunk</url>
 	</scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
