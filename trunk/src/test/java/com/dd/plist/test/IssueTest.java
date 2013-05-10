@@ -65,4 +65,10 @@ public class IssueTest extends TestCase {
     public static void testIssue33() throws Exception {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
     }
+    public static void testIssue38() throws Exception {
+        NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
+        NSObject fileRef = (NSObject) ((NSDictionary) ((NSDictionary)dict.get("objects")).get("65541A9C16D13B8C00A968D5")).get("fileRef");
+        System.out.println(fileRef.toXMLPropertyList());
+        assertTrue(fileRef.equals(new NSString("65541A9B16D13B8C00A968D5")));
+    }
 }

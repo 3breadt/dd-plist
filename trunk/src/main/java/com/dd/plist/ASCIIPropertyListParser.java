@@ -369,7 +369,7 @@ public class ASCIIPropertyListParser {
             default: {
                 //0-9
                 if (data[index] > 0x2F && data[index] < 0x3A) {
-                    //int, real or date
+                    //could be int, real or date or an unqu oted string starting with a number
                     return parseNumerical();
                 } else {
                     //non-numerical -> string or boolean
@@ -505,6 +505,39 @@ public class ASCIIPropertyListParser {
     }
 
     /**
+     * Attempts to parse a plain string as a number or date.
+     *
+     * @return A NSNumber or NSDate if the string represents such an object. Otherwise a NSString is returned.
+     */
+    private NSObject parseNumerical() {
+        String numericalString = parseString();
+        try {
+            //GnuStep Date strings have a - after the 4 year digits
+            if (numericalString.length() > 4 && numericalString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
+                //date
+                return new NSDate(numericalString);
+            } else {
+                //real or int
+                return new NSNumber(numericalString);
+            }
+        } catch (Exception ex) {
+            return new NSString(numericalString);
+        }
+    }
+
+    /**
+     * Parses a plain string from the current parsing position.
+     * The string is made up of all characters to the next whitespace, delimiter token or assignment token.
+     *
+     * @return The string found at the current parsing position.
+     */
+    private String parseString() {
+        String parsedString = readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE, WHITESPACE_CARRIAGE_RETURN,
+                ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN, ARRAY_END_TOKEN);
+        return parsedString;
+    }
+
+    /**
      * Parses a quoted string from the current parsing position.
      * The prerequisite for calling this method is, that a quoted string begin token has been read.
      *
@@ -535,39 +568,6 @@ public class ASCIIPropertyListParser {
         //skip end token
         skip();
         return unescapedString;
-    }
-
-    /**
-     * Parses a plain string from the current parsing position.
-     * The string is made up of all characters to the next whitespace, delimiter token or assignment token.
-     *
-     * @return The string found at the current parsing position.
-     */
-    private String parseString() {
-        String parsedString = readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE, WHITESPACE_CARRIAGE_RETURN,
-                ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN, ARRAY_END_TOKEN);
-        return parsedString;
-    }
-
-    /**
-     * Attempts to parse a plain string as a number or date.
-     *
-     * @return A NSNumber or NSDate if the string represents such an object. Otherwise a NSString is returned.
-     */
-    private NSObject parseNumerical() {
-        String numericalString = parseString();
-        try {
-            //GnuStep Date strings have a - after the 4 year digits
-            if (numericalString.length() > 4 && numericalString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
-                //date
-                return new NSDate(numericalString);
-            } else {
-                //real or int
-                return new NSNumber(numericalString);
-            }
-        } catch (ParseException ex) {
-            return new NSString(numericalString);
-        }
     }
 
     /**
