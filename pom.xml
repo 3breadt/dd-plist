@@ -8,13 +8,13 @@
 	<groupId>com.googlecode.plist</groupId>
 	<artifactId>dd-plist</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4-SNAPSHOT</version>
+	<version>1.8-SNAPSHOT</version>
 	<name>dd-plist</name>
 	<url>http://plist.googlecode.com</url>
 	<description>
 	This library enables Java applications to work with property lists in various formats.
 	Supported formats for reading and writing are OS X/iOS binary and XML property lists.
-        Old-fashioned ASCII property lists are also supported.
+        ASCII property lists are also supported.
 	The library also provides access to basic functions of NeXTSTEP/Cocoa classes like
         NSDictionary, NSArray, etc.
 	</description>
@@ -73,6 +73,13 @@
 				<groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
 				<artifactId>svn-revision-number-maven-plugin</artifactId>
 				<version>1.13</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.tmatesoft.svnkit</groupId>
+						<artifactId>svnkit</artifactId>
+						<version>1.8.2</version>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution>
 						<goals>
@@ -143,6 +150,45 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifestFile>${project.build.directory}/osgi/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+                <version>2.4.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<archive>
+						<forced>true</forced>
+					</archive>
+					<excludeDependencies>true</excludeDependencies>
+					<manifestLocation>${project.build.directory}/osgi</manifestLocation>
+					<instructions>
+						<Bundle-Name>${project.name}</Bundle-Name>
+						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Description>${project.description}</Bundle-Description>
+						<Export-Package>com.dd.plist</Export-Package>
+						<Bundle-DocURL>${project.url}</Bundle-DocURL>
+					</instructions>
+				</configuration>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>

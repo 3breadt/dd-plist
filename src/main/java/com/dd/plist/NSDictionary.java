@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2012 Daniel Dreibrodt
+ * Copyright (C) 2014 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,16 +77,6 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         return dict.get(key);
     }
 
-    /**
-     * Puts a new key-value pair into this dictionary.
-     *
-     * @param key The key.
-     * @param obj The value.
-     */
-    public void put(String key, Object obj) {
-        dict.put(key, NSObject.wrap(obj));
-    }
-
     /*
 	 * (non-Javadoc)
 	 *
@@ -158,15 +148,16 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         return dict.put(key, obj);
     }
 
-
     /**
      * Puts a new key-value pair into this dictionary.
      *
      * @param key The key.
-     * @param obj The value.
+     * @param obj The value. Supported object types are numbers, byte-arrays, dates, strings and arrays or sets of those.
+     * @return The value previously associated to the given key,
+     *         or null, if no value was associated to it.
      */
-    public NSObject put(String key, String obj) {
-        return put(key, new NSString(obj));
+    public NSObject put(String key, Object obj) {
+        return put(key, NSObject.wrap(obj));
     }
 
     /**
@@ -197,26 +188,6 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      */
     public NSObject put(String key, boolean obj) {
         return put(key, new NSNumber(obj));
-    }
-
-    /**
-     * Puts a new key-value pair into this dictionary.
-     *
-     * @param key The key.
-     * @param obj The value.
-     */
-    public NSObject put(String key, Date obj) {
-        return put(key, new NSDate(obj));
-    }
-
-    /**
-     * Puts a new key-value pair into this dictionary.
-     *
-     * @param key The key.
-     * @param obj The value.
-     */
-    public NSObject put(String key, byte[] obj) {
-        return put(key, new NSData(obj));
     }
 
     /**

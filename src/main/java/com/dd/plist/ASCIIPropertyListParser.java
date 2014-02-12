@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2012 Daniel Dreibrodt
+ * Copyright (C) 2014 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,12 @@ package com.dd.plist;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.text.ParseException;
@@ -60,7 +63,7 @@ public class ASCIIPropertyListParser {
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
      */
-    public static NSObject parse(File f) throws Exception {
+    public static NSObject parse(File f) throws IOException, ParseException {
         return parse(new FileInputStream(f));
     }
 
@@ -71,7 +74,7 @@ public class ASCIIPropertyListParser {
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
      */
-    public static NSObject parse(InputStream in) throws Exception {
+    public static NSObject parse(InputStream in) throws ParseException, IOException {
         byte[] buf = PropertyListParser.readAll(in, Integer.MAX_VALUE);
         in.close();
         return parse(buf);
@@ -84,7 +87,7 @@ public class ASCIIPropertyListParser {
      * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
      * @throws Exception When an error occurs during parsing.
      */
-    public static NSObject parse(byte[] bytes) throws Exception {
+    public static NSObject parse(byte[] bytes) throws ParseException {
         ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
         return parser.parse();
     }
@@ -583,7 +586,7 @@ public class ASCIIPropertyListParser {
      * @return The unescaped string in UTF-8 or ASCII format, depending on the contained characters.
      * @throws Exception If the string could not be properly parsed.
      */
-    public static synchronized String parseQuotedString(String s) throws Exception {
+    public static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException {
         List<Byte> strBytes = new LinkedList<Byte>();
         StringCharacterIterator iterator = new StringCharacterIterator(s);
         char c = iterator.current();

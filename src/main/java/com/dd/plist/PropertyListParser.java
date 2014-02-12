@@ -22,14 +22,19 @@
  */
 package com.dd.plist;
 
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.text.ParseException;
 
 /**
  * This class provides methods to parse property lists. It can handle files,
@@ -42,7 +47,7 @@ import java.io.OutputStreamWriter;
 public class PropertyListParser {
 
     /**
-     * Objects are unneccesary.
+     * Prevent instantiation.
      */
     protected PropertyListParser() {
         /** empty **/
@@ -73,7 +78,7 @@ public class PropertyListParser {
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws Exception If an error occurred while parsing.
      */
-    public static NSObject parse(String filePath) throws Exception {
+    public static NSObject parse(String filePath) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         return parse(new File(filePath));
     }
 
@@ -84,7 +89,7 @@ public class PropertyListParser {
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws Exception If an error occurred while parsing.
      */
-    public static NSObject parse(File f) throws Exception {
+    public static NSObject parse(File f) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         FileInputStream fis = new FileInputStream(f);
         String magicString = new String(readAll(fis, 8), 0, 8);
         fis.close();
@@ -104,7 +109,7 @@ public class PropertyListParser {
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws Exception If an error occurred while parsing.
      */
-    public static NSObject parse(byte[] bytes) throws Exception {
+    public static NSObject parse(byte[] bytes) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         String magicString = new String(bytes, 0, 8);
         if (magicString.startsWith("bplist")) {
             return BinaryPropertyListParser.parse(bytes);
@@ -122,7 +127,7 @@ public class PropertyListParser {
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws Exception If an error occurred while parsing.
      */
-    public static NSObject parse(InputStream is) throws Exception {
+    public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         if (is.markSupported()) {
             is.mark(10);
             String magicString = new String(readAll(is, 8), 0, 8);
@@ -177,7 +182,7 @@ public class PropertyListParser {
      * @param out The target file.
      * @throws Exception When an error occurs during parsing or converting.
      */
-    public static void convertToXml(File in, File out) throws Exception {
+    public static void convertToXml(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
         saveAsXML(root, out);
     }
@@ -214,7 +219,7 @@ public class PropertyListParser {
      * @param out The target file.
      * @throws Exception When an error occurs during parsing or converting.
      */
-    public static void convertToBinary(File in, File out) throws Exception {
+    public static void convertToBinary(File in, File out) throws IOException, ParserConfigurationException, ParseException, SAXException, PropertyListFormatException {
         NSObject root = parse(in);
         saveAsBinary(root, out);
     }
@@ -255,7 +260,7 @@ public class PropertyListParser {
      * @param out The target file.
      * @throws Exception When an error occurs during parsing or converting.
      */
-    public static void convertToASCII(File in, File out) throws Exception {
+    public static void convertToASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
         try {
             saveAsASCII((NSDictionary) root, out);
@@ -263,7 +268,7 @@ public class PropertyListParser {
             try {
                 saveAsASCII((NSArray) root, out);
             } catch (Exception ex2) {
-                throw new Exception("The root of the given input property list "
+                throw new PropertyListFormatException("The root of the given input property list "
                         + "is neither a Dictionary nor an Array!");
             }
         }
@@ -308,7 +313,7 @@ public class PropertyListParser {
      * @param out The target file.
      * @throws Exception When an error occurs during parsing or converting.
      */
-    public static void convertToGnuStepASCII(File in, File out) throws Exception {
+    public static void convertToGnuStepASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
         try {
             saveAsGnuStepASCII((NSDictionary) root, out);
@@ -316,7 +321,7 @@ public class PropertyListParser {
             try {
                 saveAsGnuStepASCII((NSArray) root, out);
             } catch (Exception ex2) {
-                throw new Exception("The root of the given input property list "
+                throw new PropertyListFormatException("The root of the given input property list "
                         + "is neither a Dictionary nor an Array!");
             }
         }
