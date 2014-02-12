@@ -123,6 +123,7 @@ public class ParseTest extends TestCase {
         byte[] bytes = new byte[] {(byte)0x00, (byte)0xAF, (byte)0xAF};
         JFrame frame = new JFrame();
         Object[] array = new Object[] {bool, byt, shrt, i, lng, flt, dbl, date, string, bytes};
+        int[] array2 = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3000};
         LinkedList<Object> list = new LinkedList<Object>();
         for(Object o:array)
             list.add(o);
@@ -179,6 +180,10 @@ public class ParseTest extends TestCase {
         assertTrue(wrappedO.getClass().equals(NSArray.class));
         Object[] objArray = (Object[])wrappedO.toJavaObject();
         assertTrue(objArray.length == array.length);
+
+        wrappedO = NSObject.wrap((Object)array2);
+        assertTrue(wrappedO.getClass().equals(NSArray.class));
+        assertTrue(((NSArray)wrappedO).count() == array2.length);
 
         wrappedO = NSObject.wrap((Object)list);
         assertTrue(wrappedO.getClass().equals(NSArray.class));
