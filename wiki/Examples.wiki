@@ -66,6 +66,22 @@ try {
 }
 }}}
 
+=== On Android ===
+
+Put your property list files into the project folder `res/raw` to mark them as resource files. Then you can create an InputStream for that resource and pass it to the PropertyListParser.
+
+In this example your property list file is called `properties.plist`.
+
+{{{
+try {
+  InputStream is = getResources().openRawResource(R.raw.properties);
+  NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(is);
+  //Continue parsing...
+} catch(Exception ex) {
+  //Handle exceptions...
+}
+}}}
+
 == Creation ==
 
 {{{
