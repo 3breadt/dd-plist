@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2011-2014 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -126,15 +126,15 @@ public class BinaryPropertyListParser {
          */
         byte[] trailer = copyOfRange(bytes, bytes.length - 32, bytes.length);
         //6 null bytes (index 0 to 5)
-        offsetSize = (int) parseUnsignedInt(copyOfRange(trailer, 6, 7));
+        offsetSize = (int) parseUnsignedInt(trailer, 6, 7);
         //System.out.println("offsetSize: "+offsetSize);
-        objectRefSize = (int) parseUnsignedInt(copyOfRange(trailer, 7, 8));
+        objectRefSize = (int) parseUnsignedInt(trailer, 7, 8);
         //System.out.println("objectRefSize: "+objectRefSize);
-        numObjects = (int) parseUnsignedInt(copyOfRange(trailer, 8, 16));
+        numObjects = (int) parseUnsignedInt(trailer, 8, 16);
         //System.out.println("numObjects: "+numObjects);
-        topObject = (int) parseUnsignedInt(copyOfRange(trailer, 16, 24));
+        topObject = (int) parseUnsignedInt(trailer, 16, 24);
         //System.out.println("topObject: "+topObject);
-        offsetTableOffset = (int) parseUnsignedInt(copyOfRange(trailer, 24, 32));
+        offsetTableOffset = (int) parseUnsignedInt(trailer, 24, 32);
         //System.out.println("offsetTableOffset: "+offsetTableOffset);
 
         /*
@@ -426,7 +426,7 @@ public class BinaryPropertyListParser {
      * @param bytes The byte array containing the unsigned integer.
      * @return The unsigned integer represented by the given bytes.
      */
-    public static final long parseUnsignedInt(byte[] bytes) {
+    public static long parseUnsignedInt(byte[] bytes) {
         long l = 0;
         for (byte b : bytes) {
             l <<= 8;
@@ -437,12 +437,30 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses longs from a (big-endian) byte array.
+     * Parses an unsigned integer from a byte array.
+     *
+     * @param bytes The byte array containing the unsigned integer.
+     * @param startIndex Beginning of the unsigned int in the byte array.
+     * @param endIndex End of the unsigned int in the byte array.
+     * @return The unsigned integer represented by the given bytes.
+     */
+    public static long parseUnsignedInt(byte[] bytes, int startIndex, int endIndex) {
+        long l = 0;
+        for (int i = startIndex; i < endIndex; i++) {
+            l <<= 8;
+            l |= bytes[i] & 0xFF;
+        }
+        l &= 0xFFFFFFFFL;
+        return l;
+    }
+
+    /**
+     * Parses a long from a (big-endian) byte array.
      *
      * @param bytes The bytes representing the long integer.
      * @return The long integer represented by the given bytes.
      */
-    public static final long parseLong(byte[] bytes) {
+    public static long parseLong(byte[] bytes) {
         long l = 0;
         for (byte b : bytes) {
             l <<= 8;
@@ -452,18 +470,53 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses doubles from a (big-endian) byte array.
+     * Parses a long from a (big-endian) byte array.
+     *
+     * @param bytes The bytes representing the long integer.
+     * @param startIndex Beginning of the long in the byte array.
+     * @param endIndex End of the long in the byte array.
+     * @return The long integer represented by the given bytes.
+     */
+    public static long parseLong(byte[] bytes, int startIndex, int endIndex) {
+        long l = 0;
+        for (int i = startIndex; i < endIndex; i++) {
+            l <<= 8;
+            l |= bytes[i] & 0xFF;
+        }
+        return l;
+    }
+
+    /**
+     * Parses a double from a (big-endian) byte array.
      *
      * @param bytes The bytes representing the double.
      * @return The double represented by the given bytes.
      */
-    public static final double parseDouble(byte[] bytes) {
+    public static double parseDouble(byte[] bytes) {
         if (bytes.length == 8) {
             return Double.longBitsToDouble(parseLong(bytes));
         } else if (bytes.length == 4) {
             return Float.intBitsToFloat((int) parseLong(bytes));
         } else {
             throw new IllegalArgumentException("bad byte array length " + bytes.length);
+        }
+    }
+
+    /**
+     * Parses a double from a (big-endian) byte array.
+     *
+     * @param bytes The bytes representing the double.
+     * @param startIndex Beginning of the double in the byte array.
+     * @param endIndex End of the double in the byte array.
+     * @return The double represented by the given bytes.
+     */
+    public static double parseDouble(byte[] bytes, int startIndex, int endIndex) {
+        if (endIndex - startIndex == 8) {
+            return Double.longBitsToDouble(parseLong(bytes, startIndex, endIndex));
+        } else if (endIndex - startIndex == 4) {
+            return Float.intBitsToFloat((int)parseLong(bytes, startIndex, endIndex));
+        } else {
+            throw new IllegalArgumentException("endIndex ("+endIndex+") - startIndex ("+startIndex+") != 4 or 8");
         }
     }
 

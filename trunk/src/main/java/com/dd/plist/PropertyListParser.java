@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2011-2014 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -262,15 +261,15 @@ public class PropertyListParser {
      */
     public static void convertToASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
-        try {
+        if(root instanceof NSDictionary) {
             saveAsASCII((NSDictionary) root, out);
-        } catch (Exception ex) {
-            try {
-                saveAsASCII((NSArray) root, out);
-            } catch (Exception ex2) {
-                throw new PropertyListFormatException("The root of the given input property list "
-                        + "is neither a Dictionary nor an Array!");
-            }
+        }
+        else if(root instanceof NSArray) {
+            saveAsASCII((NSArray) root, out);
+        }
+        else {
+            throw new PropertyListFormatException("The root of the given input property list "
+                    + "is neither a Dictionary nor an Array!");
         }
     }
 
@@ -315,15 +314,15 @@ public class PropertyListParser {
      */
     public static void convertToGnuStepASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
-        try {
+        if(root instanceof NSDictionary) {
             saveAsGnuStepASCII((NSDictionary) root, out);
-        } catch (Exception ex) {
-            try {
-                saveAsGnuStepASCII((NSArray) root, out);
-            } catch (Exception ex2) {
-                throw new PropertyListFormatException("The root of the given input property list "
-                        + "is neither a Dictionary nor an Array!");
-            }
+        }
+        else if(root instanceof NSArray) {
+            saveAsGnuStepASCII((NSArray) root, out);
+        }
+        else {
+            throw new PropertyListFormatException("The root of the given input property list "
+                    + "is neither a Dictionary nor an Array!");
         }
     }
 }

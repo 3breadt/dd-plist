@@ -269,7 +269,6 @@ public abstract class NSObject {
         if(c.isArray()) {
             Class<?> cc = c.getComponentType();
             if (cc.equals(byte.class)) {
-                System.out.println("It's a byte array!");
                 return wrap((byte[]) o);
             }
             else if(cc.equals(boolean.class)) {
