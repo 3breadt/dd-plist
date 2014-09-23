@@ -70,4 +70,9 @@ public class IssueTest extends TestCase {
         NSObject fileRef = ((NSDictionary) ((NSDictionary)dict.get("objects")).get("65541A9C16D13B8C00A968D5")).get("fileRef");
         assertTrue(fileRef.equals(new NSString("65541A9B16D13B8C00A968D5")));
     }
+
+    public static void testIssue49() throws Exception {
+        NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue49.plist"));
+        assertEquals(0, dict.count());
+    }
 }

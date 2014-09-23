@@ -162,7 +162,7 @@ public class BinaryPropertyListParser {
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
         //Read all bytes into a list
-        byte[] buf = PropertyListParser.readAll(is, Integer.MAX_VALUE);
+        byte[] buf = PropertyListParser.readAll(is);
         is.close();
         return parse(buf);
     }

@@ -515,7 +515,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
         ascii.append(NEWLINE);
-        String[] keys = dict.keySet().toArray(new String[0]);
+        String[] keys = dict.keySet().toArray(new String[dict.size()]);
         for (String key : keys) {
             NSObject val = objectForKey(key);
             indent(ascii, level + 1);
