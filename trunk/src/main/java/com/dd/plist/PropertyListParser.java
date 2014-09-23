@@ -45,6 +45,12 @@ import java.text.ParseException;
  */
 public class PropertyListParser {
 
+    private static final int TYPE_XML = 0;
+    private static final int TYPE_BINARY = 1;
+    private static final int TYPE_ASCII = 2;
+    private static final int TYPE_ERROR_BLANK = 10;
+    private static final int TYPE_ERROR_UNKNOWN = 11;
+
     /**
      * Prevent instantiation.
      */
@@ -53,21 +59,81 @@ public class PropertyListParser {
     }
 
     /**
+     * Determines the type of a property list by means of the first bytes of its data
+     * @param dataBeginning The very first bytes of data of the property list (minus any whitespace) as a string
+     * @return The type of the property list
+     */
+    private static int determineType(String dataBeginning) {
+        dataBeginning = dataBeginning.trim();
+        if(dataBeginning.length() == 0) {
+            return TYPE_ERROR_BLANK;
+        }
+        if(dataBeginning.startsWith("bplist")) {
+            return TYPE_BINARY;
+        }
+        if(dataBeginning.startsWith("(") || dataBeginning.startsWith("{") || dataBeginning.startsWith("/")) {
+            return TYPE_ASCII;
+        }
+        if(dataBeginning.startsWith("<")) {
+            return TYPE_XML;
+        }
+        return TYPE_ERROR_UNKNOWN;
+    }
+
+    /**
+     * Determines the type of a property list by means of the first bytes of its data
+     * @param bytes The very first bytes of data of the property list (minus any whitespace)
+     * @return The type of the property list
+     */
+    private static int determineType(byte[] bytes) {
+        //Skip any possible whitespace at the beginning of the file
+        int offset = 0;
+        while(offset < bytes.length && bytes[offset] == ' ' || bytes[offset] == '\t' || bytes[offset] == '\r' || bytes[offset] == '\n' || bytes[offset] == '\f') {
+            offset++;
+        }
+        return determineType(new String(bytes, offset, Math.min(8, bytes.length - offset)));
+    }
+
+    /**
+     * Determines the type of a property list by means of the first bytes of its data
+     * @param is An input stream pointing to the beginning of the property list data.
+     *           If the stream supports marking it will be reset to the beginning of the property
+     *           list data after the type has been determined.
+     * @return The type of the property list
+     */
+    private static int determineType(InputStream is) throws IOException {
+        //Skip any possible whitespace at the beginning of the file
+        byte[] magicBytes = new byte[8];
+        int b;
+        do {
+            if(is.markSupported())
+                is.mark(16);
+            b = is.read();
+        }
+        while(b != -1 && b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f');
+        magicBytes[0] = (byte)b;
+        int read = is.read(magicBytes, 1, 7);
+        int type = determineType(new String(magicBytes, 0, read));
+        if(is.markSupported())
+            is.reset();
+        return type;
+    }
+
+    /**
      * Reads all bytes from an InputStream and stores them in an array, up to
      * a maximum count.
      *
      * @param in  The InputStream pointing to the data that should be stored in the array.
-     * @param max The maximum number of bytes to read.
      */
-    protected static byte[] readAll(InputStream in, int max) throws IOException {
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        while (max > 0) {
-            int n = in.read();
-            if (n == -1) break; // EOF
-            buf.write(n);
-            max--;
+    protected static byte[] readAll(InputStream in) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buf = new byte[512];
+        int read = 512;
+        while (read == 512) {
+            read = in.read(buf);
+            outputStream.write(buf, 0, read);
         }
-        return buf.toByteArray();
+        return outputStream.toByteArray();
     }
 
     /**
@@ -90,14 +156,17 @@ public class PropertyListParser {
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         FileInputStream fis = new FileInputStream(f);
-        String magicString = new String(readAll(fis, 8), 0, 8);
+        int type = determineType(fis);
         fis.close();
-        if (magicString.startsWith("bplist")) {
-            return BinaryPropertyListParser.parse(f);
-        } else if (magicString.trim().startsWith("(") || magicString.trim().startsWith("{") || magicString.trim().startsWith("/")) {
-            return ASCIIPropertyListParser.parse(f);
-        } else {
-            return XMLPropertyListParser.parse(f);
+        switch(type) {
+            case TYPE_BINARY:
+                return BinaryPropertyListParser.parse(f);
+            case TYPE_XML:
+                return XMLPropertyListParser.parse(f);
+            case TYPE_ASCII:
+                return ASCIIPropertyListParser.parse(f);
+            default:
+                throw new PropertyListFormatException("The given file is not a property list of a supported format.");
         }
     }
 
@@ -109,13 +178,15 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(byte[] bytes) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
-        String magicString = new String(bytes, 0, 8);
-        if (magicString.startsWith("bplist")) {
-            return BinaryPropertyListParser.parse(bytes);
-        } else if (magicString.trim().startsWith("(") || magicString.trim().startsWith("{") || magicString.trim().startsWith("/")) {
-            return ASCIIPropertyListParser.parse(bytes);
-        } else {
-            return XMLPropertyListParser.parse(bytes);
+        switch(determineType(bytes)) {
+            case TYPE_BINARY:
+                return BinaryPropertyListParser.parse(bytes);
+            case TYPE_XML:
+                return XMLPropertyListParser.parse(bytes);
+            case TYPE_ASCII:
+                return ASCIIPropertyListParser.parse(bytes);
+            default:
+                throw new PropertyListFormatException("The given data is not a property list of a supported format.");
         }
     }
 
@@ -127,22 +198,7 @@ public class PropertyListParser {
      * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
-        if (is.markSupported()) {
-            is.mark(10);
-            String magicString = new String(readAll(is, 8), 0, 8);
-            is.reset();
-            if (magicString.startsWith("bplist")) {
-                return BinaryPropertyListParser.parse(is);
-            } else if (magicString.trim().startsWith("(") || magicString.trim().startsWith("{") || magicString.trim().startsWith("/")) {
-                return ASCIIPropertyListParser.parse(is);
-            } else {
-                return XMLPropertyListParser.parse(is);
-            }
-        } else {
-            //Now we have to read everything, because if one parsing method fails
-            //the whole InputStream is lost as we can't reset it
-            return parse(readAll(is, Integer.MAX_VALUE));
-        }
+        return parse(readAll(is));
     }
 
     /**

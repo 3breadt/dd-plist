@@ -57,10 +57,8 @@ public class XMLPropertyListParser {
     /**
      * Initialize the document builder factory so that it can be reuused and does not need to
      * be reinitialized for each new parsing.
-     *
-     * @throws ParserConfigurationException If the parser configuration is not supported on your system.
      */
-    private static synchronized void initDocBuilderFactory() throws ParserConfigurationException {
+    private static synchronized void initDocBuilderFactory() {
         docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setIgnoringComments(true);
         docBuilderFactory.setCoalescing(true);
@@ -151,7 +149,7 @@ public class XMLPropertyListParser {
             throw new UnsupportedOperationException("The given XML document is not a property list.");
         }
 
-        Node rootNode = null;
+        Node rootNode;
 
         if (doc.getDocumentElement().getNodeName().equals("plist")) {
             //Root element wrapped in plist tag

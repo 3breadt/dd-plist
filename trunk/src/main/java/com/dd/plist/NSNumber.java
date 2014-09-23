@@ -356,11 +356,6 @@ public class NSNumber extends NSObject implements Comparable<Object> {
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        //Although Apple's documentation does not explicitly say so, unqouted
-        //strings are also allowed in ASCII property lists
-        //Use this to represent numbers which anyhow contain now spaces, so
-        //that a clearer distinction between numbers and strings is made
-        //Also booleans are represented as YES and NO as in GnuStep
         indent(ascii, level);
         if (type == BOOLEAN) {
             ascii.append(boolValue ? "YES" : "NO");
