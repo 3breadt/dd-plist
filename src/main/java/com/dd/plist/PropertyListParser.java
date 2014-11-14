@@ -131,7 +131,8 @@ public class PropertyListParser {
         int read = 512;
         while (read == 512) {
             read = in.read(buf);
-            outputStream.write(buf, 0, read);
+            if(read != -1)
+                outputStream.write(buf, 0, read);
         }
         return outputStream.toByteArray();
     }
