@@ -33,7 +33,7 @@ import java.math.BigInteger;
  * Parses property lists that are in Apple's binary format.
  * Use this class when you are sure about the format of the property list.
  * Otherwise use the PropertyListParser class.
- * <p/>
+ *
  * Parsing is done by calling the static <code>parse</code> methods.
  *
  * @author Daniel Dreibrodt
@@ -85,8 +85,8 @@ public class BinaryPropertyListParser {
      * Parses a binary property list from a byte array.
      *
      * @param data The binary property list's data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
      */
     public static NSObject parse(byte[] data) throws IOException, PropertyListFormatException {
         BinaryPropertyListParser parser = new BinaryPropertyListParser();
@@ -97,8 +97,8 @@ public class BinaryPropertyListParser {
      * Parses a binary property list from a byte array.
      *
      * @param data The binary property list's data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
      */
     private NSObject doParse(byte[] data) throws IOException, PropertyListFormatException {
         bytes = data;
@@ -157,8 +157,8 @@ public class BinaryPropertyListParser {
      * Parses a binary property list from an input stream.
      *
      * @param is The input stream that points to the property list's data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
         //Read all bytes into a list
@@ -171,8 +171,8 @@ public class BinaryPropertyListParser {
      * Parses a binary property list file.
      *
      * @param f The binary property list file
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException {
         if (f.length() > Runtime.getRuntime().freeMemory()) {
@@ -189,7 +189,7 @@ public class BinaryPropertyListParser {
      *
      * @param obj The object ID.
      * @return The parsed object.
-     * @throws java.lang.Exception When an error occurs during parsing.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
      */
     private NSObject parseObject(int obj) throws IOException, PropertyListFormatException {
         int offset = offsetTable[obj];

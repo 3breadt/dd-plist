@@ -92,8 +92,7 @@ public class XMLPropertyListParser {
      * Parses a XML property list file.
      *
      * @param f The XML property list file.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
      */
     public static NSObject parse(File f) throws ParseException, IOException, PropertyListFormatException, SAXException, ParserConfigurationException {
@@ -108,8 +107,7 @@ public class XMLPropertyListParser {
      * Parses a XML property list from a byte array.
      *
      * @param bytes The byte array containing the property list's data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      */
     public static NSObject parse(final byte[] bytes) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
@@ -120,8 +118,7 @@ public class XMLPropertyListParser {
      * Parses a XML property list from an input stream.
      *
      * @param is The input stream pointing to the property list's data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      */
     public static NSObject parse(InputStream is) throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
@@ -137,7 +134,6 @@ public class XMLPropertyListParser {
      *
      * @param doc The XML document.
      * @return The root NSObject of the property list contained in the XML document.
-     * @throws Exception If an error occured during parsing.
      */
     private static NSObject parseDocument(Document doc) throws PropertyListFormatException, IOException, ParseException {
         DocumentType docType = doc.getDoctype();
@@ -174,7 +170,6 @@ public class XMLPropertyListParser {
      *
      * @param n The XML node.
      * @return The corresponding NSObject.
-     * @throws Exception If an error occured during parsing the node.
      */
     private static NSObject parseObject(Node n) throws ParseException, IOException {
         String type = n.getNodeName();

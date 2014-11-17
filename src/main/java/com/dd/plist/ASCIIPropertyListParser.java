@@ -37,20 +37,22 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * <p>
  * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
  * This parser is based on the recursive descent paradigm, but the underlying grammar
  * is not explicitely defined.
- * <p/>
+ * </p>
+ * <p>
  * Resources on ASCII property list format:
+ * </p>
  * <ul>
- * <li><a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html>
+ * <li><a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html">
  * Property List Programming Guide - Old-Style ASCII Property Lists
  * </a></li>
  * <li><a href="http://www.gnustep.org/resources/documentation/Developer/Base/Reference/NSPropertyList.html">
  * GnuStep - NSPropertyListSerialization class documentation
  * </a></li>
  * </ul>
- *
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListParser {
@@ -59,8 +61,9 @@ public class ASCIIPropertyListParser {
      * Parses an ASCII property list file.
      *
      * @param f The ASCII property list file.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws java.text.ParseException When an error occurs during parsing.
+     * @throws java.io.IOException When an error occured while reading from the input stream.
      */
     public static NSObject parse(File f) throws IOException, ParseException {
         return parse(new FileInputStream(f));
@@ -70,8 +73,9 @@ public class ASCIIPropertyListParser {
      * Parses an ASCII property list from an input stream.
      *
      * @param in The input stream that points to the property list's data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws java.text.ParseException When an error occurs during parsing.
+     * @throws java.io.IOException When an error occured while reading from the input stream.
      */
     public static NSObject parse(InputStream in) throws ParseException, IOException {
         byte[] buf = PropertyListParser.readAll(in);
@@ -83,8 +87,8 @@ public class ASCIIPropertyListParser {
      * Parses an ASCII property list from a byte array.
      *
      * @param bytes The ASCII property list data.
-     * @return The root object of the property list. This is usally a NSDictionary but can also be a NSArray.
-     * @throws Exception When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws ParseException When an error occurs during parsing.
      */
     public static NSObject parse(byte[] bytes) throws ParseException {
         ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
@@ -571,7 +575,8 @@ public class ASCIIPropertyListParser {
      *
      * @param s The escaped string according to the ASCII property list format, without leading and trailing quotation marks.
      * @return The unescaped string in UTF-8 or ASCII format, depending on the contained characters.
-     * @throws Exception If the string could not be properly parsed.
+     * @throws java.io.UnsupportedEncodingException If the en-/decoder for the UTF-8 or ASCII encoding could not be loaded
+     * @throws java.nio.charset.CharacterCodingException If the string is encoded neither in ASCII nor in UTF-8
      */
     public static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException {
         List<Byte> strBytes = new LinkedList<Byte>();
