@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * A NSDictionary is a collection of keys and values, essentially a Hashtable.
  * The keys are simple Strings whereas the values can be any kind of NSObject.
- * <p/>
+ *
  * You can access the keys through the function <code>allKeys()</code>. Access
  * to the objects stored for each key is given through the function
  * <code>objectoForKey(String key)</code>.

@@ -38,7 +38,7 @@ import java.text.ParseException;
 /**
  * This class provides methods to parse property lists. It can handle files,
  * input streams and byte arrays. All known property list formats are supported.
- * <p/>
+ *
  * This class also provides methods to save and convert property lists.
  *
  * @author Daniel Dreibrodt
@@ -142,7 +142,6 @@ public class PropertyListParser {
      *
      * @param filePath Path to the property list file.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(String filePath) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         return parse(new File(filePath));
@@ -153,7 +152,6 @@ public class PropertyListParser {
      *
      * @param f The property list file.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         FileInputStream fis = new FileInputStream(f);
@@ -176,7 +174,6 @@ public class PropertyListParser {
      *
      * @param bytes The property list data as a byte array.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(byte[] bytes) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         switch(determineType(bytes)) {
@@ -196,7 +193,6 @@ public class PropertyListParser {
      *
      * @param is The InputStream delivering the property list data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws Exception If an error occurred while parsing.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         return parse(readAll(is));
@@ -236,7 +232,6 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
-     * @throws Exception When an error occurs during parsing or converting.
      */
     public static void convertToXml(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
@@ -273,7 +268,6 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
-     * @throws Exception When an error occurs during parsing or converting.
      */
     public static void convertToBinary(File in, File out) throws IOException, ParserConfigurationException, ParseException, SAXException, PropertyListFormatException {
         NSObject root = parse(in);
@@ -314,7 +308,6 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
-     * @throws Exception When an error occurs during parsing or converting.
      */
     public static void convertToASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
@@ -367,7 +360,6 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
-     * @throws Exception When an error occurs during parsing or converting.
      */
     public static void convertToGnuStepASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
