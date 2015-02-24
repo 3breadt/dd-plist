@@ -88,6 +88,10 @@ public class PropertyListParser {
     private static int determineType(byte[] bytes) {
         //Skip any possible whitespace at the beginning of the file
         int offset = 0;
+        if(bytes.length >= 3 && (bytes[0] & 0xFF) == 0xEF && (bytes[1] & 0xFF) == 0xBB && (bytes[2] & 0xFF) == 0xBF) {
+            //Skip Unicode byte order mark (BOM)
+            offset += 3;
+        }
         while(offset < bytes.length && bytes[offset] == ' ' || bytes[offset] == '\t' || bytes[offset] == '\r' || bytes[offset] == '\n' || bytes[offset] == '\f') {
             offset++;
         }
@@ -105,12 +109,17 @@ public class PropertyListParser {
         //Skip any possible whitespace at the beginning of the file
         byte[] magicBytes = new byte[8];
         int b;
+        long index = -1;
+        boolean bom = false;
         do {
             if(is.markSupported())
                 is.mark(16);
             b = is.read();
+            index++;
+            //Check if we are reading the Unicode byte order mark (BOM) and skip it
+            bom = index < 3 && ((index == 0 && b == 0xEF) || (bom && ((index == 1 && b == 0xBB) || (index == 2 && b == 0xBF))));
         }
-        while(b != -1 && b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f');
+        while(b != -1 && b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f' || bom);
         magicBytes[0] = (byte)b;
         int read = is.read(magicBytes, 1, 7);
         int type = determineType(new String(magicBytes, 0, read));
@@ -208,7 +217,8 @@ public class PropertyListParser {
     public static void saveAsXML(NSObject root, File out) throws IOException {
         File parent = out.getParentFile();
         if (!parent.exists())
-            parent.mkdirs();
+            if(!parent.mkdirs())
+                throw new IOException("The output directory does not exist and could not be created.");
         FileOutputStream fous = new FileOutputStream(out);
         saveAsXML(root, fous);
         fous.close();
@@ -248,7 +258,8 @@ public class PropertyListParser {
     public static void saveAsBinary(NSObject root, File out) throws IOException {
         File parent = out.getParentFile();
         if (!parent.exists())
-            parent.mkdirs();
+            if(!parent.mkdirs())
+                throw new IOException("The output directory does not exist and could not be created.");
         BinaryPropertyListWriter.write(out, root);
     }
 
@@ -284,7 +295,8 @@ public class PropertyListParser {
     public static void saveAsASCII(NSDictionary root, File out) throws IOException {
         File parent = out.getParentFile();
         if (!parent.exists())
-            parent.mkdirs();
+            if(!parent.mkdirs())
+                throw new IOException("The output directory does not exist and could not be created.");
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toASCIIPropertyList());
         w.close();
@@ -333,7 +345,8 @@ public class PropertyListParser {
     public static void saveAsGnuStepASCII(NSDictionary root, File out) throws IOException {
         File parent = out.getParentFile();
         if (!parent.exists())
-            parent.mkdirs();
+            if(!parent.mkdirs())
+                throw new IOException("The output directory does not exist and could not be created.");
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toGnuStepASCIIPropertyList());
         w.close();
@@ -349,7 +362,8 @@ public class PropertyListParser {
     public static void saveAsGnuStepASCII(NSArray root, File out) throws IOException {
         File parent = out.getParentFile();
         if (!parent.exists())
-            parent.mkdirs();
+            if(!parent.mkdirs())
+                throw new IOException("The output directory does not exist and could not be created.");
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toGnuStepASCIIPropertyList());
         w.close();

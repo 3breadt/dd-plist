@@ -55,8 +55,8 @@ public class XMLPropertyListParser {
     private static DocumentBuilderFactory docBuilderFactory = null;
 
     /**
-     * Initialize the document builder factory so that it can be reuused and does not need to
-     * be reinitialized for each new parsing.
+     * Initialize the document builder factory so that it can be reused and does not need to
+     * be reinitialized for each parse action.
      */
     private static synchronized void initDocBuilderFactory() {
         docBuilderFactory = DocumentBuilderFactory.newInstance();
