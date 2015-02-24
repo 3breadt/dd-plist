@@ -330,6 +330,9 @@ public class ASCIIPropertyListParser {
      */
     public NSObject parse() throws ParseException {
         index = 0;
+        //Skip Unicode byte order mark (BOM)
+        if(data.length >= 3 && (data[0] & 0xFF) == 0xEF && (data[1] & 0xFF) == 0xBB && (data[2] & 0xFF) == 0xBF)
+            skip(3);
         skipWhitespacesAndComments();
         expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
         try {
