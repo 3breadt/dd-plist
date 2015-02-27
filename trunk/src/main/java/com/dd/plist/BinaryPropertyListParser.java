@@ -163,10 +163,6 @@ public class BinaryPropertyListParser {
      * @throws PropertyListFormatException When the property list's format could not be parsed.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException {
-        if (f.length() > Runtime.getRuntime().freeMemory()) {
-            throw new OutOfMemoryError("To little heap space available! Wanted to read " + f.length() + " bytes, but only " + Runtime.getRuntime().freeMemory() + " are available.");
-            //not yet even implemented in Core Foundation as of revision 855.17
-        }
         return parse(new FileInputStream(f));
     }
 
