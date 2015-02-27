@@ -233,7 +233,7 @@ public abstract class NSObject {
      */
     public static NSObject wrap(Object o) {
         if(o == null)
-            throw new NullPointerException("A null object cannot be wrapped as a NSObject");
+            return null;
 
         if(o instanceof NSObject)
             return (NSObject)o;

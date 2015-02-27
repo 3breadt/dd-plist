@@ -2,8 +2,14 @@ package com.dd.plist.test;
 
 import com.dd.plist.*;
 import junit.framework.TestCase;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class IssueTest extends TestCase {
     public static void testIssue4() throws Exception {
@@ -69,6 +75,69 @@ public class IssueTest extends TestCase {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
         NSObject fileRef = ((NSDictionary) ((NSDictionary)dict.get("objects")).get("65541A9C16D13B8C00A968D5")).get("fileRef");
         assertTrue(fileRef.equals(new NSString("65541A9B16D13B8C00A968D5")));
+    }
+
+    /**
+     * Test storing null values
+     */
+    public static void testIssue41() {
+        //Dictionary
+        Map<String, Object> nullMap = new HashMap<String, Object>();
+        nullMap.put("key", null);
+        assertFalse(nullMap.isEmpty());
+        NSDictionary nullDict = NSObject.wrap(nullMap);
+        assertTrue(nullDict.isEmpty());
+
+        nullDict.put(null, "test");
+        assertTrue(nullDict.isEmpty());
+
+        nullDict.put("test", null);
+        assertTrue(nullDict.isEmpty());
+
+        try {
+            assertTrue(((NSDictionary)PropertyListParser.parse(nullDict.toXMLPropertyList().getBytes())).isEmpty());
+        } catch (Exception e) {
+            throw new AssertionError("No exception should have occurred while parsing an empty dictionary", e);
+        }
+
+        //Array
+        String[] strArr = new String[3];
+        strArr[0] = "";
+        strArr[1] = null;
+        strArr[2] = null;
+        NSArray nsArr = NSObject.wrap(strArr);
+        assertTrue(nsArr.containsObject(null));
+        assertEquals(nsArr.objectAtIndex(1), null);
+        assertEquals(nsArr.objectAtIndex(2), null);
+
+        try {
+            nsArr.toXMLPropertyList();
+            throw new AssertionError("Storing a NSArray containing a null value as a XML property list should throw an exception");
+        } catch(NullPointerException ex) {
+            //expected exception
+        }
+
+        try {
+            nsArr.toASCIIPropertyList();
+            throw new AssertionError("Storing a NSArray containing a null value as a ASCII property list should throw an exception");
+        } catch(NullPointerException ex) {
+            //expected exception
+        }
+
+        try {
+            nsArr.toGnuStepASCIIPropertyList();
+            throw new AssertionError("Storing a NSArray containing a null value as a GnuStep ASCII property list should throw an exception");
+        } catch(NullPointerException ex) {
+            //expected exception
+        }
+
+        try {
+            byte[] bin = BinaryPropertyListWriter.writeToArray(nsArr);
+            throw new AssertionError("Storing a NSArray containing a null value as a binary property list should throw an exception");
+        } catch(IOException ex) {
+            //expect IOException because binary v1.0 format (which could theoretically store null values) is not supported
+            //But v1.0 format is not even supported by OS X 10.10, so there is no plan as of yet to implement it
+        }
     }
 
     public static void testIssue49() throws Exception {
