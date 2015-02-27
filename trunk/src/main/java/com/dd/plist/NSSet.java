@@ -78,6 +78,7 @@ public class NSSet extends NSObject {
     /**
      * Create a set and fill it with the given objects.
      *
+     * @param ordered Indicates whether the created set should be ordered or unordered.
      * @param objects The objects to populate the set.
      * @see java.util.LinkedHashSet
      * @see java.util.TreeSet

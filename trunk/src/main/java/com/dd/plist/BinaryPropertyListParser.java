@@ -23,10 +23,7 @@
 
 package com.dd.plist;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 
 /**
@@ -83,8 +80,9 @@ public class BinaryPropertyListParser {
      * @param data The binary property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.UnsupportedEncodingException When a NSString object could not be decoded.
      */
-    public static NSObject parse(byte[] data) throws IOException, PropertyListFormatException {
+    public static NSObject parse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
         BinaryPropertyListParser parser = new BinaryPropertyListParser();
         return parser.doParse(data);
     }
@@ -95,8 +93,9 @@ public class BinaryPropertyListParser {
      * @param data The binary property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.UnsupportedEncodingException When a NSString object could not be decoded.
      */
-    private NSObject doParse(byte[] data) throws IOException, PropertyListFormatException {
+    private NSObject doParse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
         bytes = data;
         String magic = new String(copyOfRange(bytes, 0, 8));
         if (!magic.startsWith("bplist")) {
@@ -149,6 +148,7 @@ public class BinaryPropertyListParser {
      * @param is The input stream that points to the property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.IOException When a NSString object could not be decoded or an InputStream IO error occurs.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
         byte[] buf = PropertyListParser.readAll(is);
@@ -161,6 +161,7 @@ public class BinaryPropertyListParser {
      * @param f The binary property list file
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.UnsupportedEncodingException When a NSString object could not be decoded or a file IO error occurs.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException {
         return parse(new FileInputStream(f));
@@ -175,8 +176,9 @@ public class BinaryPropertyListParser {
      * @param obj The object ID.
      * @return The parsed object.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.UnsupportedEncodingException When a NSString object could not be decoded.
      */
-    private NSObject parseObject(int obj) throws IOException, PropertyListFormatException {
+    private NSObject parseObject(int obj) throws PropertyListFormatException, UnsupportedEncodingException {
         int offset = offsetTable[obj];
         byte type = bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits

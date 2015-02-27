@@ -133,6 +133,8 @@ public class PropertyListParser {
      * a maximum count.
      *
      * @param in  The InputStream pointing to the data that should be stored in the array.
+     * @return An array containing all bytes that were read from the input stream.
+     * @throws java.io.IOException When an IO error while reading from the input stream.
      */
     protected static byte[] readAll(InputStream in) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -151,6 +153,12 @@ public class PropertyListParser {
      *
      * @param filePath Path to the property list file.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(String filePath) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         return parse(new File(filePath));
@@ -161,6 +169,12 @@ public class PropertyListParser {
      *
      * @param f The property list file.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         FileInputStream fis = new FileInputStream(f);
@@ -183,6 +197,12 @@ public class PropertyListParser {
      *
      * @param bytes The property list data as a byte array.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the byte array.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(byte[] bytes) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         switch(determineType(bytes)) {
@@ -202,6 +222,12 @@ public class PropertyListParser {
      *
      * @param is The InputStream delivering the property list data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the input stream.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         return parse(readAll(is));
@@ -242,6 +268,13 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
+     *
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the input file or writing the output file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static void convertToXml(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
@@ -279,6 +312,12 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the input file or writing the output file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static void convertToBinary(File in, File out) throws IOException, ParserConfigurationException, ParseException, SAXException, PropertyListFormatException {
         NSObject root = parse(in);
@@ -320,6 +359,12 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the input file or writing the output file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static void convertToASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
@@ -374,6 +419,12 @@ public class PropertyListParser {
      *
      * @param in  The source file.
      * @param out The target file.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any IO error occurs while reading the input file or writing the output file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static void convertToGnuStepASCII(File in, File out) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         NSObject root = parse(in);
