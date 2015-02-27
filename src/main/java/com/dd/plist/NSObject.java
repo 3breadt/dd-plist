@@ -77,6 +77,8 @@ public abstract class NSObject {
      * Generates the binary representation of the object.
      *
      * @param out The output stream to serialize the object to.
+     * @throws java.io.IOException When an IO error occurs while writing to the stream or the object structure contains
+     *                             data that cannot be saved.
      */
     abstract void toBinary(BinaryPropertyListWriter out) throws IOException;
 
