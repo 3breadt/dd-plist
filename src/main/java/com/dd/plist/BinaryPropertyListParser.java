@@ -40,14 +40,16 @@ public class BinaryPropertyListParser {
     /**
      * Major version of the property list format
      */
-    @SuppressWarnings("FieldCanBeLocal") //Useful when the features of different format versions are implemented
-    private int majorVersion;
+    @SuppressWarnings("FieldCanBeLocal")
+    // Useful when the features of different format versions are implemented
+    private int    majorVersion;
 
     /**
      * Minor version of the property list format
      */
-    @SuppressWarnings("FieldCanBeLocal") //Useful when the features of different format versions are implemented
-    private int minorVersion;
+    @SuppressWarnings("FieldCanBeLocal")
+    // Useful when the features of different format versions are implemented
+    private int    minorVersion;
 
     /**
      * property list in bytes
@@ -57,12 +59,12 @@ public class BinaryPropertyListParser {
     /**
      * Length of an object reference in bytes
      */
-    private int objectRefSize;
+    private int    objectRefSize;
 
     /**
      * The table holding the information at which offset each object is found
      */
-    private int[] offsetTable;
+    private int[]  offsetTable;
 
     /**
      * Protected constructor so that instantiation is fully controlled by the
@@ -135,8 +137,7 @@ public class BinaryPropertyListParser {
         offsetTable = new int[numObjects];
 
         for (int i = 0; i < numObjects; i++) {
-            byte[] offsetBytes = copyOfRange(bytes, offsetTableOffset + i * offsetSize, offsetTableOffset + (i + 1) * offsetSize);
-            offsetTable[i] = (int) parseUnsignedInt(offsetBytes);
+            offsetTable[i] = (int) parseUnsignedInt(bytes, offsetTableOffset + i * offsetSize, offsetTableOffset + (i + 1) * offsetSize);
         }
 
         return parseObject(topObject);
@@ -181,85 +182,85 @@ public class BinaryPropertyListParser {
     private NSObject parseObject(int obj) throws PropertyListFormatException, UnsupportedEncodingException {
         int offset = offsetTable[obj];
         byte type = bytes[offset];
-        int objType = (type & 0xF0) >> 4; //First  4 bits
-        int objInfo = (type & 0x0F);      //Second 4 bits
+        int objType = (type & 0xF0) >> 4; // First 4 bits
+        int objInfo = (type & 0x0F);      // Second 4 bits
         switch (objType) {
             case 0x0: {
-                //Simple
+                // Simple
                 switch (objInfo) {
                     case 0x0: {
-                        //null object (v1.0 and later)
+                        // null object (v1.0 and later)
                         return null;
                     }
                     case 0x8: {
-                        //false
+                        // false
                         return new NSNumber(false);
                     }
                     case 0x9: {
-                        //true
+                        // true
                         return new NSNumber(true);
                     }
                     case 0xC: {
-                        //URL with no base URL (v1.0 and later)
-                        //TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
+                        // URL with no base URL (v1.0 and later)
+                        // TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
                         break;
                     }
                     case 0xD: {
-                        //URL with base URL (v1.0 and later)
-                        //TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
+                        // URL with base URL (v1.0 and later)
+                        // TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
                         break;
                     }
                     case 0xE: {
-                        //16-byte UUID (v1.0 and later)
-                        //TODO Implement binary UUID parsing (not yet even implemented in Core Foundation as of revision 855.17)
+                        // 16-byte UUID (v1.0 and later)
+                        // TODO Implement binary UUID parsing (not yet even implemented in Core Foundation as of revision 855.17)
                     }
                     case 0xF: {
-                        //filler byte
+                        // filler byte
                         return null;
                     }
                 }
                 break;
             }
             case 0x1: {
-                //integer
+                // integer
                 int length = (int) Math.pow(2, objInfo);
-                return new NSNumber(copyOfRange(bytes, offset + 1, offset + 1 + length), NSNumber.INTEGER);
+                return new NSNumber(bytes, offset + 1, offset + 1 + length, NSNumber.INTEGER);
             }
             case 0x2: {
-                //real
+                // real
                 int length = (int) Math.pow(2, objInfo);
-                return new NSNumber(copyOfRange(bytes, offset + 1, offset + 1 + length), NSNumber.REAL);
+                return new NSNumber(bytes, offset + 1, offset + 1 + length, NSNumber.REAL);
             }
             case 0x3: {
-                //Date
+                // Date
                 if (objInfo != 0x3) {
-                    throw new PropertyListFormatException("The given binary property list contains a date object of an unknown type ("+objInfo+")");
+                    throw new PropertyListFormatException("The given binary property list contains a date object of an unknown type (" + objInfo + ")");
                 }
-                return new NSDate(copyOfRange(bytes, offset + 1, offset + 9));
+                return new NSDate(bytes, offset + 1, offset + 9);
             }
             case 0x4: {
-                //Data
+                // Data
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
                 int length = lengthAndOffset[0];
                 int dataOffset = lengthAndOffset[1];
                 return new NSData(copyOfRange(bytes, offset + dataOffset, offset + dataOffset + length));
             }
             case 0x5: {
-                //ASCII string
+                // ASCII string
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
-                int length = lengthAndOffset[0];  //Each character is 1 byte
+                int length = lengthAndOffset[0];  // Each character is 1 byte
                 int strOffset = lengthAndOffset[1];
-                return new NSString(copyOfRange(bytes, offset + strOffset, offset + strOffset + length), "ASCII");
+                return new NSString(bytes, offset + strOffset, offset + strOffset + length, "ASCII");
             }
             case 0x6: {
-                //UTF-16-BE string
+                // UTF-16-BE string
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
                 int characters = lengthAndOffset[0];
                 int strOffset = lengthAndOffset[1];
                 //UTF-16 characters can have variable length, but the Core Foundation reference implementation
                 //assumes 2 byte characters, thus only covering the Basic Multilingual Plane
                 int length = characters * 2;
-                return new NSString(copyOfRange(bytes, offset + strOffset, offset + strOffset + length), "UTF-16BE");
+                return new NSString(bytes, offset + strOffset, offset + strOffset + length, "UTF-16BE");
             }
             case 0x7: {
                 //UTF-8 string (v1.0 and later)
@@ -269,72 +270,62 @@ public class BinaryPropertyListParser {
                 //UTF-8 characters can have variable length, so we need to calculate the byte length dynamically
                 //by reading the UTF-8 characters one by one
                 int length = calculateUtf8StringLength(bytes, offset + strOffset, characters);
-                return new NSString(copyOfRange(bytes, offset + strOffset, offset + strOffset + length), "UTF-8");
+                return new NSString(bytes, offset + strOffset, offset + strOffset + length, "UTF-8");
             }
             case 0x8: {
-                //UID (v1.0 and later)
+                // UID (v1.0 and later)
                 int length = objInfo + 1;
                 return new UID(String.valueOf(obj), copyOfRange(bytes, offset + 1, offset + 1 + length));
             }
             case 0xA: {
-                //Array
+                // Array
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
                 int length = lengthAndOffset[0];
                 int arrayOffset = lengthAndOffset[1];
 
                 NSArray array = new NSArray(length);
                 for (int i = 0; i < length; i++) {
-                    int objRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + arrayOffset + i * objectRefSize,
-                            offset + arrayOffset + (i + 1) * objectRefSize));
+                    int objRef = (int) parseUnsignedInt(bytes, offset + arrayOffset + i * objectRefSize, offset + arrayOffset + (i + 1) * objectRefSize);
                     array.setValue(i, parseObject(objRef));
                 }
                 return array;
             }
             case 0xB: {
-                //Ordered set (v1.0 and later)
+                // Ordered set (v1.0 and later)
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
                 int length = lengthAndOffset[0];
                 int contentOffset = lengthAndOffset[1];
 
                 NSSet set = new NSSet(true);
                 for (int i = 0; i < length; i++) {
-                    int objRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + contentOffset + i * objectRefSize,
-                            offset + contentOffset + (i + 1) * objectRefSize));
+                    int objRef = (int) parseUnsignedInt(bytes, offset + contentOffset + i * objectRefSize, offset + contentOffset + (i + 1) * objectRefSize);
                     set.addObject(parseObject(objRef));
                 }
                 return set;
             }
             case 0xC: {
-                //Set (v1.0 and later)
+                // Set (v1.0 and later)
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
                 int length = lengthAndOffset[0];
                 int contentOffset = lengthAndOffset[1];
 
                 NSSet set = new NSSet();
                 for (int i = 0; i < length; i++) {
-                    int objRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + contentOffset + i * objectRefSize,
-                            offset + contentOffset + (i + 1) * objectRefSize));
+                    int objRef = (int) parseUnsignedInt(bytes, offset + contentOffset + i * objectRefSize, offset + contentOffset + (i + 1) * objectRefSize);
                     set.addObject(parseObject(objRef));
                 }
                 return set;
             }
             case 0xD: {
-                //Dictionary
+                // Dictionary
                 int[] lengthAndOffset = readLengthAndOffset(objInfo, offset);
                 int length = lengthAndOffset[0];
                 int contentOffset = lengthAndOffset[1];
 
                 NSDictionary dict = new NSDictionary();
                 for (int i = 0; i < length; i++) {
-                    int keyRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + contentOffset + i * objectRefSize,
-                            offset + contentOffset + (i + 1) * objectRefSize));
-                    int valRef = (int) parseUnsignedInt(copyOfRange(bytes,
-                            offset + contentOffset + (length * objectRefSize) + i * objectRefSize,
-                            offset + contentOffset + (length * objectRefSize) + (i + 1) * objectRefSize));
+                    int keyRef = (int) parseUnsignedInt(bytes, offset + contentOffset + i * objectRefSize, offset + contentOffset + (i + 1) * objectRefSize);
+                    int valRef = (int) parseUnsignedInt(bytes, offset + contentOffset + (length * objectRefSize) + i * objectRefSize, offset + contentOffset + (length * objectRefSize) + (i + 1) * objectRefSize);
                     NSObject key = parseObject(keyRef);
                     NSObject val = parseObject(valRef);
                     dict.put(key.toString(), val);
@@ -352,7 +343,7 @@ public class BinaryPropertyListParser {
      * Reads the length for arrays, sets and dictionaries.
      *
      * @param objInfo Object information byte.
-     * @param offset  Offset in the byte array at which the object is located.
+     * @param offset Offset in the byte array at which the object is located.
      * @return An array with the length two. First entry is the length, second entry the offset at which the content starts.
      */
     private int[] readLengthAndOffset(int objInfo, int offset) {
@@ -368,12 +359,12 @@ public class BinaryPropertyListParser {
             int intLength = (int) Math.pow(2, intInfo);
             offsetValue = 2 + intLength;
             if (intLength < 3) {
-                lengthValue = (int) parseUnsignedInt(copyOfRange(bytes, offset + 2, offset + 2 + intLength));
+                lengthValue = (int) parseUnsignedInt(bytes, offset + 2, offset + 2 + intLength);
             } else {
                 lengthValue = new BigInteger(copyOfRange(bytes, offset + 2, offset + 2 + intLength)).intValue();
             }
         }
-        return new int[]{lengthValue, offsetValue};
+        return new int[] { lengthValue, offsetValue };
     }
 
     private int calculateUtf8StringLength(byte[] bytes, int offset, int numCharacters) {
@@ -420,22 +411,6 @@ public class BinaryPropertyListParser {
     }
 
     /**
-     * Parses an unsigned integers from a byte array.
-     *
-     * @param bytes The byte array containing the unsigned integer.
-     * @return The unsigned integer represented by the given bytes.
-     */
-    public static long parseUnsignedInt(byte[] bytes) {
-        long l = 0;
-        for (byte b : bytes) {
-            l <<= 8;
-            l |= b & 0xFF;
-        }
-        l &= 0xFFFFFFFFL;
-        return l;
-    }
-
-    /**
      * Parses an unsigned integer from a byte array.
      *
      * @param bytes The byte array containing the unsigned integer.
@@ -450,21 +425,6 @@ public class BinaryPropertyListParser {
             l |= bytes[i] & 0xFF;
         }
         l &= 0xFFFFFFFFL;
-        return l;
-    }
-
-    /**
-     * Parses a long from a (big-endian) byte array.
-     *
-     * @param bytes The bytes representing the long integer.
-     * @return The long integer represented by the given bytes.
-     */
-    public static long parseLong(byte[] bytes) {
-        long l = 0;
-        for (byte b : bytes) {
-            l <<= 8;
-            l |= b & 0xFF;
-        }
         return l;
     }
 
@@ -489,22 +449,6 @@ public class BinaryPropertyListParser {
      * Parses a double from a (big-endian) byte array.
      *
      * @param bytes The bytes representing the double.
-     * @return The double represented by the given bytes.
-     */
-    public static double parseDouble(byte[] bytes) {
-        if (bytes.length == 8) {
-            return Double.longBitsToDouble(parseLong(bytes));
-        } else if (bytes.length == 4) {
-            return Float.intBitsToFloat((int) parseLong(bytes));
-        } else {
-            throw new IllegalArgumentException("bad byte array length " + bytes.length);
-        }
-    }
-
-    /**
-     * Parses a double from a (big-endian) byte array.
-     *
-     * @param bytes The bytes representing the double.
      * @param startIndex Beginning of the double in the byte array.
      * @param endIndex End of the double in the byte array.
      * @return The double represented by the given bytes.
@@ -513,21 +457,21 @@ public class BinaryPropertyListParser {
         if (endIndex - startIndex == 8) {
             return Double.longBitsToDouble(parseLong(bytes, startIndex, endIndex));
         } else if (endIndex - startIndex == 4) {
-            return Float.intBitsToFloat((int)parseLong(bytes, startIndex, endIndex));
+            return Float.intBitsToFloat((int) parseLong(bytes, startIndex, endIndex));
         } else {
-            throw new IllegalArgumentException("endIndex ("+endIndex+") - startIndex ("+startIndex+") != 4 or 8");
+            throw new IllegalArgumentException("endIndex (" + endIndex + ") - startIndex (" + startIndex + ") != 4 or 8");
         }
     }
 
     /**
      * Copies a part of a byte array into a new array.
      *
-     * @param src        The source array.
+     * @param src The source array.
      * @param startIndex The index from which to start copying.
-     * @param endIndex   The index until which to copy.
+     * @param endIndex The index until which to copy.
      * @return The copied array.
      */
-    public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
+    private static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
         int length = endIndex - startIndex;
         if (length < 0) {
             throw new IllegalArgumentException("startIndex (" + startIndex + ")" + " > endIndex (" + endIndex + ")");

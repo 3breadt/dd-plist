@@ -41,13 +41,14 @@ public class NSString extends NSObject implements Comparable<Object> {
     /**
      * Creates an NSString from its binary representation.
      *
-     * @param bytes    The binary representation.
-     * @param encoding The encoding of the binary representation, the name of a supported charset.
-     * @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
+     * @param bytes The binary representation.
+     * @param startIndex int with the index where to start (offset)
+     * @param endIndex int with the index where to stop reading (offset + string length)
+     * @param encoding The encoding of the binary representation, the name of a supported charset. @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
      * @see java.lang.String#String(byte[], String)
      */
-    public NSString(byte[] bytes, String encoding) throws UnsupportedEncodingException {
-        content = new String(bytes, encoding);
+    public NSString(byte[] bytes, final int startIndex, final int endIndex, String encoding) throws UnsupportedEncodingException {
+        content = new String(bytes, startIndex, endIndex - startIndex, encoding);
     }
 
     /**
@@ -141,7 +142,7 @@ public class NSString extends NSObject implements Comparable<Object> {
         indent(xml, level);
         xml.append("<string>");
 
-        //Make sure that the string is encoded in UTF-8 for the XML output
+        // Make sure that the string is encoded in UTF-8 for the XML output
         synchronized (NSString.class) {
             if (utf8Encoder == null)
                 utf8Encoder = Charset.forName("UTF-8").newEncoder();
@@ -158,8 +159,8 @@ public class NSString extends NSObject implements Comparable<Object> {
             }
         }
 
-        //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
-        //contain the characters < or &. Also the > character should be escaped.
+        // According to http://www.w3.org/TR/REC-xml/#syntax node values must not
+        // contain the characters < or &. Also the > character should be escaped.
         if (content.contains("&") || content.contains("<") || content.contains(">")) {
             xml.append("<![CDATA[");
             xml.append(content.replaceAll("]]>", "]]]]><![CDATA[>"));
@@ -169,7 +170,6 @@ public class NSString extends NSObject implements Comparable<Object> {
         }
         xml.append("</string>");
     }
-
 
     @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
@@ -205,10 +205,10 @@ public class NSString extends NSObject implements Comparable<Object> {
     protected void toASCII(StringBuilder ascii, int level) {
         indent(ascii, level);
         ascii.append("\"");
-        //According to https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
-        //non-ASCII characters are not escaped but simply written into the
-        //file, thus actually violating the ASCII plain text format.
-        //We will escape the string anyway because current Xcode project files (ASCII property lists) also escape their strings.
+        // According to https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
+        // non-ASCII characters are not escaped but simply written into the
+        // file, thus actually violating the ASCII plain text format.
+        // We will escape the string anyway because current Xcode project files (ASCII property lists) also escape their strings.
         ascii.append(escapeStringForASCII(content));
         ascii.append("\"");
     }
@@ -233,7 +233,7 @@ public class NSString extends NSObject implements Comparable<Object> {
         for (int i = 0; i < cArray.length; i++) {
             char c = cArray[i];
             if (c > 127) {
-                //non-ASCII Unicode
+                // non-ASCII Unicode
                 out += "\\U";
                 String hex = Integer.toHexString(c);
                 while (hex.length() < 4)

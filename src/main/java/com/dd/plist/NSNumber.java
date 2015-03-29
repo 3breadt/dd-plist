@@ -62,19 +62,21 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * Parses integers and real numbers from their binary representation.
      * <i>Note: real numbers are not yet supported.</i>
      *
-     * @param bytes The binary representation
+     * @param bytes array of bytes with all the information inside
+     * @param startIndex int with the position where to start reading from the byte array
+     * @param endIndex int with the position where to end reading from the byte array
      * @param type  The type of number
      * @see #INTEGER
      * @see #REAL
      */
-    public NSNumber(byte[] bytes, int type) {
+    public NSNumber(byte[] bytes, final int startIndex, final int endIndex, final int type){
         switch (type) {
             case INTEGER: {
-                doubleValue = longValue = BinaryPropertyListParser.parseLong(bytes);
+                doubleValue = longValue = BinaryPropertyListParser.parseLong(bytes, startIndex, endIndex);
                 break;
             }
             case REAL: {
-                doubleValue = BinaryPropertyListParser.parseDouble(bytes);
+                doubleValue = BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex);
                 longValue = Math.round(doubleValue);
                 break;
             }

@@ -94,11 +94,13 @@ public class NSDate extends NSObject {
     /**
      * Creates a date from its binary representation.
      *
-     * @param bytes The date bytes
+     * @param bytes byte array with all information
+     * @param startIndex int with the starting index of the date
+     * @param endIndex int with the end index of the date
      */
-    public NSDate(byte[] bytes) {
+    public NSDate(byte[] bytes, final int startIndex, final int endIndex) {
         //dates are 8 byte big-endian double, seconds since the epoch
-        date = new Date(EPOCH + (long) (1000 * BinaryPropertyListParser.parseDouble(bytes)));
+        date = new Date(EPOCH + (long) (1000 * BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex)));
     }
 
     /**
