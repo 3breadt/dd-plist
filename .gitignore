@@ -1,8 +1,9 @@
-# exclude android sdk compile target files
+# exclude compile target for java/maven/gradle/android/test files
 bin/
 target/
 bin-test/
 build/
+test-files/out*.plist
 
 # exclude auto-generated folder
 gen/
