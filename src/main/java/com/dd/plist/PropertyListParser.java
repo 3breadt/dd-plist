@@ -45,7 +45,7 @@ import java.text.ParseException;
  */
 public class PropertyListParser {
 
-    protected static final int READ_MAX_VALUE = 4096;
+    private static final int READ_MAX_VALUE = 2048;
 
     private static final int TYPE_XML = 0;
     private static final int TYPE_BINARY = 1;
