@@ -5,11 +5,19 @@ import junit.framework.TestCase;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class IssueTest extends TestCase {
     public static void testIssue4() throws Exception {
@@ -143,5 +151,47 @@ public class IssueTest extends TestCase {
     public static void testIssue49() throws Exception {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue49.plist"));
         assertEquals(0, dict.count());
+    }
+
+    /**
+     * Property list parser is adding trailing bits that were read in previous iterations of the buff. To reproduce, the file read should be bigger than the buffer size used to read the bytes of the {@link InputStream}
+     * @see <a href="https://github.com/3breadt/dd-plist/pull/2">Pull request #2</a>
+     * @throws IOException
+     * @throws PropertyListFormatException
+     */
+    public static void testIssueGitHub2GZipInputStreamAddsTrailingBits() throws IOException, PropertyListFormatException {
+        FileInputStream fileInputStream = new FileInputStream("test-files/issue2github.plist");
+        InputStream zipInputStream = getZipStreamFrom(fileInputStream);
+        NSDictionary dict = (NSDictionary)BinaryPropertyListParser.parse(zipInputStream);
+        assertEquals(8, dict.count());
+    }
+
+    private static InputStream getZipStreamFrom(final InputStream inputStream) {
+        InputStream zipInputStream = null;
+        try {
+            ByteArrayOutputStream bytesOutput = new ByteArrayOutputStream();
+            GZIPOutputStream gzipOutput = new GZIPOutputStream(bytesOutput);
+
+            try {
+                byte[] buffer = new byte[10240];
+                for (int length; (length = inputStream.read(buffer)) != -1; ) {
+                    gzipOutput.write(buffer, 0, length);
+                }
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (IOException ignore) {
+                }
+                try {
+                    gzipOutput.close();
+                } catch (IOException ignore) {
+                }
+            }
+
+            zipInputStream = new GZIPInputStream(new ByteArrayInputStream(bytesOutput.toByteArray()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return zipInputStream;
     }
 }
