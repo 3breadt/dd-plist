@@ -1,0 +1,31 @@
+# exclude compile target for java/maven/gradle/android/test files
+bin/
+target/
+bin-test/
+build/
+test-files/out*.plist
+
+# exclude auto-generated folder
+gen/
+gen-external-apklibs/
+
+#exlude tmp dir
+tmp/
+
+# Java class files
+*.class
+
+# Windows thumbnail db
+Thumbs.db
+
+# OSX files
+.DS_Store
+
+# IntelliJ
+.idea
+.gradle/
+build/
+*.iml
+
+# Local
+local.properties
