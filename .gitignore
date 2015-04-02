@@ -22,10 +22,10 @@ Thumbs.db
 .DS_Store
 
 # IntelliJ
-.idea
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/libraries/Maven*
 .gradle/
-build/
-*.iml
 
 # Local
 local.properties
