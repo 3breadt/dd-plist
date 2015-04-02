@@ -8,9 +8,9 @@
 	<groupId>com.googlecode.plist</groupId>
 	<artifactId>dd-plist</artifactId>
 	<packaging>jar</packaging>
-	<version>1.16</version>
+	<version>1.17</version>
 	<name>dd-plist</name>
-	<url>http://plist.googlecode.com</url>
+	<url>http://www.github.com/3breadt/dd-plist</url>
 	<description>
 	This library enables Java applications to work with property lists in various formats.
 	Supported formats for reading and writing are OS X/iOS binary and XML property lists.
@@ -45,13 +45,13 @@
 	    </contributor>
 	</contributors>
 	<issueManagement>
-		<system>Google Code</system>
-		<url>http://code.google.com/p/plist/issues</url>
+		<system>GitHub</system>
+		<url>https://github.com/3breadt/dd-plist/issues</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://plist.googlecode.com/svn/trunk/</connection>
-		<developerConnection>scm:svn:https://plist.googlecode.com/svn/trunk/</developerConnection>
-		<url>http://code.google.com/p/plist/source/browse/trunk</url>
+		<connection>scm:git:https://github.com/3breadt/dd-plist.git</connection>
+		<developerConnection>scm:git:https://github.com/3breadt/dd-plist.git</developerConnection>
+		<url>https://github.com/3breadt/dd-plist/tree/master</url>
 	</scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,32 +69,6 @@
                     <compilerArgument>-Xlint:unchecked</compilerArgument>
                 </configuration>
             </plugin>
-			<plugin>
-				<groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
-				<artifactId>svn-revision-number-maven-plugin</artifactId>
-				<version>1.13</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.tmatesoft.svnkit</groupId>
-						<artifactId>svnkit</artifactId>
-						<version>1.8.2</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<goals>
-							<goal>revision</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<entries>
-						<entry>
-							<prefix>svn</prefix>
-						</entry>
-					</entries>
-				</configuration>
-			</plugin>
 			<plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-javadoc-plugin</artifactId>
@@ -123,7 +97,7 @@
                         <descriptor>src/main/assembly/javadoc.xml</descriptor>
                         <descriptor>src/main/assembly/sources.xml</descriptor>
                     </descriptors>
-                    <finalName>${project.artifactId}-r${svn.revision}</finalName>
+                    <finalName>${project.artifactId}</finalName>
                     <appendAssemblyId>true</appendAssemblyId>
                 </configuration>
                 <executions>
