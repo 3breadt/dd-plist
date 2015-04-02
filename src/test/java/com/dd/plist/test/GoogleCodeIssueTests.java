@@ -2,16 +2,16 @@ package com.dd.plist.test;
 
 import com.dd.plist.*;
 import junit.framework.TestCase;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IssueTest extends TestCase {
+/**
+ * This class contains tests for issues that were managed with the Google Code issue tracking system
+ */
+public class GoogleCodeIssueTests extends TestCase {
     public static void testIssue4() throws Exception {
         NSDictionary d = (NSDictionary)PropertyListParser.parse(new File("test-files/issue4.plist"));
         assertTrue(((NSString)d.objectForKey("Device Name")).toString().equals("Kid\u2019s iPhone"));
