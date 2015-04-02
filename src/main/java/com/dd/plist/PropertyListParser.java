@@ -51,6 +51,8 @@ public class PropertyListParser {
     private static final int TYPE_ERROR_BLANK = 10;
     private static final int TYPE_ERROR_UNKNOWN = 11;
 
+    private static final int READ_BUFFER_LENGTH = 2048;
+
     /**
      * Prevent instantiation.
      */
@@ -138,12 +140,10 @@ public class PropertyListParser {
      */
     protected static byte[] readAll(InputStream in) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] buf = new byte[512];
-        int read = 512;
-        while (read == 512) {
-            read = in.read(buf);
-            if(read != -1)
-                outputStream.write(buf, 0, read);
+        byte[] buf = new byte[READ_BUFFER_LENGTH];
+        int read;
+        while ((read = in.read(buf, 0, READ_BUFFER_LENGTH)) != -1) {
+            outputStream.write(buf, 0, read);
         }
         return outputStream.toByteArray();
     }

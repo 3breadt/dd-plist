@@ -2,6 +2,7 @@ package com.dd.plist.test;
 
 import com.dd.plist.BinaryPropertyListParser;
 import com.dd.plist.NSObject;
+import com.dd.plist.PropertyListParser;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
@@ -16,8 +17,10 @@ public class IssueTests extends TestCase {
     public static void testGzipInputStream() {
         try {
             File plistFile = new File("test-files/test-gzipinputstream-issue.plist");
+
             //Get the file input stream
             InputStream fileInputStream = new FileInputStream(plistFile);
+
             //GZIP that file
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             OutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream);
@@ -35,8 +38,8 @@ public class IssueTests extends TestCase {
             InputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
 
             //Parse the property list from that stream
-            NSObject zippedObject = BinaryPropertyListParser.parse(gzipInputStream);
-            NSObject normalObject = BinaryPropertyListParser.parse(plistFile);
+            NSObject zippedObject = PropertyListParser.parse(gzipInputStream);
+            NSObject normalObject = PropertyListParser.parse(plistFile);
             Assert.assertEquals(zippedObject, normalObject);
         } catch(Throwable t) {
             Assert.fail("Could not parse property list from GZIP input stream. "
