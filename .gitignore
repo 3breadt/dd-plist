@@ -23,6 +23,7 @@ Thumbs.db
 
 # IntelliJ
 .idea/workspace.xml
+.idea/uiDesigner.xml
 .idea/tasks.xml
 .idea/libraries/Maven*
 .gradle/
