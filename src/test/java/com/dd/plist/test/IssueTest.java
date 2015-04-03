@@ -13,7 +13,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Regression tests for various issues and bugs that have been encountered
  */
-public class IssueTests extends TestCase {
+public class IssueTest extends TestCase {
     public static void testGzipInputStream() {
         try {
             File plistFile = new File("test-files/test-gzipinputstream-issue.plist");

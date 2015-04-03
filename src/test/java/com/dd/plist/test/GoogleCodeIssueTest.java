@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * This class contains tests for issues that were managed with the Google Code issue tracking system
  */
-public class GoogleCodeIssueTests extends TestCase {
+public class GoogleCodeIssueTest extends TestCase {
     public static void testIssue4() throws Exception {
         NSDictionary d = (NSDictionary)PropertyListParser.parse(new File("test-files/issue4.plist"));
         assertTrue(((NSString)d.objectForKey("Device Name")).toString().equals("Kid\u2019s iPhone"));
