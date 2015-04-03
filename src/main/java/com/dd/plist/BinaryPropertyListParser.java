@@ -201,23 +201,22 @@ public class BinaryPropertyListParser {
                     case 0xC: {
                         //URL with no base URL (v1.0 and later)
                         //TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
-                        break;
+                        throw new UnsupportedOperationException("The given binary property list contains a URL object. Parsing of this object type is not yet implemented.");
                     }
                     case 0xD: {
                         //URL with base URL (v1.0 and later)
                         //TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
-                        break;
+                        throw new UnsupportedOperationException("The given binary property list contains a URL object. Parsing of this object type is not yet implemented.");
                     }
                     case 0xE: {
                         //16-byte UUID (v1.0 and later)
                         //TODO Implement binary UUID parsing (not yet even implemented in Core Foundation as of revision 855.17)
+                        throw new UnsupportedOperationException("The given binary property list contains a UUID object. Parsing of this object type is not yet implemented.");
                     }
-                    case 0xF: {
-                        //filler byte
-                        return null;
+                    default: {
+                        throw new PropertyListFormatException("The given binary property list contains an object of unknown type (" + objType + ")");
                     }
                 }
-                break;
             }
             case 0x1: {
                 //integer
@@ -326,15 +325,15 @@ public class BinaryPropertyListParser {
                     int valRef = (int) parseUnsignedInt(bytes, offset + contentOffset + (length * objectRefSize) + i * objectRefSize, offset + contentOffset + (length * objectRefSize) + (i + 1) * objectRefSize);
                     NSObject key = parseObject(keyRef);
                     NSObject val = parseObject(valRef);
+                    assert key != null; //Encountering a null object at this point would either be a fundamental error in the parser or an error in the property list
                     dict.put(key.toString(), val);
                 }
                 return dict;
             }
             default: {
-                System.err.println("WARNING: The given binary property list contains an object of unknown type (" + objType + ")");
+                throw new PropertyListFormatException("The given binary property list contains an object of unknown type (" + objType + ")");
             }
         }
-        return null;
     }
 
     /**
@@ -414,6 +413,7 @@ public class BinaryPropertyListParser {
      * @param bytes The byte array containing the unsigned integer.
      * @return The unsigned integer represented by the given bytes.
      */
+    @SuppressWarnings("unused")
     public static long parseUnsignedInt(byte[] bytes) {
         return parseUnsignedInt(bytes, 0, bytes.length);
     }
@@ -442,6 +442,7 @@ public class BinaryPropertyListParser {
      * @param bytes The bytes representing the long integer.
      * @return The long integer represented by the given bytes.
      */
+    @SuppressWarnings("unused")
     public static long parseLong(byte[] bytes) {
         return parseLong(bytes, 0, bytes.length);
     }
@@ -469,6 +470,7 @@ public class BinaryPropertyListParser {
      * @param bytes The bytes representing the double.
      * @return The double represented by the given bytes.
      */
+    @SuppressWarnings("unused")
     public static double parseDouble(byte[] bytes) {
         return parseDouble(bytes, 0, bytes.length);
     }
