@@ -108,7 +108,7 @@ public class XMLPropertyListParser {
 
         Document doc = docBuilder.parse(f);
 
-        return parseDocument(doc);
+        return parse(doc);
     }
 
     /**
@@ -146,11 +146,11 @@ public class XMLPropertyListParser {
 
         Document doc = docBuilder.parse(is);
 
-        return parseDocument(doc);
+        return parse(doc);
     }
 
     /**
-     * Parses the XML document by generating the appropriate NSObjects for each XML node.
+     * Parses a property list from an XML document.
      *
      * @param doc The XML document.
      * @return The root NSObject of the property list contained in the XML document.
@@ -158,7 +158,7 @@ public class XMLPropertyListParser {
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
-    private static NSObject parseDocument(Document doc) throws PropertyListFormatException, IOException, ParseException {
+    public static NSObject parse(Document doc) throws PropertyListFormatException, IOException, ParseException {
         DocumentType docType = doc.getDoctype();
         if (docType == null) {
             if (!doc.getDocumentElement().getNodeName().equals("plist")) {
