@@ -3,7 +3,7 @@
 This library enables your Java application to handle property lists of various formats.
 
 Property lists are files used to store user settings and serialized objects.
-They originate from the NeXSTEP programming environment and are now a basic part of the Cocoa framework (OS X and iOS) as well as thed GNUstep framework.
+They originate from the NeXSTEP programming environment and are now a basic part of the Cocoa framework (OS X and iOS) as well as the GNUstep framework.
 
 ## Features
 
@@ -12,17 +12,17 @@ They originate from the NeXSTEP programming environment and are now a basic part
  * Property list contents are provided as objects from the NeXTSTEP environment (NSDictionary, NSArray, NSString, etc.)
  * Serialize native java data structures to property list objects
  * Deserialize from property list objects to native java data structures
- 
+
 ## Supported formats
 
  * Cocoa XML
  * Cocoa Binary (v0)
  * Cocoa / NeXSTSTEP / GNUstep ASCII
- 
+
 ## Maven support
 
 If you use Maven and want to include the library into your project you can use the following dependency.
- 
+
     <dependency>
       <groupId>com.googlecode.plist</groupId>
       <artifactId>dd-plist</artifactId>
@@ -136,7 +136,7 @@ In this example your property list file is called _properties.plist_.
     NSDictionary person2 = new NSDictionary();
     person2.put("Name", "Lisa");
     person2.put("Age", 42);
-    person2.put("RegistrationDate", new NSDate("2010-09-23T12:32:42Z")); 
+    person2.put("RegistrationDate", new NSDate("2010-09-23T12:32:42Z"));
     person2.put("Photo", new NSData(new File("lisa.jpg")));
 
     //Put the objects into the array
