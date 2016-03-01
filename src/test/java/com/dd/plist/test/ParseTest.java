@@ -1,11 +1,13 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
+
 import junit.framework.TestCase;
 
 import javax.swing.*;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class ParseTest extends TestCase {
 
@@ -222,5 +224,31 @@ public class ParseTest extends TestCase {
         assertTrue(((Integer)map.get("int")) == i);
         assertTrue(((Long)map.get("long")) == lng);
         assertTrue(((Date)map.get("date")).equals(date));
+    }
+    
+    public static void testAsciiNullCharactersInString() throws Exception {
+    	// create a runnable to catch time outs (we don't want the test to run forever)
+    	ExecutorService executor = Executors.newCachedThreadPool();
+    	Runnable task = new Runnable() {			
+			public void run() {
+    	        // parse an example plist file
+    	    	try
+    	    	{
+    	    		PropertyListParser.parse(new File("test-files/test2-ascii-null-char-in-string.plist"));
+    	    	}
+    	    	catch (java.text.ParseException e) {
+    			   return;
+    	    	}
+    	    	catch(Exception e)
+    	    	{
+        	    	fail("Unexpected exception " + e);
+    	    	}
+
+    	    	fail("Expected java.text.ParseException");
+			}
+		};
+
+		// parsing the 200ko file should take way less than 5s 
+		executor.submit(task).get(5, TimeUnit.SECONDS);
     }
 }

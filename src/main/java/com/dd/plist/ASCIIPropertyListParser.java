@@ -298,12 +298,12 @@ public class ASCIIPropertyListParser {
      * @return The input until one the given symbols.
      */
     private String readInputUntil(char... symbols) {
-        String s = "";
+        StringBuilder strBuf = new StringBuilder();
         while (!accept(symbols)) {
-            s += (char) data[index];
+        	strBuf.append((char) data[index]);
             skip();
         }
-        return s;
+        return strBuf.toString();
     }
 
     /**
@@ -313,12 +313,12 @@ public class ASCIIPropertyListParser {
      * @return The input until the given symbol.
      */
     private String readInputUntil(char symbol) {
-        String s = "";
+        StringBuilder strBuf = new StringBuilder();
         while (!accept(symbol)) {
-            s += (char) data[index];
+        	strBuf.append((char) data[index]);
             skip();
         }
-        return s;
+        return strBuf.toString();
     }
 
     /**
