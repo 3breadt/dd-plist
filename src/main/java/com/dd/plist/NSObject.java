@@ -89,14 +89,13 @@ public abstract class NSObject {
      */
     public String toXMLPropertyList() {
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        xml.append(NSObject.NEWLINE);
-        xml.append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">");
-        xml.append(NSObject.NEWLINE);
-        xml.append("<plist version=\"1.0\">");
-        xml.append(NSObject.NEWLINE);
+        xml.append(NSObject.NEWLINE)
+                .append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">")
+                .append(NSObject.NEWLINE)
+                .append("<plist version=\"1.0\">")
+                .append(NSObject.NEWLINE);
         toXML(xml, 0);
-        xml.append(NSObject.NEWLINE);
-        xml.append("</plist>");
+        xml.append(NSObject.NEWLINE).append("</plist>");
         return xml.toString();
     }
 
