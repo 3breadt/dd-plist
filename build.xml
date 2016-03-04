@@ -52,30 +52,5 @@
       <fileset dir="${doc}"/>
     </zip>
   </target>
-  
-  <!-- Testing should now be done in Maven as the junit.jar is no longer maintained in the repo -->
-  
-  <!--path id="classpath.test">
-    <!pathelement location="test/junit-4.10.jar"/>
-    <pathelement location="${dist}/${jar}"/>
-    <pathelement location="${testtemp}"/>
-  </path>
-
-  <target name="test" depends="jar">
-    <javac srcdir="${test-src}"
-           destdir="${build}/test-classes"
-	   encoding="utf8"
-           debug="on" debuglevel="lines,vars,source"
-           includeantruntime="false">
-      <classpath refid="classpath.test"/>
-    </javac>
-    <junit haltonfailure="yes">
-      <batchtest>
-	<fileset dir="${build}/test-classes" includes="*Test.class"/>
-      </batchtest>
-      <formatter type="plain" usefile="false"/>
-      <classpath refid="classpath.test"/>
-    </junit>
-  </target-->
 
 </project>
