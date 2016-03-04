@@ -88,8 +88,8 @@ public abstract class NSObject {
      * @return The XML representation of the property list including XML header and doctype information.
      */
     public String toXMLPropertyList() {
-        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        xml.append(NSObject.NEWLINE)
+        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+                .append(NSObject.NEWLINE)
                 .append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">")
                 .append(NSObject.NEWLINE)
                 .append("<plist version=\"1.0\">")
