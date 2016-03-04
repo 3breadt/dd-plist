@@ -404,8 +404,12 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
     @Override
     void assignIDs(BinaryPropertyListWriter out) {
         super.assignIDs(out);
+
         for (Map.Entry<String, NSObject> entry : dict.entrySet()) {
             new NSString(entry.getKey()).assignIDs(out);
+        }
+
+        for (Map.Entry<String, NSObject> entry : dict.entrySet()) {
             entry.getValue().assignIDs(out);
         }
     }
