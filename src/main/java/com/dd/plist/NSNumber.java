@@ -123,8 +123,8 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                 type = REAL;
             } catch (Exception ex2) {
                 try {
-                    boolValue = text.toLowerCase().equals("true") || text.toLowerCase().equals("yes");
-                    if(!boolValue && !(text.toLowerCase().equals("false") || text.toLowerCase().equals("no"))) {
+                    boolValue = text.equalsIgnoreCase("true") || text.equalsIgnoreCase("yes");
+                    if(!boolValue && !(text.equalsIgnoreCase("false") || text.equalsIgnoreCase("no"))) {
                         throw new Exception("not a boolean");
                     }
                     type = BOOLEAN;
@@ -276,7 +276,8 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      */
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof NSNumber)) return false;
+        if (obj == null) return false;
+        if (this.getClass() != obj.getClass()) return false;
         NSNumber n = (NSNumber) obj;
         return type == n.type && longValue == n.longValue && doubleValue == n.doubleValue && boolValue == n.boolValue;
     }

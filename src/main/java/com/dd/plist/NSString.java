@@ -129,7 +129,8 @@ public class NSString extends NSObject implements Comparable<Object> {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof NSString)) return false;
+        if (obj == null) return false;
+        if (this.getClass() != obj.getClass()) return false;
         return content.equals(((NSString) obj).content);
     }
 
