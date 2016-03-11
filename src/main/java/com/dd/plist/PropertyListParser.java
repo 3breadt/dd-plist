@@ -242,9 +242,9 @@ public class PropertyListParser {
      */
     public static void saveAsXML(NSObject root, File out) throws IOException {
         File parent = out.getParentFile();
-        if (!parent.exists())
-            if(!parent.mkdirs())
-                throw new IOException("The output directory does not exist and could not be created.");
+        if (!parent.exists() && !parent.mkdirs()) {
+            throw new IOException("The output directory does not exist and could not be created.");
+        }
         FileOutputStream fous = new FileOutputStream(out);
         saveAsXML(root, fous);
         fous.close();
@@ -290,9 +290,9 @@ public class PropertyListParser {
      */
     public static void saveAsBinary(NSObject root, File out) throws IOException {
         File parent = out.getParentFile();
-        if (!parent.exists())
-            if(!parent.mkdirs())
-                throw new IOException("The output directory does not exist and could not be created.");
+        if (!parent.exists() && !parent.mkdirs()) {
+            throw new IOException("The output directory does not exist and could not be created.");
+        }
         BinaryPropertyListWriter.write(out, root);
     }
 
@@ -333,9 +333,9 @@ public class PropertyListParser {
      */
     public static void saveAsASCII(NSDictionary root, File out) throws IOException {
         File parent = out.getParentFile();
-        if (!parent.exists())
-            if(!parent.mkdirs())
-                throw new IOException("The output directory does not exist and could not be created.");
+        if (!parent.exists() && !parent.mkdirs()) {
+            throw new IOException("The output directory does not exist and could not be created.");
+        }
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toASCIIPropertyList());
         w.close();
@@ -389,9 +389,9 @@ public class PropertyListParser {
      */
     public static void saveAsGnuStepASCII(NSDictionary root, File out) throws IOException {
         File parent = out.getParentFile();
-        if (!parent.exists())
-            if(!parent.mkdirs())
-                throw new IOException("The output directory does not exist and could not be created.");
+        if (!parent.exists() && !parent.mkdirs()) {
+            throw new IOException("The output directory does not exist and could not be created.");
+        }
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toGnuStepASCIIPropertyList());
         w.close();
@@ -406,9 +406,9 @@ public class PropertyListParser {
      */
     public static void saveAsGnuStepASCII(NSArray root, File out) throws IOException {
         File parent = out.getParentFile();
-        if (!parent.exists())
-            if(!parent.mkdirs())
-                throw new IOException("The output directory does not exist and could not be created.");
+        if (!parent.exists() && !parent.mkdirs()) {
+            throw new IOException("The output directory does not exist and could not be created.");
+        }
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
         w.write(root.toGnuStepASCIIPropertyList());
         w.close();
