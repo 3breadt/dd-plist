@@ -277,7 +277,7 @@ public class NSString extends NSObject implements Comparable<Object> {
         if (o instanceof NSString) {
             return getContent().compareTo(((NSString) o).getContent());
         } else if (o instanceof String) {
-            return getContent().compareTo(((String) o));
+            return getContent().compareTo((String) o);
         } else {
             return -1;
         }

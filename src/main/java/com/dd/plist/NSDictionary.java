@@ -355,7 +355,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj.getClass().equals(this.getClass()) && ((NSDictionary) obj).dict.equals(dict));
+        return obj.getClass().equals(this.getClass()) && ((NSDictionary) obj).dict.equals(dict);
     }
 
     /**

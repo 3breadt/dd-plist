@@ -181,7 +181,7 @@ public class BinaryPropertyListParser {
         int offset = offsetTable[obj];
         byte type = bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits
-        int objInfo = (type & 0x0F);      //Second 4 bits
+        int objInfo = type & 0x0F;      //Second 4 bits
         switch (objType) {
             case 0x0: {
                 //Simple
