@@ -111,7 +111,7 @@ public class BinaryPropertyListWriter {
     public static void write(OutputStream out, NSObject root) throws IOException {
         int minVersion = getMinimumRequiredVersion(root);
         if (minVersion > VERSION_00) {
-            String versionString = ((minVersion == VERSION_10) ? "v1.0" : ((minVersion == VERSION_15) ? "v1.5" : ((minVersion == VERSION_20) ? "v2.0" : "v0.0")));
+            String versionString = minVersion == VERSION_10 ? "v1.0" : (minVersion == VERSION_15 ? "v1.5" : (minVersion == VERSION_20 ? "v2.0" : "v0.0"));
             throw new IOException("The given property list structure cannot be saved. " +
                     "The required version of the binary format (" + versionString + ") is not yet supported.");
         }
