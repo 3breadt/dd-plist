@@ -181,9 +181,9 @@ public class NSDate extends NSObject {
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
         indent(ascii, level);
-        ascii.append("\"");
+        ascii.append('"');
         ascii.append(makeDateString(date));
-        ascii.append("\"");
+        ascii.append('"');
     }
 
     @Override
@@ -191,6 +191,6 @@ public class NSDate extends NSObject {
         indent(ascii, level);
         ascii.append("<*D");
         ascii.append(makeDateStringGnuStep(date));
-        ascii.append(">");
+        ascii.append('>');
     }
 }

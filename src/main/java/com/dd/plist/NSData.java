@@ -163,13 +163,13 @@ public class NSData extends NSObject {
         for (int i = 0; i < bytes.length; i++) {
             int b = bytes[i] & 0xFF;
             if (b < 16)
-                ascii.append("0");
+                ascii.append('0');
             ascii.append(Integer.toHexString(b));
             if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
                 ascii.append(NEWLINE);
                 indexOfLastNewLine = ascii.length();
             } else if ((i + 1) % 2 == 0 && i != bytes.length - 1) {
-                ascii.append(" ");
+                ascii.append(' ');
             }
         }
         ascii.append(ASCIIPropertyListParser.DATA_END_TOKEN);

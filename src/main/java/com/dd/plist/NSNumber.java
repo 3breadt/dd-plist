@@ -387,13 +387,13 @@ public class NSNumber extends NSObject implements Comparable<Object> {
             case INTEGER: {
                 ascii.append("<*I");
                 ascii.append(toString());
-                ascii.append(">");
+                ascii.append('>');
                 break;
             }
             case REAL: {
                 ascii.append("<*R");
                 ascii.append(toString());
-                ascii.append(">");
+                ascii.append('>');
                 break;
             }
             case BOOLEAN: {
