@@ -294,7 +294,7 @@ public class NSArray extends NSObject {
                 array[i].toASCII(ascii, level + 1);
             } else {
                 if (i != 0)
-                    ascii.append(" ");
+                    ascii.append(' ');
                 array[i].toASCII(ascii, 0);
             }
 
@@ -323,7 +323,7 @@ public class NSArray extends NSObject {
                 array[i].toASCIIGnuStep(ascii, level + 1);
             } else {
                 if (i != 0)
-                    ascii.append(" ");
+                    ascii.append(' ');
                 array[i].toASCIIGnuStep(ascii, 0);
             }
 

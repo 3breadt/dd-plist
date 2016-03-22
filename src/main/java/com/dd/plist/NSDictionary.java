@@ -466,7 +466,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         for (String key : keys) {
             NSObject val = objectForKey(key);
             indent(ascii, level + 1);
-            ascii.append("\"");
+            ascii.append('"');
             ascii.append(NSString.escapeStringForASCII(key));
             ascii.append("\" =");
             Class<?> objClass = val.getClass();
@@ -474,7 +474,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
                 ascii.append(NEWLINE);
                 val.toASCII(ascii, level + 2);
             } else {
-                ascii.append(" ");
+                ascii.append(' ');
                 val.toASCII(ascii, 0);
             }
             ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
@@ -493,7 +493,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         for (String key : keys) {
             NSObject val = objectForKey(key);
             indent(ascii, level + 1);
-            ascii.append("\"");
+            ascii.append('"');
             ascii.append(NSString.escapeStringForASCII(key));
             ascii.append("\" =");
             Class<?> objClass = val.getClass();
@@ -501,7 +501,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
                 ascii.append(NEWLINE);
                 val.toASCIIGnuStep(ascii, level + 2);
             } else {
-                ascii.append(" ");
+                ascii.append(' ');
                 val.toASCIIGnuStep(ascii, 0);
             }
             ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);

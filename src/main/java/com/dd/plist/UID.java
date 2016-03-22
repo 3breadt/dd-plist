@@ -61,7 +61,7 @@ public class UID extends NSObject {
         for (int i = 0; i < bytes.length; i++) {
             byte b = bytes[i];
             if (b < 16)
-                xml.append("0");
+                xml.append('0');
             xml.append(Integer.toHexString(b));
         }
         xml.append("</string>");
@@ -76,14 +76,14 @@ public class UID extends NSObject {
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
         indent(ascii, level);
-        ascii.append("\"");
+        ascii.append('"');
         for (int i = 0; i < bytes.length; i++) {
             byte b = bytes[i];
             if (b < 16)
-                ascii.append("0");
+                ascii.append('0');
             ascii.append(Integer.toHexString(b));
         }
-        ascii.append("\"");
+        ascii.append('"');
     }
 
     @Override
