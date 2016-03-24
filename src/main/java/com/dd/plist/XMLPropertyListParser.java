@@ -45,14 +45,14 @@ import java.util.List;
  */
 public class XMLPropertyListParser {
 
+    private static DocumentBuilderFactory docBuilderFactory = null;
+
     /**
      * Instantiation is prohibited by outside classes.
      */
     protected XMLPropertyListParser() {
         /** empty **/
     }
-
-    private static DocumentBuilderFactory docBuilderFactory = null;
 
     /**
      * Initialize the document builder factory so that it can be reused and does not need to

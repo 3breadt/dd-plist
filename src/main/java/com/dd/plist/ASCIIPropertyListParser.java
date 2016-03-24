@@ -57,44 +57,6 @@ import java.util.List;
  */
 public class ASCIIPropertyListParser {
 
-    /**
-     * Parses an ASCII property list file.
-     *
-     * @param f The ASCII property list file.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occured while reading from the input stream.
-     */
-    public static NSObject parse(File f) throws IOException, ParseException {
-        return parse(new FileInputStream(f));
-    }
-
-    /**
-     * Parses an ASCII property list from an input stream.
-     *
-     * @param in The input stream that points to the property list's data.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occured while reading from the input stream.
-     */
-    public static NSObject parse(InputStream in) throws ParseException, IOException {
-        byte[] buf = PropertyListParser.readAll(in);
-        in.close();
-        return parse(buf);
-    }
-
-    /**
-     * Parses an ASCII property list from a byte array.
-     *
-     * @param bytes The ASCII property list data.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws ParseException When an error occurs during parsing.
-     */
-    public static NSObject parse(byte[] bytes) throws ParseException {
-        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
-        return parser.parse();
-    }
-
     public static final char WHITESPACE_SPACE = ' ';
     public static final char WHITESPACE_TAB = '\t';
     public static final char WHITESPACE_NEWLINE = '\n';
@@ -136,6 +98,11 @@ public class ASCIIPropertyListParser {
     public static final char MULTILINE_COMMENT_END_TOKEN = '/';
 
     /**
+     * Used to encode the parsed strings
+     */
+    private static CharsetEncoder asciiEncoder;
+
+    /**
      * Property list source data
      */
     private byte[] data;
@@ -158,6 +125,44 @@ public class ASCIIPropertyListParser {
      */
     private ASCIIPropertyListParser(byte[] propertyListContent) {
         data = propertyListContent;
+    }
+
+    /**
+     * Parses an ASCII property list file.
+     *
+     * @param f The ASCII property list file.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws java.text.ParseException When an error occurs during parsing.
+     * @throws java.io.IOException When an error occured while reading from the input stream.
+     */
+    public static NSObject parse(File f) throws IOException, ParseException {
+        return parse(new FileInputStream(f));
+    }
+
+    /**
+     * Parses an ASCII property list from an input stream.
+     *
+     * @param in The input stream that points to the property list's data.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws java.text.ParseException When an error occurs during parsing.
+     * @throws java.io.IOException When an error occured while reading from the input stream.
+     */
+    public static NSObject parse(InputStream in) throws ParseException, IOException {
+        byte[] buf = PropertyListParser.readAll(in);
+        in.close();
+        return parse(buf);
+    }
+
+    /**
+     * Parses an ASCII property list from a byte array.
+     *
+     * @param bytes The ASCII property list data.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws ParseException When an error occurs during parsing.
+     */
+    public static NSObject parse(byte[] bytes) throws ParseException {
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
+        return parser.parse();
     }
 
     /**
@@ -566,11 +571,6 @@ public class ASCIIPropertyListParser {
         skip();
         return unescapedString;
     }
-
-    /**
-     * Used to encode the parsed strings
-     */
-    private static CharsetEncoder asciiEncoder;
 
     /**
      * Parses a string according to the format specified for ASCII property lists.

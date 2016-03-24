@@ -47,6 +47,34 @@ public class BinaryPropertyListWriter {
     public static final int VERSION_15 = 15;
     public static final int VERSION_20 = 20;
 
+    private int version = VERSION_00;
+
+    // raw output stream to result file
+    private OutputStream out;
+
+    // # of bytes written so far
+    private long count;
+
+    // map from object to its ID
+    private Map<NSObject, Integer> idMap = new LinkedHashMap<NSObject, Integer>();
+    private int idSizeInBytes;
+
+    /**
+     * Creates a new binary property list writer
+     *
+     * @param outStr The output stream into which the binary property list will be written
+     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     *                     data that cannot be saved.
+     */
+    BinaryPropertyListWriter(OutputStream outStr) throws IOException {
+        out = new BufferedOutputStream(outStr);
+    }
+
+    BinaryPropertyListWriter(OutputStream outStr, int version) throws IOException {
+        this.version = version;
+        out = new BufferedOutputStream(outStr);
+    }
+
     /**
      * Finds out the minimum binary property list format version that
      * can be used to save the given NSObject tree.
@@ -132,34 +160,6 @@ public class BinaryPropertyListWriter {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         write(bout, root);
         return bout.toByteArray();
-    }
-
-    private int version = VERSION_00;
-
-    // raw output stream to result file
-    private OutputStream out;
-
-    // # of bytes written so far
-    private long count;
-
-    // map from object to its ID
-    private Map<NSObject, Integer> idMap = new LinkedHashMap<NSObject, Integer>();
-    private int idSizeInBytes;
-
-    /**
-     * Creates a new binary property list writer
-     *
-     * @param outStr The output stream into which the binary property list will be written
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
-     *                     data that cannot be saved.
-     */
-    BinaryPropertyListWriter(OutputStream outStr) throws IOException {
-        out = new BufferedOutputStream(outStr);
-    }
-
-    BinaryPropertyListWriter(OutputStream outStr, int version) throws IOException {
-        this.version = version;
-        out = new BufferedOutputStream(outStr);
     }
 
     void write(NSObject root) throws IOException {
