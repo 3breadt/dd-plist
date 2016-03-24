@@ -257,6 +257,12 @@ public class Base64 {
     private final static byte WHITE_SPACE_ENC = -5; // Indicates white space in encoding
     private final static byte EQUALS_SIGN_ENC = -1; // Indicates equals sign in encoding
 
+    /**
+     * Defeats instantiation.
+     */
+    private Base64() {
+    }
+
 
 /* ********  S T A N D A R D   B A S E 6 4   A L P H A B E T  ******** */
 
@@ -481,15 +487,6 @@ public class Base64 {
             return _STANDARD_DECODABET;
         }
     }    // end getAlphabet
-
-
-    /**
-     * Defeats instantiation.
-     */
-    private Base64() {
-    }
-
-
 
 
 /* ********  E N C O D I N G   M E T H O D S  ******** */

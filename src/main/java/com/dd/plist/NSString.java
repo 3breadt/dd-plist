@@ -38,6 +38,8 @@ public class NSString extends NSObject implements Comparable<Object> {
 
     private String content;
 
+    private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
+
     /**
      * Creates an NSString from its binary representation.
      *
@@ -148,8 +150,6 @@ public class NSString extends NSObject implements Comparable<Object> {
     public String toString() {
         return content;
     }
-
-    private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     @Override
     void toXML(StringBuilder xml, int level) {
