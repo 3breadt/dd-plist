@@ -431,11 +431,7 @@ public abstract class NSObject {
             return processArray(payload, clazz);
         }
 
-        if (clazz.isPrimitive() ||
-                Number.class.isAssignableFrom(clazz) ||
-                Boolean.class.isAssignableFrom(clazz) ||
-                clazz == String.class ||
-                Date.class.isAssignableFrom(clazz)) {
+        if (isSimple(clazz)) {
             return processSimple(payload, clazz);
         }
 
@@ -456,6 +452,14 @@ public abstract class NSObject {
             return processObject((NSDictionary) payload, clazz, types);
         }
         throw new IllegalArgumentException("Cannot process " + clazz.getSimpleName());
+    }
+
+    private static boolean isSimple(Class<?> clazz) {
+        return clazz.isPrimitive() ||
+                Number.class.isAssignableFrom(clazz) ||
+                Boolean.class.isAssignableFrom(clazz) ||
+                clazz == String.class ||
+                Date.class.isAssignableFrom(clazz);
     }
 
     private Object processObject(NSDictionary payload, Class<?> clazz, Type[] types) {
@@ -646,18 +650,7 @@ public abstract class NSObject {
             return result;
         }
         if (payload instanceof NSData) {
-            if (cClazz == byte.class) {
-                return ((NSData) payload).bytes();
-            }
-            if (cClazz == Byte.class) {
-                byte[] bytes = ((NSData) payload).bytes();
-                Object result = Array.newInstance(cClazz, bytes.length);
-                for (int i = 0; i < bytes.length; i++) {
-                    Array.set(result, i, bytes[i]);
-                }
-                return result;
-            }
-            throw new IllegalArgumentException("NSData can only be mapped to byte[] or Byte[].");
+            return extractData((NSData) payload, cClazz);
         }
 
         throw new IllegalArgumentException("Unable to map " + payload.getClass().getSimpleName() + " to " + clazz.getTypeName());
@@ -665,12 +658,27 @@ public abstract class NSObject {
 
     }
 
+    private Object extractData(NSData payload, Class<?> cClazz) {
+        if (cClazz == byte.class) {
+            return payload.bytes();
+        }
+        if (cClazz == Byte.class) {
+            byte[] bytes = payload.bytes();
+            Object result = Array.newInstance(cClazz, bytes.length);
+            for (int i = 0; i < bytes.length; i++) {
+                Array.set(result, i, bytes[i]);
+            }
+            return result;
+        }
+        throw new IllegalArgumentException("NSData can only be mapped to byte[] or Byte[].");
+    }
+
     private Object processSimple(NSObject payload, Class<?> clazz) {
         if (payload instanceof NSNumber) {
-            return extractNumber(payload, clazz);
+            return extractNumber((NSNumber) payload, clazz);
         }
         if (payload instanceof NSDate) {
-            return extractDate(payload, clazz);
+            return extractDate((NSDate) payload, clazz);
         }
         if (payload instanceof NSString) {
             return ((NSString) payload).getContent();
@@ -678,9 +686,7 @@ public abstract class NSObject {
         throw new IllegalArgumentException("Cannot map " + payload.getClass().getSimpleName() + " to " + clazz.getSimpleName());
     }
 
-    private Date extractDate(NSObject payload, Class<?> clazz) {
-        NSDate date = (NSDate) payload;
-
+    private Date extractDate(NSDate date, Class<?> clazz) {
         if (clazz == Date.class) {
             //short circuit
             return date.getDate();
@@ -696,8 +702,7 @@ public abstract class NSObject {
         return result;
     }
 
-    private Object extractNumber(NSObject payload, Class<?> clazz) {
-        NSNumber number = (NSNumber) payload;
+    private Object extractNumber(final NSNumber number, Class<?> clazz) {
         if (number.isInteger()) {
             if (clazz == long.class || clazz == Long.class) {
                 return number.longValue();
@@ -737,8 +742,128 @@ public abstract class NSObject {
     }
 
     public static NSObject fromJavaObject(Object object) {
-        //TODO
-        return null;
+        if (object == null) {
+            return null;
+        }
+        Class<?> objClass = object.getClass();
+        if (objClass.isArray()) {
+            //process []
+            return fromArray(object);
+        }
+        if (isSimple(objClass)) {
+            //process simple types
+            return fromSimple(object, objClass);
+        }
+        if (Set.class.isAssignableFrom(objClass)) {
+            //process set
+            return fromSet((Set<?>) object);
+        }
+        if (Map.class.isAssignableFrom(objClass)) {
+            //process Map
+            return fromMap((Map<?, ?>) object);
+        }
+        if (Collection.class.isAssignableFrom(objClass)) {
+            //process collection
+            return fromCollection((Collection<?>) object);
+        }
+        //process pojo
+        return fromPojo(object, objClass);
+    }
+
+    private static NSObject fromSimple(Object object, Class<?> objClass) {
+        if (object instanceof Long || objClass == long.class) {
+            return new NSNumber((Long) object);
+        }
+        if (object instanceof Integer || objClass == int.class) {
+            return new NSNumber((Integer) object);
+        }
+        if (object instanceof Short || objClass == short.class) {
+            return new NSNumber((Short) object);
+        }
+        if (object instanceof Byte || objClass == byte.class) {
+            return new NSNumber((Byte) object);
+        }
+        if (object instanceof Double || objClass == double.class) {
+            return new NSNumber((Double) object);
+        }
+        if (object instanceof Float || objClass == float.class) {
+            return new NSNumber((Float) object);
+        }
+        if (object instanceof Boolean || objClass == boolean.class) {
+            return new NSNumber((Boolean) object);
+        }
+        if (object instanceof Date) {
+            return new NSDate((Date) object);
+        }
+        if (objClass == String.class) {
+            return new NSString((String) object);
+        }
+        throw new IllegalArgumentException("Cannot map " + objClass.getSimpleName() + " as a simple type.");
+    }
+
+    private static NSDictionary fromPojo(Object object, Class<?> objClass) {
+        NSDictionary result = new NSDictionary();
+
+        for (Method method : objClass.getMethods()) {
+            if (Modifier.isNative(method.getModifiers()) ||
+                    Modifier.isStatic(method.getModifiers()) ||
+                    method.getParameterTypes().length != 0) {
+                continue;
+            }
+            String name = method.getName();
+            if (name.startsWith("get")) {
+                name = name.substring(3, 4).toLowerCase() + name.substring(4);
+            } else if (name.startsWith("is")) {
+                name = name.substring(2, 3).toLowerCase() + name.substring(3);
+            } else {
+                ///not a getter
+                continue;
+            }
+            try {
+                result.put(name, fromJavaObject(method.invoke(object)));
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException("Could not access getter " + method);
+            } catch (InvocationTargetException e) {
+                throw new IllegalArgumentException("Could not invoke getter " + method);
+            }
+        }
+        return result;
+    }
+
+    private static NSDictionary fromMap(Map<?, ?> map) {
+        NSDictionary result = new NSDictionary();
+        for (Map.Entry entry : map.entrySet()) {
+            if (!(entry.getKey() instanceof String)) {
+                throw new IllegalArgumentException("Maps need a String key for mapping to NSDictionary.");
+            }
+            result.put((String) entry.getKey(), fromJavaObject(entry.getValue()));
+        }
+        return result;
+    }
+
+    private static NSArray fromArray(Object object) {
+        int size = Array.getLength(object);
+        List<NSObject> payload = new ArrayList<NSObject>(size);
+        for (int i = 0; i < size; i++) {
+            payload.add(fromJavaObject(Array.get(object, i)));
+        }
+        return new NSArray(payload.toArray(new NSObject[payload.size()]));
+    }
+
+    private static NSArray fromCollection(Collection<?> collection) {
+        List<NSObject> payload = new ArrayList<NSObject>(collection.size());
+        for (Object elem : collection) {
+            payload.add(fromJavaObject(elem));
+        }
+        return new NSArray(payload.toArray(new NSObject[payload.size()]));
+    }
+
+    private static NSSet fromSet(Set<?> set) {
+        NSSet result = new NSSet();
+        for (Object elem : set) {
+            result.addObject(fromJavaObject(elem));
+        }
+        return result;
     }
 
 }

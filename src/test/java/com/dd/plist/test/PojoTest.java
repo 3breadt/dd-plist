@@ -18,6 +18,17 @@ public class PojoTest extends TestCase {
         assertEquals(map, result);
     }
 
+    public void testSimpleMapNS() throws Exception {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("key", "value");
+        NSObject result = NSObject.fromJavaObject(map);
+
+        NSDictionary test = new NSDictionary();
+        test.put("key", new NSString("value"));
+
+        assertEquals(test, result);
+    }
+
 
     public void testPojoMap() throws Exception {
         TestClassMap test = new TestClassMap();
@@ -50,7 +61,37 @@ public class PojoTest extends TestCase {
         assertEquals(test, dict.toJavaObject(TestClassMap.class));
     }
 
+    public void testDictSet() throws Exception {
+        assertEquals(NSObject
+                        .fromJavaObject(genTestSetObject()),
+                genTEstSetDict());
+    }
+
     public void testPojoSet() throws Exception {
+        TestClassSet test = genTestSetObject();
+        NSDictionary dict = genTEstSetDict();
+        assertEquals(test, dict.toJavaObject(TestClassSet.class));
+        dict.put("test3Set", new NSSet((genTest3DictOfSets())));
+        assertEquals(test, dict.toJavaObject(TestClassSet.class));
+    }
+
+
+    private NSDictionary genTEstSetDict() {
+        NSDictionary dict = new NSDictionary();
+        dict.put("stringSet", new NSSet(new NSString("value")));
+        dict.put("byteSet", new NSSet((new NSNumber((byte) 123))));
+        dict.put("integerSet", new NSSet((new NSNumber(234))));
+        dict.put("longSet", new NSSet((new NSNumber(345L))));
+        dict.put("doubleSet", new NSSet((new NSNumber(4.56d))));
+        dict.put("shortSet", new NSSet((new NSNumber((short) 512))));
+        dict.put("floatSet", new NSSet((new NSNumber(5.67f))));
+        dict.put("test1Set", new NSSet((genTest1Dict())));
+        dict.put("test2Set", new NSSet((genTest2Dict())));
+        dict.put("test3Set", new NSSet((genTest3DictOfArrays())));
+        return dict;
+    }
+
+    private TestClassSet genTestSetObject() {
         TestClassSet test = new TestClassSet();
         test.setStringSet(setFromArr("value"));
         test.setByteSet(setFromArr((byte) 123));
@@ -62,23 +103,7 @@ public class PojoTest extends TestCase {
         test.setTest1Set(setFromArr(genTest1Object()));
         test.setTest2Set(setFromArr(genTest2Object()));
         test.setTest3Set(setFromArr(genTest3Object()));
-
-        NSDictionary dict = new NSDictionary();
-        dict.put("stringSet", new NSSet(new NSString("value")));
-        dict.put("byteSet", new NSSet((new NSNumber((byte) 123))));
-        dict.put("integerSet", new NSSet((new NSNumber(234))));
-        dict.put("longSet", new NSSet((new NSNumber(345L))));
-        dict.put("doubleSet", new NSSet((new NSNumber(4.56d))));
-        dict.put("shortSet", new NSSet((new NSNumber((short) 512))));
-        dict.put("floatSet", new NSSet((new NSNumber(5.67f))));
-        dict.put("test1Set", new NSSet((genTest1Dict())));
-        dict.put("test2Set", new NSSet((genTest2Dict())));
-
-        dict.put("test3Set", new NSSet((genTest3DictOfArrays())));
-        assertEquals(test, dict.toJavaObject(TestClassSet.class));
-
-        dict.put("test3Set", new NSSet((genTest3DictOfSets())));
-        assertEquals(test, dict.toJavaObject(TestClassSet.class));
+        return test;
     }
 
 
@@ -248,10 +273,10 @@ public class PojoTest extends TestCase {
     }
 
     public void testPojoMapNested() throws Exception {
-        TestClass1 test = genTest1Object();
-        Object result = genTest1Dict()
-                .toJavaObject(TestClass1.class);
-        assertEquals(test, result);
+        assertEquals(
+                genTest1Object(),
+                genTest1Dict()
+                        .toJavaObject(TestClass1.class));
     }
 
     public void testArrayPojo() throws Exception {
@@ -273,5 +298,22 @@ public class PojoTest extends TestCase {
                         .toJavaObject(TestClass2.class));
     }
 
+    public void testSimpleNS() throws Exception {
+        assertEquals(
+                NSObject.fromJavaObject(genTest2Object()),
+                genTest2Dict());
+    }
+
+    public void testArrayNS() throws Exception {
+        assertEquals(
+                NSObject.fromJavaObject(genTest3Object()),
+                genTest3DictOfArrays());
+    }
+
+    public void testNSMapNested() throws Exception {
+        assertEquals(
+                NSObject.fromJavaObject(genTest1Object()),
+                genTest1Dict());
+    }
 
 }
