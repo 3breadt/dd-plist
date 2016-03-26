@@ -85,7 +85,7 @@ public class GoogleCodeIssueTest extends TestCase {
         Map<String, Object> nullMap = new HashMap<String, Object>();
         nullMap.put("key", null);
         assertFalse(nullMap.isEmpty());
-        NSDictionary nullDict = NSObject.wrap(nullMap);
+        NSDictionary nullDict = (NSDictionary)NSObject.fromJavaObject(nullMap);
         assertTrue(nullDict.isEmpty());
 
         nullDict.put(null, "test");
@@ -105,7 +105,7 @@ public class GoogleCodeIssueTest extends TestCase {
         strArr[0] = "";
         strArr[1] = null;
         strArr[2] = null;
-        NSArray nsArr = NSObject.wrap(strArr);
+        NSArray nsArr = (NSArray)NSObject.fromJavaObject(strArr);
         assertTrue(nsArr.containsObject(null));
         assertEquals(nsArr.objectAtIndex(1), null);
         assertEquals(nsArr.objectAtIndex(2), null);

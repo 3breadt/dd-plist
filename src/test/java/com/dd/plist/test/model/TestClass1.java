@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TestClass1 {
+
     private Map<String, List<String>> map;
 
     public Map<String, List<String>> getMap() {

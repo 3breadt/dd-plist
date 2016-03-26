@@ -6,8 +6,8 @@ import junit.framework.TestCase;
 
 import java.util.*;
 
-public class PojoTest extends TestCase {
-    private static final Date date = new Date(System.currentTimeMillis());
+public class DeSerializationTest extends TestCase {
+    private static final Date date = new Date();
 
     public void testSimpleMap() throws Exception {
         Map<String, String> map = new HashMap<String, String>();
@@ -28,7 +28,6 @@ public class PojoTest extends TestCase {
 
         assertEquals(test, result);
     }
-
 
     public void testPojoMap() throws Exception {
         TestClassMap test = new TestClassMap();
@@ -62,24 +61,25 @@ public class PojoTest extends TestCase {
     }
 
     public void testDictSet() throws Exception {
-        assertEquals(NSObject
-                        .fromJavaObject(genTestSetObject()),
-                genTEstSetDict());
+        assertEquals(NSObject.fromJavaObject(genTestSetObject()), genTestSetDict());
     }
 
     public void testPojoSet() throws Exception {
         TestClassSet test = genTestSetObject();
-        NSDictionary dict = genTEstSetDict();
+        NSDictionary dict = genTestSetDict();
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
         dict.put("test3Set", new NSSet((genTest3DictOfSets())));
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
     }
 
+    public void testUid() throws Exception {
 
-    private NSDictionary genTEstSetDict() {
+    }
+
+    private NSDictionary genTestSetDict() {
         NSDictionary dict = new NSDictionary();
         dict.put("stringSet", new NSSet(new NSString("value")));
-        dict.put("byteSet", new NSSet((new NSNumber((byte) 123))));
+        dict.put("byteSet", new NSSet((new NSNumber(123))));
         dict.put("integerSet", new NSSet((new NSNumber(234))));
         dict.put("longSet", new NSSet((new NSNumber(345L))));
         dict.put("doubleSet", new NSSet((new NSNumber(4.56d))));
@@ -105,7 +105,6 @@ public class PojoTest extends TestCase {
         test.setTest3Set(setFromArr(genTest3Object()));
         return test;
     }
-
 
     private NSDictionary genDict(String key, NSObject value) {
         NSDictionary result = new NSDictionary();
@@ -227,8 +226,8 @@ public class PojoTest extends TestCase {
         dict.put("aPrimitiveBooleanArray", new NSArray(new NSNumber(true), new NSNumber(false)));
         dict.put("aDateArray", new NSArray(new NSDate(date)));
 
-        dict.put("aByteArray", new NSArray(new NSNumber((byte) 123)));
-        dict.put("aPrimitiveByteArray", new NSArray(new NSNumber((byte) 81)));
+        dict.put("aByteArray", new NSData(new byte[] {(byte) 123}));
+        dict.put("aPrimitiveByteArray", new NSData(new byte[] {(byte) 81}));
 
         return dict;
     }
@@ -258,7 +257,6 @@ public class PojoTest extends TestCase {
 
         return dict;
     }
-
 
     private NSDictionary genTest1Dict() {
         NSDictionary dic = new NSDictionary();

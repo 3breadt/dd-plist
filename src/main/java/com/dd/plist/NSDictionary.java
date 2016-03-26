@@ -112,7 +112,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
     public boolean containsValue(Object value) {
         if(value == null)
             return false;
-        NSObject wrap = NSObject.wrap(value);
+        NSObject wrap = NSObject.fromJavaObject(value);
         return dict.containsValue(wrap);
     }
 
@@ -165,7 +165,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      *         or null, if no value was associated to it.
      */
     public NSObject put(String key, Object obj) {
-        return put(key, NSObject.wrap(obj));
+        return put(key, NSObject.fromJavaObject(obj));
     }
 
     /**

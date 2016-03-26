@@ -88,7 +88,7 @@ public class NSArray extends NSObject {
      * @param value The object.
      */
     public void setValue(int key, Object value) {
-        array[key] = NSObject.wrap(value);
+        array[key] = NSObject.fromJavaObject(value);
     }
 
     /**
@@ -119,7 +119,7 @@ public class NSArray extends NSObject {
      * @see Object#equals(java.lang.Object)
      */
     public boolean containsObject(Object obj) {
-        NSObject nso = NSObject.wrap(obj);
+        NSObject nso = NSObject.fromJavaObject(obj);
         for (NSObject elem : array) {
             if(elem == null) {
                 if(obj == null)
@@ -144,7 +144,7 @@ public class NSArray extends NSObject {
      * @see #indexOfIdenticalObject(Object)
      */
     public int indexOfObject(Object obj) {
-        NSObject nso = NSObject.wrap(obj);
+        NSObject nso = NSObject.fromJavaObject(obj);
         for (int i = 0; i < array.length; i++) {
             if (array[i].equals(nso)) {
                 return i;
@@ -164,7 +164,7 @@ public class NSArray extends NSObject {
      * @see #indexOfObject(Object)
      */
     public int indexOfIdenticalObject(Object obj) {
-        NSObject nso = NSObject.wrap(obj);
+        NSObject nso = NSObject.fromJavaObject(obj);
         for (int i = 0; i < array.length; i++) {
             if (array[i] == nso) {
                 return i;
@@ -205,7 +205,7 @@ public class NSArray extends NSObject {
         if(obj.getClass().equals(NSArray.class)) {
             return Arrays.equals(((NSArray) obj).getArray(), this.array);
         } else {
-            NSObject nso = NSObject.wrap(obj);
+            NSObject nso = NSObject.fromJavaObject(obj);
             if(nso.getClass().equals(NSArray.class)) {
                 return Arrays.equals(((NSArray) nso).getArray(), this.array);
             }
