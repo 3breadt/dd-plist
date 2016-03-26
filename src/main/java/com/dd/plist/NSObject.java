@@ -431,7 +431,7 @@ public abstract class NSObject {
         }
     }
 
-    public Object toJavaObject(NSObject payload, Class<?> clazz, Type[] types) {
+    private Object toJavaObject(NSObject payload, Class<?> clazz, Type[] types) {
         if (clazz.isArray()) {
             //generics and arrays do not mix
             return processArray(payload, clazz);
