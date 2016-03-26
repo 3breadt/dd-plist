@@ -217,28 +217,28 @@ public abstract class NSObject {
 
     /**
      * Creates a NSObject representing the given Java Object.
-     * <p/>
+     *
      * Numerics of type bool, int, long, short, byte, float or double are wrapped as NSNumber objects.
-     * <p/>
+     *
      * Strings are wrapped as NSString objects abd byte arrays as NSData objects.
-     * <p/>
+     *
      * Date objects are wrapped as NSDate objects.
-     * <p/>
+     *
      * Serializable classes are serialized and their data is stored in NSData objects.
-     * <p/>
+     *
      * Arrays and Collection objects are converted to NSArrays where each array member is wrapped into a NSObject.
-     * <p/>
+     *
      * Map objects are converted to NSDictionaries. Each key is converted to a string and each value wrapped into a NSObject.
      *
      * @param o The object to represent.
      * @return A NSObject equivalent to the given object.
      */
     public static NSObject wrap(Object o) {
-        if (o == null)
+        if(o == null)
             return null;
 
-        if (o instanceof NSObject)
-            return (NSObject) o;
+        if(o instanceof NSObject)
+            return (NSObject)o;
 
         Class<?> c = o.getClass();
         if (Boolean.class.equals(c)) {
@@ -263,67 +263,74 @@ public abstract class NSObject {
             return wrap((double) (Double) o);
         }
         if (String.class.equals(c)) {
-            return new NSString((String) o);
+            return new NSString((String)o);
         }
         if (Date.class.equals(c)) {
-            return new NSDate((Date) o);
+            return new NSDate((Date)o);
         }
-        if (c.isArray()) {
+        if(c.isArray()) {
             Class<?> cc = c.getComponentType();
             if (cc.equals(byte.class)) {
                 return wrap((byte[]) o);
-            } else if (cc.equals(boolean.class)) {
-                boolean[] array = (boolean[]) o;
+            }
+            else if(cc.equals(boolean.class)) {
+                boolean[] array = (boolean[])o;
                 NSArray nsa = new NSArray(array.length);
-                for (int i = 0; i < array.length; i++)
+                for(int i=0;i<array.length;i++)
                     nsa.setValue(i, wrap(array[i]));
                 return nsa;
-            } else if (float.class.equals(cc)) {
-                float[] array = (float[]) o;
+            }
+            else if(float.class.equals(cc)) {
+                float[] array = (float[])o;
                 NSArray nsa = new NSArray(array.length);
-                for (int i = 0; i < array.length; i++)
+                for(int i=0;i<array.length;i++)
                     nsa.setValue(i, wrap(array[i]));
                 return nsa;
-            } else if (double.class.equals(cc)) {
-                double[] array = (double[]) o;
+            }
+            else if(double.class.equals(cc)) {
+                double[] array = (double[])o;
                 NSArray nsa = new NSArray(array.length);
-                for (int i = 0; i < array.length; i++)
+                for(int i=0;i<array.length;i++)
                     nsa.setValue(i, wrap(array[i]));
                 return nsa;
-            } else if (short.class.equals(cc)) {
-                short[] array = (short[]) o;
+            }
+            else if(short.class.equals(cc)) {
+                short[] array = (short[])o;
                 NSArray nsa = new NSArray(array.length);
-                for (int i = 0; i < array.length; i++)
+                for(int i=0;i<array.length;i++)
                     nsa.setValue(i, wrap(array[i]));
                 return nsa;
-            } else if (int.class.equals(cc)) {
-                int[] array = (int[]) o;
+            }
+            else if(int.class.equals(cc)) {
+                int[] array = (int[])o;
                 NSArray nsa = new NSArray(array.length);
-                for (int i = 0; i < array.length; i++)
+                for(int i=0;i<array.length;i++)
                     nsa.setValue(i, wrap(array[i]));
                 return nsa;
-            } else if (long.class.equals(cc)) {
-                long[] array = (long[]) o;
+            }
+            else if(long.class.equals(cc)) {
+                long[] array = (long[])o;
                 NSArray nsa = new NSArray(array.length);
-                for (int i = 0; i < array.length; i++)
+                for(int i=0;i<array.length;i++)
                     nsa.setValue(i, wrap(array[i]));
                 return nsa;
-            } else {
+            }
+            else {
                 return wrap((Object[]) o);
             }
         }
         if (Map.class.isAssignableFrom(c)) {
-            Map map = (Map) o;
+            Map map = (Map)o;
             Set keys = map.keySet();
             NSDictionary dict = new NSDictionary();
-            for (Object key : keys) {
+            for(Object key:keys) {
                 Object val = map.get(key);
                 dict.put(String.valueOf(key), wrap(val));
             }
             return dict;
         }
         if (Collection.class.isAssignableFrom(c)) {
-            Collection coll = (Collection) o;
+            Collection coll = (Collection)o;
             return wrap(coll.toArray());
         }
         return wrapSerialized(o);
@@ -361,65 +368,64 @@ public abstract class NSObject {
      * <li>NSDate objects are converted to java.util.Date objects.</li>
      * <li>UID objects are converted to byte arrays.</li>
      * </ul>
-     *
      * @return A native java object representing this NSObject's value.
      */
     public Object toJavaObject() {
-        if (this instanceof NSArray) {
-            NSObject[] arrayA = ((NSArray) this).getArray();
+        if(this instanceof NSArray) {
+            NSObject[] arrayA = ((NSArray)this).getArray();
             Object[] arrayB = new Object[arrayA.length];
-            for (int i = 0; i < arrayA.length; i++) {
+            for(int i = 0; i < arrayA.length; i++) {
                 arrayB[i] = arrayA[i].toJavaObject();
             }
             return arrayB;
         } else if (this instanceof NSDictionary) {
-            HashMap<String, NSObject> hashMapA = ((NSDictionary) this).getHashMap();
+            HashMap<String, NSObject> hashMapA = ((NSDictionary)this).getHashMap();
             HashMap<String, Object> hashMapB = new HashMap<String, Object>(hashMapA.size());
-            for (String key : hashMapA.keySet()) {
+            for(String key:hashMapA.keySet()) {
                 hashMapB.put(key, hashMapA.get(key).toJavaObject());
             }
             return hashMapB;
-        } else if (this instanceof NSSet) {
-            Set<NSObject> setA = ((NSSet) this).getSet();
+        } else if(this instanceof NSSet) {
+            Set<NSObject> setA = ((NSSet)this).getSet();
             Set<Object> setB;
-            if (setA instanceof LinkedHashSet) {
+            if(setA instanceof LinkedHashSet) {
                 setB = new LinkedHashSet<Object>(setA.size());
             } else {
                 setB = new TreeSet<Object>();
             }
-            for (NSObject o : setA) {
+            for(NSObject o:setA) {
                 setB.add(o.toJavaObject());
             }
             return setB;
-        } else if (this instanceof NSNumber) {
-            NSNumber num = (NSNumber) this;
-            switch (num.type()) {
-                case NSNumber.INTEGER: {
+        } else if(this instanceof NSNumber) {
+            NSNumber num = (NSNumber)this;
+            switch(num.type()) {
+                case NSNumber.INTEGER : {
                     long longVal = num.longValue();
-                    if (longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
+                    if(longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
                         return longVal;
                     } else {
                         return num.intValue();
                     }
                 }
-                case NSNumber.REAL: {
+                case NSNumber.REAL : {
                     return num.doubleValue();
                 }
-                case NSNumber.BOOLEAN: {
+                case NSNumber.BOOLEAN : {
                     return num.boolValue();
                 }
-                default: {
+                default : {
                     return num.doubleValue();
                 }
             }
-        } else if (this instanceof NSString) {
-            return ((NSString) this).getContent();
-        } else if (this instanceof NSData) {
-            return ((NSData) this).bytes();
-        } else if (this instanceof NSDate) {
-            return ((NSDate) this).getDate();
-        } else if (this instanceof UID) {
-            return ((UID) this).getBytes();
+        } else if(this instanceof NSString) {
+            return ((NSString)this).getContent();
+        } else if(this instanceof NSData) {
+            return ((NSData)this).bytes();
+        } else if(this instanceof NSDate) {
+            return ((NSDate)this).getDate();
+        } else if(this instanceof UID) {
+            return ((UID)this).getBytes();
         } else {
             return this;
         }
