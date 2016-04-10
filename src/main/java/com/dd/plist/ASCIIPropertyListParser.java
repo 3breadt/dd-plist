@@ -214,12 +214,13 @@ public class ASCIIPropertyListParser {
      */
     private void expect(char... expectedSymbols) throws ParseException {
         if (!accept(expectedSymbols)) {
-            String excString = "Expected '" + expectedSymbols[0] + "'";
+            StringBuilder excString = new StringBuilder();
+            excString.append("Expected '").append(expectedSymbols[0]).append("'");
             for (int i = 1; i < expectedSymbols.length; i++) {
-                excString += " or '" + expectedSymbols[i] + "'";
+                excString.append(" or '").append(expectedSymbols[i]).append("'");
             }
-            excString += " but found '" + (char) data[index] + "'";
-            throw new ParseException(excString, index);
+            excString.append(" but found '").append((char) data[index]).append("'");
+            throw new ParseException(excString.toString(), index);
         }
     }
 
@@ -551,11 +552,11 @@ public class ASCIIPropertyListParser {
     private String parseQuotedString() throws ParseException {
         //Skip begin token
         skip();
-        String quotedString = "";
+        StringBuilder quotedString = new StringBuilder();
         boolean unescapedBackslash = true;
         //Read from opening quotation marks to closing quotation marks and skip escaped quotation marks
         while (data[index] != QUOTEDSTRING_END_TOKEN || (data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)) {
-            quotedString += (char) data[index];
+            quotedString.append((char) data[index]);
             if (accept(QUOTEDSTRING_ESCAPE_TOKEN)) {
                 unescapedBackslash = !(data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash);
             }
@@ -563,7 +564,7 @@ public class ASCIIPropertyListParser {
         }
         String unescapedString;
         try {
-            unescapedString = parseQuotedString(quotedString);
+            unescapedString = parseQuotedString(quotedString.toString());
         } catch (Exception ex) {
             throw new ParseException("The quoted string could not be parsed.", index);
         }
@@ -647,21 +648,19 @@ public class ASCIIPropertyListParser {
             return new String(new byte[]{0, '\t'}, "UTF-8");
         } else if (c == 'U' || c == 'u') {
             //4 digit hex Unicode value
-            String byte1 = "";
-            byte1 += iterator.next();
-            byte1 += iterator.next();
-            String byte2 = "";
-            byte2 += iterator.next();
-            byte2 += iterator.next();
-            byte[] stringBytes = {(byte) Integer.parseInt(byte1, 16), (byte) Integer.parseInt(byte2, 16)};
+            StringBuilder byte1 = new StringBuilder();
+            byte1.append(iterator.next());
+            byte1.append(iterator.next());
+            StringBuilder byte2 = new StringBuilder();
+            byte2.append(iterator.next());
+            byte2.append(iterator.next());
+            byte[] stringBytes = {(byte) Integer.parseInt(byte1.toString(), 16), (byte) Integer.parseInt(byte2.toString(), 16)};
             return new String(stringBytes, "UTF-8");
         } else {
             //3 digit octal ASCII value
-            String num = "";
-            num += c;
-            num += iterator.next();
-            num += iterator.next();
-            int asciiCode = Integer.parseInt(num, 8);
+            StringBuilder num = new StringBuilder();
+            num.append(c).append(iterator.next()).append(iterator.next());
+            int asciiCode = Integer.parseInt(num.toString(), 8);
             byte[] stringBytes = {0, (byte) asciiCode};
             return new String(stringBytes, "UTF-8");
         }
