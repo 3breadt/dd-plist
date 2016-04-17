@@ -243,34 +243,34 @@ public class NSString extends NSObject implements Comparable<Object> {
      * @return The escaped string.
      */
     static String escapeStringForASCII(String s) {
-        String out = "";
+        StringBuilder out = new StringBuilder();
         char[] cArray = s.toCharArray();
         for (int i = 0; i < cArray.length; i++) {
             char c = cArray[i];
             if (c > 127) {
                 //non-ASCII Unicode
-                out += "\\U";
+                out.append("\\U");
                 String hex = Integer.toHexString(c);
                 while (hex.length() < 4)
                     hex = "0" + hex;
-                out += hex;
+                out.append(hex);
             } else if (c == '\\') {
-                out += "\\\\";
+                out.append("\\\\");
             } else if (c == '\"') {
-                out += "\\\"";
+                out.append("\\\"");
             } else if (c == '\b') {
-                out += "\\b";
+                out.append("\\b");
             } else if (c == '\n') {
-                out += "\\n";
+                out.append("\\n");
             } else if (c == '\r') {
-                out += "\\r";
+                out.append("\\r");
             } else if (c == '\t') {
-                out += "\\t";
+                out.append("\\t");
             } else {
-                out += c;
+                out.append(c);
             }
         }
-        return out;
+        return out.toString();
     }
 
     public int compareTo(Object o) {
