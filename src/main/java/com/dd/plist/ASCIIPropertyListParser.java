@@ -55,7 +55,7 @@ import java.util.List;
  * </ul>
  * @author Daniel Dreibrodt
  */
-public class ASCIIPropertyListParser {
+public final class ASCIIPropertyListParser {
 
     public static final char WHITESPACE_SPACE = ' ';
     public static final char WHITESPACE_TAB = '\t';
@@ -110,13 +110,6 @@ public class ASCIIPropertyListParser {
      * Current parsing index
      */
     private int index;
-
-    /**
-     * Only allow subclasses to change instantiation.
-     */
-    protected ASCIIPropertyListParser() {
-
-    }
 
     /**
      * Creates a new parser for the given property list content.
@@ -176,6 +169,7 @@ public class ASCIIPropertyListParser {
             if (data[index + i] != sequence[i])
                 return false;
         }
+
         return true;
     }
 
@@ -582,7 +576,7 @@ public class ASCIIPropertyListParser {
      * @throws java.io.UnsupportedEncodingException If the en-/decoder for the UTF-8 or ASCII encoding could not be loaded
      * @throws java.nio.charset.CharacterCodingException If the string is encoded neither in ASCII nor in UTF-8
      */
-    public static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException {
+    private static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException {
         List<Byte> strBytes = new LinkedList<Byte>();
         StringCharacterIterator iterator = new StringCharacterIterator(s);
         char c = iterator.current();
@@ -606,19 +600,23 @@ public class ASCIIPropertyListParser {
         byte[] bytArr = new byte[strBytes.size()];
         int i = 0;
         for (Byte b : strBytes) {
-            bytArr[i] = b.byteValue();
+            bytArr[i] = b;
             i++;
         }
+
         //Build string
         String result = new String(bytArr, "UTF-8");
         CharBuffer charBuf = CharBuffer.wrap(result);
 
         //If the string can be represented in the ASCII codepage
         // --> use ASCII encoding
-        if (asciiEncoder == null)
+        if (asciiEncoder == null) {
             asciiEncoder = Charset.forName("ASCII").newEncoder();
-        if (asciiEncoder.canEncode(charBuf))
+        }
+
+        if (asciiEncoder.canEncode(charBuf)) {
             return asciiEncoder.encode(charBuf).asCharBuffer().toString();
+        }
 
         //The string contains characters outside the ASCII codepage
         // --> use the UTF-8 encoded string
@@ -648,19 +646,14 @@ public class ASCIIPropertyListParser {
             return new String(new byte[]{0, '\t'}, "UTF-8");
         } else if (c == 'U' || c == 'u') {
             //4 digit hex Unicode value
-            StringBuilder byte1 = new StringBuilder();
-            byte1.append(iterator.next());
-            byte1.append(iterator.next());
-            StringBuilder byte2 = new StringBuilder();
-            byte2.append(iterator.next());
-            byte2.append(iterator.next());
-            byte[] stringBytes = {(byte) Integer.parseInt(byte1.toString(), 16), (byte) Integer.parseInt(byte2.toString(), 16)};
+            String byte1 = new String(new char[] {iterator.next(), iterator.next()});
+            String byte2 = new String(new char[] {iterator.next(), iterator.next()});
+            byte[] stringBytes = {(byte) Integer.parseInt(byte1, 16), (byte) Integer.parseInt(byte2, 16)};
             return new String(stringBytes, "UTF-8");
         } else {
             //3 digit octal ASCII value
-            StringBuilder num = new StringBuilder();
-            num.append(c).append(iterator.next()).append(iterator.next());
-            int asciiCode = Integer.parseInt(num.toString(), 8);
+            String num = new String(new char[] {c, iterator.next(), iterator.next()});
+            int asciiCode = Integer.parseInt(num, 8);
             byte[] stringBytes = {0, (byte) asciiCode};
             return new String(stringBytes, "UTF-8");
         }
