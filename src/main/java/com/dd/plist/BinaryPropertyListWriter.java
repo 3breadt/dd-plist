@@ -40,12 +40,12 @@ import java.util.Map;
  *
  * @author Keith Randall
  */
-public class BinaryPropertyListWriter {
+public final class BinaryPropertyListWriter {
 
-    public static final int VERSION_00 = 0;
-    public static final int VERSION_10 = 10;
-    public static final int VERSION_15 = 15;
-    public static final int VERSION_20 = 20;
+    private static final int VERSION_00 = 0;
+    private static final int VERSION_10 = 10;
+    private static final int VERSION_15 = 15;
+    private static final int VERSION_20 = 20;
 
     private int version = VERSION_00;
 

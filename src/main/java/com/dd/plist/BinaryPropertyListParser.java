@@ -35,7 +35,7 @@ import java.math.BigInteger;
  *
  * @author Daniel Dreibrodt
  */
-public class BinaryPropertyListParser {
+public final class BinaryPropertyListParser {
 
     /**
      * Major version of the property list format
@@ -70,7 +70,7 @@ public class BinaryPropertyListParser {
      *
      * @see BinaryPropertyListParser#parse(byte[])
      */
-    protected BinaryPropertyListParser() {
+    private BinaryPropertyListParser() {
         /** empty **/
     }
 
