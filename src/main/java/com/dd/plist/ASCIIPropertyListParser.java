@@ -105,7 +105,7 @@ public final class ASCIIPropertyListParser {
     /**
      * Property list source data
      */
-    private byte[] data;
+    private final byte[] data;
     /**
      * Current parsing index
      */

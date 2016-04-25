@@ -46,7 +46,7 @@ import java.util.Set;
  */
 public class NSDictionary extends NSObject  implements Map<String, NSObject> {
 
-    private HashMap<String, NSObject> dict;
+    private final HashMap<String, NSObject> dict;
 
     /**
      * Creates a new empty NSDictionary.

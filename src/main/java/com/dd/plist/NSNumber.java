@@ -333,6 +333,8 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                     xml.append("<false/>");
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -367,6 +369,8 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                 out.write(boolValue() ? 0x09 : 0x08);
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -403,6 +407,8 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                     ascii.append("<*BN>");
                 }
             }
+            default:
+                break;
         }
     }
 

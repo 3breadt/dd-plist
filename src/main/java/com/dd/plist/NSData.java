@@ -36,7 +36,7 @@ import java.util.Arrays;
  */
 public class NSData extends NSObject {
 
-    private byte[] bytes;
+    private final byte[] bytes;
 
     /**
      * Creates the NSData object from the binary representation of it.
