@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/3breadt/dd-plist.svg?branch=master)](https://travis-ci.org/3breadt/dd-plist)
 
-This library enables your Java application to handle property lists of various formats.
+This library enables your Java application to handle property lists of various formats. It is licensed under the terms of the MIT license.
 
 Property lists are files used to store user settings and serialized objects.
 They originate from the NeXSTEP programming environment and are now a basic part of the Cocoa framework (OS X and iOS) as well as the GNUstep framework.
