@@ -31,8 +31,8 @@ import java.io.IOException;
  */
 public class UID extends NSObject {
 
-    private byte[] bytes;
-    private String name;
+    private final byte[] bytes;
+    private final String name;
 
     public UID(String name, byte[] bytes) {
         this.name = name;

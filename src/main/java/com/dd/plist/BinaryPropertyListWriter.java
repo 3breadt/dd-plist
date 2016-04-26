@@ -50,13 +50,13 @@ public final class BinaryPropertyListWriter {
     private int version = VERSION_00;
 
     // raw output stream to result file
-    private OutputStream out;
+    private final OutputStream out;
 
     // # of bytes written so far
     private long count;
 
     // map from object to its ID
-    private Map<NSObject, Integer> idMap = new LinkedHashMap<NSObject, Integer>();
+    private final Map<NSObject, Integer> idMap = new LinkedHashMap<NSObject, Integer>();
     private int idSizeInBytes;
 
     /**
@@ -184,6 +184,8 @@ public final class BinaryPropertyListWriter {
                 write(new byte[]{'2', '0'});
                 break;
             }
+            default:
+                break;
         }
 
         // assign IDs to all the objects.
