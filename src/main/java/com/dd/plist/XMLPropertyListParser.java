@@ -32,6 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -44,24 +45,25 @@ import java.util.List;
  * @author Daniel Dreibrodt
  */
 public class XMLPropertyListParser {
-
-    private static DocumentBuilderFactory docBuilderFactory = null;
-
-    /**
-     * Instantiation is prohibited by outside classes.
-     */
-    protected XMLPropertyListParser() {
-        /** empty **/
-    }
-
-    /**
-     * Initialize the document builder factory so that it can be reused and does not need to
-     * be reinitialized for each parse action.
-     */
-    private static synchronized void initDocBuilderFactory() {
-        docBuilderFactory = DocumentBuilderFactory.newInstance();
-        docBuilderFactory.setIgnoringComments(true);
-        docBuilderFactory.setCoalescing(true);
+    private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
+    static {
+        try {
+            FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            Float v1_7 = new Float("1.7");
+            Float javaVersion = new Float(System.getProperty("java.specification.version"));
+            if (javaVersion.compareTo(v1_7) >= 0) {
+                FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            }
+            FACTORY.setXIncludeAware(false);
+            FACTORY.setExpandEntityReferences(false);
+            FACTORY.setNamespaceAware(false);
+            FACTORY.setIgnoringComments(true);
+            FACTORY.setCoalescing(true);
+            FACTORY.setValidating(false);
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -72,22 +74,10 @@ public class XMLPropertyListParser {
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
      *                                                        could not be created. This should not occur.
      */
-    private static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
-        if (docBuilderFactory == null)
-            initDocBuilderFactory();
-        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        docBuilder.setEntityResolver(new EntityResolver() {
-            public InputSource resolveEntity(String publicId, String systemId) {
-                if ("-//Apple Computer//DTD PLIST 1.0//EN".equals(publicId) || // older publicId
-                        "-//Apple//DTD PLIST 1.0//EN".equals(publicId)) { // newer publicId
-                    // return a dummy, zero length DTD so we don't have to fetch
-                    // it from the network.
-                    return new InputSource(new ByteArrayInputStream(new byte[0]));
-                }
-                return null;
-            }
-        });
-        return docBuilder;
+    public static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
+        DocumentBuilder builder = FACTORY.newDocumentBuilder();
+        builder.setEntityResolver(new PlistDTDResolver());
+        return builder;
     }
 
     /**
@@ -103,12 +93,10 @@ public class XMLPropertyListParser {
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
-    public static NSObject parse(File f) throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-        DocumentBuilder docBuilder = getDocBuilder();
+    public static NSObject parse(File f)
+                throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
 
-        Document doc = docBuilder.parse(f);
-
-        return parse(doc);
+        return parse(getDocBuilder().parse(new FileInputStream(f)));
     }
 
     /**
@@ -123,9 +111,10 @@ public class XMLPropertyListParser {
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
-    public static NSObject parse(final byte[] bytes) throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        return parse(bis);
+    public static NSObject parse(final byte[] bytes)
+                throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
+
+        return parse(new ByteArrayInputStream(bytes));
     }
 
     /**
@@ -141,12 +130,10 @@ public class XMLPropertyListParser {
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
-    public static NSObject parse(InputStream is) throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-        DocumentBuilder docBuilder = getDocBuilder();
+    public static NSObject parse(InputStream is)
+                throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
 
-        Document doc = docBuilder.parse(is);
-
-        return parse(doc);
+        return parse(getDocBuilder().parse(is));
     }
 
     /**
@@ -288,6 +275,26 @@ public class XMLPropertyListParser {
             } else {
                 return "";
             }
+        }
+    }
+
+    /**
+     * Resolves only the Apple PLIST DTD.
+     */
+    static class PlistDTDResolver implements EntityResolver {
+        private static final String PLIST_SYSTEMID_1 = "-//Apple Computer//DTD PLIST 1.0//EN";
+        private static final String PLIST_SYSTEMID_2 = "-//Apple//DTD PLIST 1.0//EN";
+
+        PlistDTDResolver() {
+        }
+
+        // Implement EntityResolver
+
+        public InputSource resolveEntity(String publicId, String systemId) {
+            if (PLIST_SYSTEMID_1.equals(publicId) || PLIST_SYSTEMID_2.equals(publicId)) {
+                return new InputSource(XMLPropertyListParser.class.getResourceAsStream("PropertyList-1.0.dtd"));
+            }
+            return null;
         }
     }
 }
