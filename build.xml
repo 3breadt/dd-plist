@@ -35,7 +35,6 @@
   <target name="jar" depends="compile">
     <jar destfile="${dist}/${jar}">
       <fileset dir="${build}/classes"/>
-      <fileset dir="${source}" includes="**/*.dtd"/>
     </jar>
   </target>
 

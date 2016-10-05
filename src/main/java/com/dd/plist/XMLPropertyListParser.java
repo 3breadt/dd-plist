@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,23 +48,28 @@ import java.util.List;
 public class XMLPropertyListParser {
     private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
     static {
+	//
+	// Attempt to disable parser features that can lead to XXE exploits; see:
+	// https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
+	//
         try {
             FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            Float v1_7 = new Float("1.7");
-            Float javaVersion = new Float(System.getProperty("java.specification.version"));
-            if (javaVersion.compareTo(v1_7) >= 0) {
-                FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            }
-            FACTORY.setXIncludeAware(false);
-            FACTORY.setExpandEntityReferences(false);
-            FACTORY.setNamespaceAware(false);
-            FACTORY.setIgnoringComments(true);
-            FACTORY.setCoalescing(true);
-            FACTORY.setValidating(false);
         } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
         }
+        try {
+            FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        } catch (ParserConfigurationException e) {
+        }
+        try {
+            FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        } catch (ParserConfigurationException e) {
+        }
+        FACTORY.setXIncludeAware(false);
+        FACTORY.setExpandEntityReferences(false);
+        FACTORY.setNamespaceAware(false);
+        FACTORY.setIgnoringComments(true);
+        FACTORY.setCoalescing(true);
+        FACTORY.setValidating(false);
     }
 
     /**
@@ -292,7 +298,7 @@ public class XMLPropertyListParser {
 
         public InputSource resolveEntity(String publicId, String systemId) {
             if (PLIST_SYSTEMID_1.equals(publicId) || PLIST_SYSTEMID_2.equals(publicId)) {
-                return new InputSource(XMLPropertyListParser.class.getResourceAsStream("PropertyList-1.0.dtd"));
+                return new InputSource(new StringReader(""));
             }
             return null;
         }
