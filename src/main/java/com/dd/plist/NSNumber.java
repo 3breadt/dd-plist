@@ -113,7 +113,12 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         if (text == null)
             throw new IllegalArgumentException("The given string is null and cannot be parsed as number.");
         try {
-            long l = Long.parseLong(text);
+            long l;
+            if (text.startsWith("0x")) {
+                l  = Long.parseLong(text.substring(2), 16);
+            } else {
+                l  = Long.parseLong(text);
+            }
             doubleValue = longValue = l;
             type = INTEGER;
         } catch (Exception ex) {
