@@ -156,4 +156,12 @@ public class ParseTest extends TestCase {
 		// parsing the 200ko file should take way less than 5s 
 		executor.submit(task).get(5, TimeUnit.SECONDS);
     }
+
+    public static void testAsciiUtf8CharactersInQuotedString() throws Exception {
+        NSObject x = PropertyListParser.parse(new File("test-files/test-ascii-utf8.plist"));
+        NSDictionary d = (NSDictionary)x;
+        assertEquals(2, d.count());
+        assertEquals("JÔÖú@2x.jpg", d.objectForKey("path").toString());
+        assertEquals("QÔÖú@2x 啕.jpg", d.objectForKey("Key QÔÖª@2x 䌡").toString());
+    }
 }
