@@ -25,6 +25,8 @@ package com.dd.plist;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,7 +96,8 @@ public class PropertyListParser {
             //Skip Unicode byte order mark (BOM)
             offset += 3;
         }
-        while(offset < bytes.length && bytes[offset] == ' ' || bytes[offset] == '\t' || bytes[offset] == '\r' || bytes[offset] == '\n' || bytes[offset] == '\f') {
+        while(offset < bytes.length &&
+              (bytes[offset] == ' ' || bytes[offset] == '\t' || bytes[offset] == '\r' || bytes[offset] == '\n' || bytes[offset] == '\f')) {
             offset++;
         }
         return determineType(new String(bytes, offset, Math.min(8, bytes.length - offset)));
@@ -105,28 +108,40 @@ public class PropertyListParser {
      * @param is An input stream pointing to the beginning of the property list data.
      *           If the stream supports marking it will be reset to the beginning of the property
      *           list data after the type has been determined.
+     * @param offset The number of bytes to skip in the stream.
      * @return The type of the property list
      */
-    private static int determineType(InputStream is) throws IOException {
-        //Skip any possible whitespace at the beginning of the file
-        byte[] magicBytes = new byte[8];
+    private static int determineType(InputStream is, int offset) throws IOException {
+        int index = offset;
+        int readLimit = index + 1024;
+        if (is.markSupported()) {
+            is.mark(readLimit);
+        }
+        is.skip(offset);
         int b;
-        long index = -1;
         boolean bom = false;
+        //Skip any possible whitespace at the beginning of the file
         do {
-            if(is.markSupported())
-                is.mark(16);
+            if (++index > readLimit) {
+                is.reset();
+                return determineType(is, readLimit);
+            }
             b = is.read();
-            index++;
             //Check if we are reading the Unicode byte order mark (BOM) and skip it
             bom = index < 3 && ((index == 0 && b == 0xEF) || (bom && ((index == 1 && b == 0xBB) || (index == 2 && b == 0xBF))));
+        } while (b != -1 && (b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f' || bom));
+
+        if (b == -1) {
+            return TYPE_ERROR_BLANK;
         }
-        while(b != -1 && b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f' || bom);
+
+        byte[] magicBytes = new byte[8];
         magicBytes[0] = (byte)b;
         int read = is.read(magicBytes, 1, 7);
         int type = determineType(new String(magicBytes, 0, read));
-        if(is.markSupported())
+        if (is.markSupported()) {
             is.reset();
+        }
         return type;
     }
 
@@ -178,17 +193,13 @@ public class PropertyListParser {
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         FileInputStream fis = new FileInputStream(f);
-        int type = determineType(fis);
-        fis.close();
-        switch(type) {
-            case TYPE_BINARY:
-                return BinaryPropertyListParser.parse(f);
-            case TYPE_XML:
-                return XMLPropertyListParser.parse(f);
-            case TYPE_ASCII:
-                return ASCIIPropertyListParser.parse(f);
-            default:
-                throw new PropertyListFormatException("The given file is not a property list of a supported format.");
+        try {
+            return parse(fis);
+        } finally {
+            try {
+                fis.close();
+            } catch (IOException e) {
+            }
         }
     }
 
@@ -205,16 +216,7 @@ public class PropertyListParser {
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(byte[] bytes) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
-        switch(determineType(bytes)) {
-            case TYPE_BINARY:
-                return BinaryPropertyListParser.parse(bytes);
-            case TYPE_XML:
-                return XMLPropertyListParser.parse(bytes);
-            case TYPE_ASCII:
-                return ASCIIPropertyListParser.parse(bytes);
-            default:
-                throw new PropertyListFormatException("The given data is not a property list of a supported format.");
-        }
+        return parse(new ByteArrayInputStream(bytes));
     }
 
     /**
@@ -230,7 +232,21 @@ public class PropertyListParser {
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
-        return parse(readAll(is));
+        if (!is.markSupported()) {
+            is = new BufferedInputStream(is);
+        }
+        switch(determineType(is, 0)) {
+            case TYPE_BINARY:
+                return BinaryPropertyListParser.parse(is);
+            case TYPE_XML:
+                return XMLPropertyListParser.parse(is);
+            case TYPE_ASCII:
+                return ASCIIPropertyListParser.parse(is);
+            case TYPE_ERROR_BLANK:
+                return null;
+            default:
+                throw new PropertyListFormatException("The given data is not a property list of a supported format.");
+        }
     }
 
     /**
