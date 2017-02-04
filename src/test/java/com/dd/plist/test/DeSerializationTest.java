@@ -4,6 +4,7 @@ import com.dd.plist.*;
 import com.dd.plist.test.model.*;
 import junit.framework.TestCase;
 
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class DeSerializationTest extends TestCase {
@@ -312,6 +313,20 @@ public class DeSerializationTest extends TestCase {
         assertEquals(
                 NSObject.fromJavaObject(genTest1Object()),
                 genTest1Dict());
+    }
+
+    public void testStringsFile() throws Exception {
+        String stringFileContentStr = "/* Menu item to make the current document plain text */\n" +
+                "\"Make Plain Text\" = \"In reinen Text umwandeln\";\n" +
+                "/* Menu item to make the current document rich text */\n" +
+                "\"Make Rich Text\" = \"In formatierten Text umwandeln\";\n";
+        byte[] stringFileContentRaw = stringFileContentStr.getBytes();
+
+        String stringFileContent = new String(stringFileContentRaw, Charset.forName("UTF-8"));
+        String asciiPropertyList = "{" + stringFileContent + "}";
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        assertTrue(dict.containsKey("Make Plain Text"));
+        assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
     }
 
 }
