@@ -57,7 +57,7 @@ public class NSData extends NSObject {
         //Remove all white spaces from the string so that it is parsed completely
         //and not just until the first white space occurs.
         String data = base64.replaceAll("\\s+", "");
-        bytes = Base64.decode(data);
+        bytes = Base64.decode(data, Base64.DONT_GUNZIP);
     }
 
     /**
