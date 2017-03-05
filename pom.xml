@@ -9,7 +9,7 @@
     <groupId>com.googlecode.plist</groupId>
     <artifactId>dd-plist</artifactId>
     <packaging>jar</packaging>
-    <version>1.19</version>
+    <version>1.20</version>
     <name>dd-plist</name>
     <url>http://www.github.com/3breadt/dd-plist</url>
     <description>
