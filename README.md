@@ -93,6 +93,7 @@ For converting a file into another format there exist convenience methods in the
               //...
               break;
             }
+          }
         }
         // else...
       }
