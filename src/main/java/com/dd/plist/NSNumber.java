@@ -274,6 +274,13 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
+     * Gets this NSNumber's content as a string.
+     *
+     * @return This NSNumber as Java String object.
+     */
+    public String stringValue() { return this.toString(); }
+
+    /**
      * Checks whether the other object is a NSNumber of the same value.
      *
      * @param obj The object to compare to.

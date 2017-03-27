@@ -29,6 +29,10 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Float.parseFloat;
+import static java.lang.Integer.parseInt;
+
 /**
  * A NSString contains a string.
  *
@@ -73,6 +77,62 @@ public class NSString extends NSObject implements Comparable<Object> {
      */
     public NSString(String string) {
         content = string;
+    }
+
+    /**
+     * Gets this strings content as an int.
+     *
+     * @return This NSString as Java int object.
+     */
+    public int intValue() {
+        try {
+            return parseInt(content);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    /**
+     * Gets this strings content as a float.
+     *
+     * @return This NSString as Java float object.
+     */
+    public float floatValue() {
+        try {
+            return parseFloat(content);
+        } catch (NumberFormatException e) {
+            return 0f;
+        }
+    }
+    /**
+     * Gets this strings content as a double.
+     *
+     * @return This NSString as Java double object.
+     */
+    public double doubleValue() {
+        try {
+            return parseDouble(content);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    /**
+     * Gets this strings content as a double.
+     *
+     * @return This NSString as Java Boolean object.
+     */
+    public boolean boolValue() {
+
+        String value = content.toUpperCase();
+        return !(value.equals("NO") || value.equals("FALSE")) &&
+                (value.equals("YES") || value.equals("TRUE") || this.intValue() != 0);
+    }
+    /**
+     * Gets this strings content.
+     *
+     * @return This NSString as Java String object.
+     */
+    public String stringValue() {
+        return content;
     }
 
     /**

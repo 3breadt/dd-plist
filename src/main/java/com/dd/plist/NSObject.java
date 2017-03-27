@@ -223,6 +223,41 @@ public abstract class NSObject {
         return fromPojo(object, objClass);
     }
 
+    /**
+     * Gets this Object's content as an int.
+     *
+     * @return This NSObject as Java int object.
+     */
+    public int intValue() { return 0; }
+
+    /**
+     * Gets this Object's content as a float.
+     *
+     * @return This NSObject as Java float object.
+     */
+    public float floatValue() { return 0f; }
+
+    /**
+     * Gets this Object's content as a double.
+     *
+     * @return This NSObject as Java double object.
+     */
+    public double doubleValue() { return 0.0; }
+
+    /**
+     * Gets this Object's content as a double.
+     *
+     * @return This NSObject as Java Boolean object.
+     */
+    public boolean boolValue() { return false; }
+
+    /**
+     * Gets this Object's string content.
+     *
+     * @return This NSObject as Java String object.
+     */
+    public String stringValue() { return ""; }
+
     private static boolean isSimple(Class<?> clazz) {
         return clazz.isPrimitive() ||
                 Number.class.isAssignableFrom(clazz) ||
