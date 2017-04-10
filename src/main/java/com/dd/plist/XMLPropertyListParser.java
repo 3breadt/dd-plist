@@ -306,6 +306,9 @@ public class XMLPropertyListParser {
          * Allow the application to resolve external entities.
          * This specific implementation returns an empty definition for Apple's PLIST DTDs
          * so that parsing can happen offline.
+         * @param publicId The public identifier of the external entity being referenced, or null if none was supplied.
+         * @param systemId The system identifier of the external entity being referenced.
+         * @return An empty input source for the PLIST DTDs. For all other DTDs null is returned.
          */
         public InputSource resolveEntity(String publicId, String systemId) {
             if (PLIST_PUBLIC_ID_1.equals(publicId) || PLIST_PUBLIC_ID_2.equals(publicId)) {
