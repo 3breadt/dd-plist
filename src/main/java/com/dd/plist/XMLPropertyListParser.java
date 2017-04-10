@@ -47,24 +47,32 @@ import java.util.List;
  */
 public class XMLPropertyListParser {
     private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
+
     static {
-	//
-	// Attempt to disable parser features that can lead to XXE exploits; see:
-	// https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
-	//
+        //
+        // Attempt to disable parser features that can lead to XXE exploits; see:
+        // https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
+        //
         try {
             FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException ignored) {
         }
+
         try {
             FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException ignored) {
         }
+
         try {
             FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException ignored) {
         }
-        FACTORY.setXIncludeAware(false);
+
+        try {
+            FACTORY.setXIncludeAware(false);
+        } catch (UnsupportedOperationException ignored) {
+        }
+
         FACTORY.setExpandEntityReferences(false);
         FACTORY.setNamespaceAware(false);
         FACTORY.setIgnoringComments(true);
@@ -82,7 +90,7 @@ public class XMLPropertyListParser {
      */
     public static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
         DocumentBuilder builder = FACTORY.newDocumentBuilder();
-        builder.setEntityResolver(new PlistDTDResolver());
+        builder.setEntityResolver(new PlistDtdResolver());
         return builder;
     }
 
@@ -285,20 +293,23 @@ public class XMLPropertyListParser {
     }
 
     /**
-     * Resolves only the Apple PLIST DTD.
+     * Offline resolver for Apple's PLIST DTDs.
      */
-    static class PlistDTDResolver implements EntityResolver {
-        private static final String PLIST_SYSTEMID_1 = "-//Apple Computer//DTD PLIST 1.0//EN";
-        private static final String PLIST_SYSTEMID_2 = "-//Apple//DTD PLIST 1.0//EN";
+    private static class PlistDtdResolver implements EntityResolver {
+        private static final String PLIST_PUBLIC_ID_1 = "-//Apple Computer//DTD PLIST 1.0//EN";
+        private static final String PLIST_PUBLIC_ID_2 = "-//Apple//DTD PLIST 1.0//EN";
 
-        PlistDTDResolver() {
+        PlistDtdResolver() {
         }
 
-        // Implement EntityResolver
-
+        /**
+         * Allow the application to resolve external entities.
+         * This specific implementation returns an empty definition for Apple's PLIST DTDs
+         * so that parsing can happen offline.
+         */
         public InputSource resolveEntity(String publicId, String systemId) {
-            if (PLIST_SYSTEMID_1.equals(publicId) || PLIST_SYSTEMID_2.equals(publicId)) {
-                return new InputSource(new StringReader(""));
+            if (PLIST_PUBLIC_ID_1.equals(publicId) || PLIST_PUBLIC_ID_2.equals(publicId)) {
+                return new InputSource(new ByteArrayInputStream(new byte[0]));
             }
             return null;
         }
