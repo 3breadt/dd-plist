@@ -28,6 +28,8 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.util.Locale;
+import java.util.Scanner;
 
 /**
  * A NSString contains a string.
@@ -76,7 +78,97 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Gets this strings content.
+     * Gets the integer value of this string.
+     *
+     * @return The integer value of this string, assuming a decimal representation
+     *         and skipping whitespace at the beginning of the string. If the string
+     *         does not contain a valid decimal representation of a number, 0 is returned.
+     *         If the string contains an integer larger than Integer.MAX_VALUE, Integer.MAX_VALUE is returned.
+     *         If the string contains an integer less than Integer.MIN_VALUE, Integer.MIN_VALUE is returned.
+     */
+    public int intValue() {
+        double d = this.doubleValue();
+
+        if (d > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+
+        if (d < Integer.MIN_VALUE) {
+            return Integer.MIN_VALUE;
+        }
+
+        return (int)d;
+    }
+
+    /**
+     * Gets the float value of this string.
+     *
+     * @return The floating-point value of this string, assuming a decimal representation
+     *         and skipping whitespace at the beginning of the string. If the string
+     *         does not contain a valid decimal representation of a number, 0 is returned.
+     *         If the string contains an integer larger than Float.MAX_VALUE, Float.MAX_VALUE is returned.
+     *         If the string contains an integer less than -Float.MAX_VALUE, -Float.MAX_VALUE is returned.
+     */
+    public float floatValue() {
+        double d = this.doubleValue();
+
+        if (d > Float.MAX_VALUE) {
+            return Float.MAX_VALUE;
+        }
+
+        if (d < -Float.MAX_VALUE) {
+            return -Float.MAX_VALUE;
+        }
+
+        return (float)d;
+    }
+
+    /**
+     * Gets the float value of this string.
+     *
+     * @return The floating-point value of this string, assuming a decimal representation
+     *         and skipping whitespace at the beginning of the string. If the string does not contain
+     *         a valid decimal representation of a floating-point number, 0 is returned.
+     */
+    public double doubleValue() {
+        Scanner s = new Scanner(content.trim()).useLocale(Locale.ROOT).useDelimiter("[^0-9.+-]+");
+        if(s.hasNextDouble()) {
+            return s.nextDouble();
+        }
+        else {
+            return 0d;
+        }
+    }
+
+    /**
+     * Gets the boolean value of this string.
+     *
+     * @return The boolean value of this string. Leading whitespaces are ignored. Any + or - sign and leading zeroes are
+     *         ignored.
+     *         If the remaining string starts with 'Y', 'y', 'T', 't' or a positive digit (1-9), true is returned.
+     *         Otherwise, false is returned.
+     *
+     *         Examples:
+     *         "YES" is true
+     *         "true" is true
+     *         " YES" is true
+     *         "+1" is true
+     *         "-9" is true
+     *         " +01" is true
+     *         "0" is false
+     *         "false" is false
+     *         "no" is false
+     *         "1FALSE" is true
+     *         "0TRUE" is true
+     *         "FALSE1" is false
+     */
+    public boolean boolValue() {
+        Scanner s = new Scanner(content.trim()).useLocale(Locale.ROOT);
+        return s.hasNext("([+-]?[0]*)?[YyTt1-9].*");
+    }
+
+    /**
+     * Gets this string's content.
      *
      * @return This NSString as Java String object.
      */
