@@ -222,7 +222,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * The number's boolean value.
+     * Gets the number's boolean value.
      *
      * @return <code>true</code> if the value is true or non-zero, <code>false</code> otherwise.
      */
@@ -243,7 +243,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * The number's int value.
+     * Gets the number's int value.
      * <i>Note: Even though the number's type might be INTEGER it can be larger than a Java int.
      * Use intValue() only if you are certain that it contains a number from the int range.
      * Otherwise the value might be innaccurate.</i>
@@ -255,7 +255,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * The number's double value.
+     * Gets the number's double value.
      *
      * @return The value of the number as double.
      */
@@ -264,13 +264,34 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * The number's float value.
+     * Gets the number's float value.
      * WARNING: Possible loss of precision if the value is outside the float range.
      *
      * @return The value of the number as float.
      */
     public float floatValue() {
         return (float) doubleValue;
+    }
+
+    /**
+     * Gets the number's value expressed as a human-readable string.
+     * @return The human-readable string representation of this number.
+     */
+    public String stringValue() {
+        switch (type) {
+            case INTEGER: {
+                return String.valueOf(longValue());
+            }
+            case REAL: {
+                return String.valueOf(doubleValue());
+            }
+            case BOOLEAN: {
+                return String.valueOf(boolValue());
+            }
+            default: {
+                throw new IllegalStateException();
+            }
+        }
     }
 
     /**
