@@ -328,8 +328,12 @@ public abstract class NSObject {
         }
 
         for (Map.Entry<String, NSObject> entry : map.entrySet()) {
-            Method setter = setters.get(entry.getKey());
-            Method getter = getters.get(entry.getKey());
+            String key = entry.getKey();
+            char c[] = key.toCharArray();
+            c[0] = Character.toLowerCase(c[0]);
+            key = new String(c);
+            Method setter = setters.get(key);
+            Method getter = getters.get(key);
             if (setter != null && getter != null) {
 
                 Class<?> elemClass = getter.getReturnType();
