@@ -88,7 +88,7 @@ public class XMLPropertyListParser {
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
      *                                                        could not be created. This should not occur.
      */
-    public static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
+    public static DocumentBuilder getDocBuilder() throws ParserConfigurationException {
         DocumentBuilder builder = FACTORY.newDocumentBuilder();
         builder.setEntityResolver(new PlistDtdResolver());
         return builder;
