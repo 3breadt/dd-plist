@@ -27,9 +27,8 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * Abstract interface for any object contained in a property list.
- * The names and functions of the various objects orient themselves
- * towards Apple's Cocoa API.
+ * Abstract interface for an object contained in a property list.
+ * The names and functions of the various objects orient themselves towards Apple's Cocoa API.
  *
  * @author Daniel Dreibrodt
  */
@@ -76,7 +75,7 @@ public abstract class NSObject {
      * Generates the binary representation of the object.
      *
      * @param out The output stream to serialize the object to.
-     * @throws java.io.IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws java.io.IOException If an IO error occurs while writing to the stream or the object structure contains
      *                             data that cannot be saved.
      */
     abstract void toBinary(BinaryPropertyListWriter out) throws IOException;
@@ -101,7 +100,7 @@ public abstract class NSObject {
     /**
      * Generates the ASCII representation of this object.
      * The generated ASCII representation does not end with a newline.
-     * Complies with https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
+     * Complies with the <a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html" target="_blank">Old-Style ASCII Property Lists definition</a>.
      *
      * @param ascii The StringBuilder onto which the ASCII representation is appended.
      * @param level The indentation level of the object.
@@ -118,12 +117,12 @@ public abstract class NSObject {
     protected abstract void toASCIIGnuStep(StringBuilder ascii, int level);
 
     /**
-     * Helper method that adds correct identation to the xml output.
+     * Helper method that adds correct indentation to the xml output.
      * Calling this method will add <code>level</code> number of tab characters
      * to the <code>xml</code> string.
      *
      * @param xml   The string builder for the XML document.
-     * @param level The level of identation.
+     * @param level The level of indentation.
      */
     void indent(StringBuilder xml, int level) {
         for (int i = 0; i < level; i++)
@@ -168,10 +167,12 @@ public abstract class NSObject {
 
     /**
      * Converts this NSObject into an object of the specified class.
+     * @param <T> The target object type.
      * @param clazz The target class.
      * @return A new instance of the specified class, deserialized from this NSObject.
      * @throws IllegalArgumentException If the specified class cannot be deserialized from this NSObject.
      */
+    @SuppressWarnings("unchecked")
     public <T> T toJavaObject(Class<T> clazz) {
         return (T)toJavaObject(this, clazz, null);
     }
@@ -276,6 +277,12 @@ public abstract class NSObject {
         }
     }
 
+    private static String makeFirstCharLowercase(String input) {
+        char[] chars = input.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return new String(chars);
+    }
+
     private Object toJavaObject(NSObject payload, Class<?> clazz, Type[] types) {
         if (clazz.isArray()) {
             //generics and arrays do not mix
@@ -319,19 +326,18 @@ public abstract class NSObject {
         for (Method method : clazz.getMethods()) {
             String name = method.getName();
             if (name.startsWith("get")) {
-                getters.put(name.substring(3, 4).toLowerCase() + name.substring(4), method);
+                getters.put(makeFirstCharLowercase(name.substring(3)), method);
             } else if (name.startsWith("set")) {
-                setters.put(name.substring(3, 4).toLowerCase() + name.substring(4), method);
+                setters.put(makeFirstCharLowercase(name.substring(3)), method);
             } else if (name.startsWith("is")) {
-                getters.put(name.substring(2, 3).toLowerCase() + name.substring(3), method);
+                getters.put(makeFirstCharLowercase(name.substring(2)), method);
             }
         }
 
         for (Map.Entry<String, NSObject> entry : map.entrySet()) {
-            Method setter = setters.get(entry.getKey());
-            Method getter = getters.get(entry.getKey());
+            Method setter = setters.get(makeFirstCharLowercase(entry.getKey()));
+            Method getter = getters.get(makeFirstCharLowercase(entry.getKey()));
             if (setter != null && getter != null) {
-
                 Class<?> elemClass = getter.getReturnType();
                 Type[] elemTypes = null;
                 Type type = getter.getGenericReturnType();
@@ -655,9 +661,9 @@ public abstract class NSObject {
             }
             String name = method.getName();
             if (name.startsWith("get")) {
-                name = name.substring(3, 4).toLowerCase() + name.substring(4);
+                name = makeFirstCharLowercase(name.substring(3));
             } else if (name.startsWith("is")) {
-                name = name.substring(2, 3).toLowerCase() + name.substring(3);
+                name = makeFirstCharLowercase(name.substring(2));
             } else {
                 ///not a getter
                 continue;
@@ -666,9 +672,9 @@ public abstract class NSObject {
             try {
                 result.put(name, fromJavaObject(method.invoke(object)));
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Could not access getter " + method);
+                throw new IllegalArgumentException("Could not access getter " + method.getName());
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException("Could not invoke getter " + method);
+                throw new IllegalArgumentException("Could not invoke getter " + method.getName());
             }
         }
 
@@ -680,7 +686,7 @@ public abstract class NSObject {
             try {
                 result.put(field.getName(), fromJavaObject(field.get(object)));
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Could not access field " + field);
+                throw new IllegalArgumentException("Could not access field " + field.getName());
             }
         }
 

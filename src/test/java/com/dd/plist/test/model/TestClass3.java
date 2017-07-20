@@ -23,131 +23,131 @@ public class TestClass3 {
     private byte[] aPrimitiveByteArray;
 
 
-    public String[] getaStringArray() {
+    public String[] getStringArray() {
         return aStringArray;
     }
 
-    public void setaStringArray(String[] aStringArray) {
+    public void setStringArray(String[] aStringArray) {
         this.aStringArray = aStringArray;
     }
 
-    public Integer[] getaIntegerArray() {
+    public Integer[] getIntegerArray() {
         return aIntegerArray;
     }
 
-    public void setaIntegerArray(Integer[] aIntegerArray) {
+    public void setIntegerArray(Integer[] aIntegerArray) {
         this.aIntegerArray = aIntegerArray;
     }
 
-    public Long[] getaLongArray() {
+    public Long[] getLongArray() {
         return aLongArray;
     }
 
-    public void setaLongArray(Long[] aLongArray) {
+    public void setLongArray(Long[] aLongArray) {
         this.aLongArray = aLongArray;
     }
 
-    public Double[] getaDoubleArray() {
+    public Double[] getDoubleArray() {
         return aDoubleArray;
     }
 
-    public void setaDoubleArray(Double[] aDoubleArray) {
+    public void setDoubleArray(Double[] aDoubleArray) {
         this.aDoubleArray = aDoubleArray;
     }
 
-    public Float[] getaFloatArray() {
+    public Float[] getFloatArray() {
         return aFloatArray;
     }
 
-    public void setaFloatArray(Float[] aFloatArray) {
+    public void setFloatArray(Float[] aFloatArray) {
         this.aFloatArray = aFloatArray;
     }
 
-    public Short[] getaShortArray() {
+    public Short[] getShortArray() {
         return aShortArray;
     }
 
-    public void setaShortArray(Short[] aShortArray) {
+    public void setShortArray(Short[] aShortArray) {
         this.aShortArray = aShortArray;
     }
 
-    public int[] getaPrimitiveIntegerArray() {
+    public int[] getPrimitiveIntegerArray() {
         return aPrimitiveIntegerArray;
     }
 
-    public void setaPrimitiveIntegerArray(int[] aPrimitiveIntegerArray) {
+    public void setPrimitiveIntegerArray(int[] aPrimitiveIntegerArray) {
         this.aPrimitiveIntegerArray = aPrimitiveIntegerArray;
     }
 
-    public long[] getaPrimitiveLongArray() {
+    public long[] getPrimitiveLongArray() {
         return aPrimitiveLongArray;
     }
 
-    public void setaPrimitiveLongArray(long[] aPrimitiveLongArray) {
+    public void setPrimitiveLongArray(long[] aPrimitiveLongArray) {
         this.aPrimitiveLongArray = aPrimitiveLongArray;
     }
 
-    public double[] getaPrimitiveDoubleArray() {
+    public double[] getPrimitiveDoubleArray() {
         return aPrimitiveDoubleArray;
     }
 
-    public void setaPrimitiveDoubleArray(double[] aPrimitiveDoubleArray) {
+    public void setPrimitiveDoubleArray(double[] aPrimitiveDoubleArray) {
         this.aPrimitiveDoubleArray = aPrimitiveDoubleArray;
     }
 
-    public float[] getaPrimitiveFloatArray() {
+    public float[] getPrimitiveFloatArray() {
         return aPrimitiveFloatArray;
     }
 
-    public void setaPrimitiveFloatArray(float[] aPrimitiveFloatArray) {
+    public void setPrimitiveFloatArray(float[] aPrimitiveFloatArray) {
         this.aPrimitiveFloatArray = aPrimitiveFloatArray;
     }
 
-    public short[] getaPrimitiveShortArray() {
+    public short[] getPrimitiveShortArray() {
         return aPrimitiveShortArray;
     }
 
-    public void setaPrimitiveShortArray(short[] aPrimitiveShortArray) {
+    public void setPrimitiveShortArray(short[] aPrimitiveShortArray) {
         this.aPrimitiveShortArray = aPrimitiveShortArray;
     }
 
-    public Boolean[] getaBooleanArray() {
+    public Boolean[] getBooleanArray() {
         return aBooleanArray;
     }
 
-    public void setaBooleanArray(Boolean[] aBooleanArray) {
+    public void setBooleanArray(Boolean[] aBooleanArray) {
         this.aBooleanArray = aBooleanArray;
     }
 
-    public boolean[] getaPrimitiveBooleanArray() {
+    public boolean[] getPrimitiveBooleanArray() {
         return aPrimitiveBooleanArray;
     }
 
-    public void setaPrimitiveBooleanArray(boolean[] aPrimitiveBooleanArray) {
+    public void setPrimitiveBooleanArray(boolean[] aPrimitiveBooleanArray) {
         this.aPrimitiveBooleanArray = aPrimitiveBooleanArray;
     }
 
-    public Date[] getaDateArray() {
+    public Date[] getDateArray() {
         return aDateArray;
     }
 
-    public void setaDateArray(Date[] aDateArray) {
+    public void setDateArray(Date[] aDateArray) {
         this.aDateArray = aDateArray;
     }
 
-    public Byte[] getaByteArray() {
+    public Byte[] getByteArray() {
         return aByteArray;
     }
 
-    public void setaByteArray(Byte[] aByteArray) {
+    public void setByteArray(Byte[] aByteArray) {
         this.aByteArray = aByteArray;
     }
 
-    public byte[] getaPrimitiveByteArray() {
+    public byte[] getPrimitiveByteArray() {
         return aPrimitiveByteArray;
     }
 
-    public void setaPrimitiveByteArray(byte[] aPrimitiveByteArray) {
+    public void setPrimitiveByteArray(byte[] aPrimitiveByteArray) {
         this.aPrimitiveByteArray = aPrimitiveByteArray;
     }
 
@@ -189,23 +189,23 @@ public class TestClass3 {
     @Override
     public String toString() {
         return "TestClass3{" +
-                "aStringArray=" + Arrays.toString(aStringArray) +
-                ", aIntegerArray=" + Arrays.toString(aIntegerArray) +
-                ", aLongArray=" + Arrays.toString(aLongArray) +
-                ", aDoubleArray=" + Arrays.toString(aDoubleArray) +
-                ", aFloatArray=" + Arrays.toString(aFloatArray) +
-                ", aShortArray=" + Arrays.toString(aShortArray) +
-                ", aPrimitiveIntegerArray=" + Arrays.toString(aPrimitiveIntegerArray) +
-                ", aPrimitiveLongArray=" + Arrays.toString(aPrimitiveLongArray) +
-                ", aPrimitiveDoubleArray=" + Arrays.toString(aPrimitiveDoubleArray) +
-                ", aPrimitiveFloatArray=" + Arrays.toString(aPrimitiveFloatArray) +
-                ", aPrimitiveShortArray=" + Arrays.toString(aPrimitiveShortArray) +
-                ", aBooleanArray=" + Arrays.toString(aBooleanArray) +
-                ", aPrimitiveBooleanArray=" + Arrays.toString(aPrimitiveBooleanArray) +
-                ", aDateArray=" + Arrays.toString(aDateArray) +
-                ", aByteArray=" + Arrays.toString(aByteArray) +
-                ", aPrimitiveByteArray=" + Arrays.toString(aPrimitiveByteArray) +
-                '}';
+                "\n StringArray=" + Arrays.toString(aStringArray) +
+                "\n IntegerArray=" + Arrays.toString(aIntegerArray) +
+                "\n LongArray=" + Arrays.toString(aLongArray) +
+                "\n DoubleArray=" + Arrays.toString(aDoubleArray) +
+                "\n FloatArray=" + Arrays.toString(aFloatArray) +
+                "\n ShortArray=" + Arrays.toString(aShortArray) +
+                "\n PrimitiveIntegerArray=" + Arrays.toString(aPrimitiveIntegerArray) +
+                "\n PrimitiveLongArray=" + Arrays.toString(aPrimitiveLongArray) +
+                "\n PrimitiveDoubleArray=" + Arrays.toString(aPrimitiveDoubleArray) +
+                "\n PrimitiveFloatArray=" + Arrays.toString(aPrimitiveFloatArray) +
+                "\n PrimitiveShortArray=" + Arrays.toString(aPrimitiveShortArray) +
+                "\n BooleanArray=" + Arrays.toString(aBooleanArray) +
+                "\n PrimitiveBooleanArray=" + Arrays.toString(aPrimitiveBooleanArray) +
+                "\n DateArray=" + Arrays.toString(aDateArray) +
+                "\n ByteArray=" + Arrays.toString(aByteArray) +
+                "\n PrimitiveByteArray=" + Arrays.toString(aPrimitiveByteArray) +
+                "\n}";
     }
 
     @Override

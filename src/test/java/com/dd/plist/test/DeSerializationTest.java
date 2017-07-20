@@ -142,43 +142,43 @@ public class DeSerializationTest extends TestCase {
 
     private NSDictionary genTest2Dict() {
         NSDictionary dict = new NSDictionary();
-        dict.put("aDouble", new NSNumber(1.23d));
-        dict.put("aPrimitiveDouble", new NSNumber(3.21d));
-        dict.put("aFloat", new NSNumber(4.56f));
+        dict.put("double", new NSNumber(1.23d));
+        dict.put("primitiveDouble", new NSNumber(3.21d));
+        dict.put("float", new NSNumber(4.56f));
 
-        dict.put("aPrimitiveFloat", new NSNumber(6.54f));
-        dict.put("aInteger", new NSNumber(9876));
-        dict.put("aPrimitiveInteger", new NSNumber(6789));
-        dict.put("aLong", new NSNumber(123456789L));
-        dict.put("aPrimitiveLong", new NSNumber(987654321L));
+        dict.put("primitiveFloat", new NSNumber(6.54f));
+        dict.put("integer", new NSNumber(9876));
+        dict.put("primitiveInteger", new NSNumber(6789));
+        dict.put("long", new NSNumber(123456789L));
+        dict.put("primitiveLong", new NSNumber(987654321L));
 
-        dict.put("aShort", new NSNumber((short) 123));
-        dict.put("aPrimitiveShort", new NSNumber((short) 81));
-        dict.put("aString", new NSString("Hello World"));
+        dict.put("short", new NSNumber((short) 123));
+        dict.put("primitiveShort", new NSNumber((short) 81));
+        dict.put("string", new NSString("Hello World"));
 
-        dict.put("aBoolean", new NSNumber(Boolean.TRUE));
-        dict.put("aPrimitiveBoolean", new NSNumber(true));
-        dict.put("aDate", new NSDate(date));
+        dict.put("boolean", new NSNumber(Boolean.TRUE));
+        dict.put("primitiveBoolean", new NSNumber(true));
+        dict.put("date", new NSDate(date));
 
         return dict;
     }
 
     private TestClass2 genTest2Object() {
         TestClass2 test = new TestClass2();
-        test.setaDouble(1.23d);
-        test.setaPrimitiveDouble(3.21d);
-        test.setaFloat(4.56f);
-        test.setaPrimitiveFloat(6.54f);
-        test.setaInteger(9876);
-        test.setaPrimitiveInteger(6789);
-        test.setaLong(123456789L);
-        test.setaPrimitiveLong(987654321L);
-        test.setaShort((short) 123);
-        test.setaPrimitiveShort((short) 81);
-        test.setaString("Hello World");
-        test.setaBoolean(Boolean.TRUE);
-        test.setaPrimitiveBoolean(true);
-        test.setaDate(date);
+        test.setDouble(1.23d);
+        test.setPrimitiveDouble(3.21d);
+        test.setFloat(4.56f);
+        test.setPrimitiveFloat(6.54f);
+        test.setInteger(9876);
+        test.setPrimitiveInteger(6789);
+        test.setLong(123456789L);
+        test.setPrimitiveLong(987654321L);
+        test.setShort((short) 123);
+        test.setPrimitiveShort((short) 81);
+        test.setString("Hello World");
+        test.setBoolean(Boolean.TRUE);
+        test.setPrimitiveBoolean(true);
+        test.setDate(date);
 
         return test;
     }
@@ -186,75 +186,75 @@ public class DeSerializationTest extends TestCase {
     private TestClass3 genTest3Object() {
         TestClass3 test = new TestClass3();
 
-        test.setaBooleanArray(new Boolean[]{true, false});
-        test.setaPrimitiveBooleanArray(new boolean[]{true, false});
-        test.setaDoubleArray(new Double[]{1.23d});
-        test.setaPrimitiveDoubleArray(new double[]{3.21d});
-        test.setaFloatArray(new Float[]{4.56f});
-        test.setaPrimitiveFloatArray(new float[]{6.54f});
-        test.setaIntegerArray(new Integer[]{9876});
-        test.setaPrimitiveIntegerArray(new int[]{6789});
-        test.setaLongArray(new Long[]{123456789L});
-        test.setaPrimitiveLongArray(new long[]{987654321L});
-        test.setaShortArray(new Short[]{(short) 123});
-        test.setaPrimitiveShortArray(new short[]{(short) 81});
-        test.setaStringArray(new String[]{"Hello", "World"});
-        test.setaDateArray(new Date[]{date});
+        test.setBooleanArray(new Boolean[]{true, false});
+        test.setPrimitiveBooleanArray(new boolean[]{true, false});
+        test.setDoubleArray(new Double[]{1.23d});
+        test.setPrimitiveDoubleArray(new double[]{3.21d});
+        test.setFloatArray(new Float[]{4.56f});
+        test.setPrimitiveFloatArray(new float[]{6.54f});
+        test.setIntegerArray(new Integer[]{9876});
+        test.setPrimitiveIntegerArray(new int[]{6789});
+        test.setLongArray(new Long[]{123456789L});
+        test.setPrimitiveLongArray(new long[]{987654321L});
+        test.setShortArray(new Short[]{(short) 123});
+        test.setPrimitiveShortArray(new short[]{(short) 81});
+        test.setStringArray(new String[]{"Hello", "World"});
+        test.setDateArray(new Date[]{date});
 
-        test.setaByteArray(new Byte[]{123});
-        test.setaPrimitiveByteArray(new byte[]{81});
+        test.setByteArray(new Byte[]{123});
+        test.setPrimitiveByteArray(new byte[]{81});
 
         return test;
     }
 
     private NSDictionary genTest3DictOfArrays() {
         NSDictionary dict = new NSDictionary();
-        dict.put("aDoubleArray", new NSArray(new NSNumber(1.23d)));
-        dict.put("aPrimitiveDoubleArray", new NSArray(new NSNumber(3.21d)));
-        dict.put("aFloatArray", new NSArray(new NSNumber(4.56f)));
+        dict.put("doubleArray", new NSArray(new NSNumber(1.23d)));
+        dict.put("primitiveDoubleArray", new NSArray(new NSNumber(3.21d)));
+        dict.put("floatArray", new NSArray(new NSNumber(4.56f)));
 
-        dict.put("aPrimitiveFloatArray", new NSArray(new NSNumber(6.54f)));
-        dict.put("aIntegerArray", new NSArray(new NSNumber(9876)));
-        dict.put("aPrimitiveIntegerArray", new NSArray(new NSNumber(6789)));
-        dict.put("aLongArray", new NSArray(new NSNumber(123456789L)));
-        dict.put("aPrimitiveLongArray", new NSArray(new NSNumber(987654321L)));
+        dict.put("primitiveFloatArray", new NSArray(new NSNumber(6.54f)));
+        dict.put("integerArray", new NSArray(new NSNumber(9876)));
+        dict.put("primitiveIntegerArray", new NSArray(new NSNumber(6789)));
+        dict.put("longArray", new NSArray(new NSNumber(123456789L)));
+        dict.put("primitiveLongArray", new NSArray(new NSNumber(987654321L)));
 
-        dict.put("aShortArray", new NSArray(new NSNumber((short) 123)));
-        dict.put("aPrimitiveShortArray", new NSArray(new NSNumber((short) 81)));
-        dict.put("aStringArray", new NSArray(new NSString("Hello"), new NSString("World")));
+        dict.put("shortArray", new NSArray(new NSNumber((short) 123)));
+        dict.put("primitiveShortArray", new NSArray(new NSNumber((short) 81)));
+        dict.put("stringArray", new NSArray(new NSString("Hello"), new NSString("World")));
 
-        dict.put("aBooleanArray", new NSArray(new NSNumber(Boolean.TRUE), new NSNumber(Boolean.FALSE)));
-        dict.put("aPrimitiveBooleanArray", new NSArray(new NSNumber(true), new NSNumber(false)));
-        dict.put("aDateArray", new NSArray(new NSDate(date)));
+        dict.put("booleanArray", new NSArray(new NSNumber(Boolean.TRUE), new NSNumber(Boolean.FALSE)));
+        dict.put("primitiveBooleanArray", new NSArray(new NSNumber(true), new NSNumber(false)));
+        dict.put("dateArray", new NSArray(new NSDate(date)));
 
-        dict.put("aByteArray", new NSData(new byte[] {(byte) 123}));
-        dict.put("aPrimitiveByteArray", new NSData(new byte[] {(byte) 81}));
+        dict.put("byteArray", new NSData(new byte[] {(byte) 123}));
+        dict.put("primitiveByteArray", new NSData(new byte[] {(byte) 81}));
 
         return dict;
     }
 
     private NSDictionary genTest3DictOfSets() {
         NSDictionary dict = new NSDictionary();
-        dict.put("aDoubleArray", new NSSet(new NSNumber(1.23d)));
-        dict.put("aPrimitiveDoubleArray", new NSSet(new NSNumber(3.21d)));
-        dict.put("aFloatArray", new NSSet(new NSNumber(4.56f)));
+        dict.put("doubleArray", new NSSet(new NSNumber(1.23d)));
+        dict.put("primitiveDoubleArray", new NSSet(new NSNumber(3.21d)));
+        dict.put("floatArray", new NSSet(new NSNumber(4.56f)));
 
-        dict.put("aPrimitiveFloatArray", new NSSet(new NSNumber(6.54f)));
-        dict.put("aIntegerArray", new NSSet(new NSNumber(9876)));
-        dict.put("aPrimitiveIntegerArray", new NSSet(new NSNumber(6789)));
-        dict.put("aLongArray", new NSSet(new NSNumber(123456789L)));
-        dict.put("aPrimitiveLongArray", new NSSet(new NSNumber(987654321L)));
+        dict.put("primitiveFloatArray", new NSSet(new NSNumber(6.54f)));
+        dict.put("integerArray", new NSSet(new NSNumber(9876)));
+        dict.put("primitiveIntegerArray", new NSSet(new NSNumber(6789)));
+        dict.put("longArray", new NSSet(new NSNumber(123456789L)));
+        dict.put("primitiveLongArray", new NSSet(new NSNumber(987654321L)));
 
-        dict.put("aShortArray", new NSSet(new NSNumber((short) 123)));
-        dict.put("aPrimitiveShortArray", new NSSet(new NSNumber((short) 81)));
-        dict.put("aStringArray", new NSSet(new NSString("Hello"), new NSString("World")));
+        dict.put("shortArray", new NSSet(new NSNumber((short) 123)));
+        dict.put("primitiveShortArray", new NSSet(new NSNumber((short) 81)));
+        dict.put("stringArray", new NSSet(new NSString("Hello"), new NSString("World")));
 
-        dict.put("aBooleanArray", new NSSet(new NSNumber(Boolean.TRUE), new NSNumber(Boolean.FALSE)));
-        dict.put("aPrimitiveBooleanArray", new NSSet(new NSNumber(true), new NSNumber(false)));
-        dict.put("aDateArray", new NSSet(new NSDate(date)));
+        dict.put("booleanArray", new NSSet(new NSNumber(Boolean.TRUE), new NSNumber(Boolean.FALSE)));
+        dict.put("primitiveBooleanArray", new NSSet(new NSNumber(true), new NSNumber(false)));
+        dict.put("dateArray", new NSSet(new NSDate(date)));
 
-        dict.put("aByteArray", new NSData(new byte[]{(byte) 123}));
-        dict.put("aPrimitiveByteArray", new NSData(new byte[]{(byte) 81}));
+        dict.put("byteArray", new NSData(new byte[]{(byte) 123}));
+        dict.put("primitiveByteArray", new NSData(new byte[]{(byte) 81}));
 
         return dict;
     }
@@ -291,10 +291,9 @@ public class DeSerializationTest extends TestCase {
     }
 
     public void testSimplePojo() throws Exception {
-        assertEquals(
-                genTest2Object(),
-                genTest2Dict()
-                        .toJavaObject(TestClass2.class));
+        TestClass2 reference = genTest2Object();
+        TestClass2 deserialized = genTest2Dict().toJavaObject(TestClass2.class);
+        assertEquals(reference, deserialized);
     }
 
     public void testSimpleNS() throws Exception {
