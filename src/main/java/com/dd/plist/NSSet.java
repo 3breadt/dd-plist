@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * A set is an interface to an unordered collection of objects.
+ * The NSSet class is an unordered collection of NSObject instances.
  * This implementation uses a <code>LinkedHashSet</code> or <code>TreeSet</code>as the underlying
  * data structure.
  *
@@ -41,7 +41,7 @@ public class NSSet extends NSObject {
     private boolean ordered = false;
 
     /**
-     * Creates an empty unordered set.
+     * Creates a new NSSet instance. The created set is unordered.
      *
      * @see java.util.LinkedHashSet
      */
@@ -50,7 +50,7 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * Creates an empty set.
+     * Creates a new NSSet instance.
      *
      * @param ordered Indicates whether the created set should be ordered or unordered.
      * @see java.util.LinkedHashSet
@@ -65,7 +65,7 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * Create a set and fill it with the given objects.
+     * Creates a new NSSet instance with the specified content. The created set is unordered.
      *
      * @param objects The objects to populate the set.
      * @see java.util.LinkedHashSet
@@ -76,7 +76,7 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * Create a set and fill it with the given objects.
+     * Create a new NSSet instance with the specified content.
      *
      * @param ordered Indicates whether the created set should be ordered or unordered.
      * @param objects The objects to populate the set.
@@ -133,7 +133,7 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * Finds out whether a given object is contained in the set.
+     * Finds out whether the given object is contained in the set.
      *
      * @param obj The object to look for.
      * @return <code>true</code>, when the object was found, <code>false</code> otherwise.
@@ -143,7 +143,7 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * Determines whether the set contains an object equal to a given object
+     * Determines whether the set contains an object equal to the given object
      * and returns that object if it is present.
      *
      * @param obj The object to look for.
@@ -234,7 +234,7 @@ public class NSSet extends NSObject {
     }
 
     /**
-     * Returns the XML representantion for this set.
+     * Returns the XML representation for this set.
      * There is no official XML representation specified for sets.
      * In this implementation it is represented by an array.
      *

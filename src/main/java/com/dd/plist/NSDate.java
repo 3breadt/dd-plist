@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt, Keith Randall
+ * Copyright (C) 2011-2017 Daniel Dreibrodt, Keith Randall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * Represents a date.
- *
+ * The NSDate class wraps a date.
+ * @see <a href="https://developer.apple.com/reference/foundation/nsdate" target="_blank">Foundation NSDate documentation</a>
  * @author Daniel Dreibrodt
  */
 public class NSDate extends NSObject {
@@ -47,20 +47,20 @@ public class NSDate extends NSObject {
     private static final SimpleDateFormat sdfGnuStep = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
     /**
-     * Creates a date from its binary representation.
+     * Creates new NSDate instance from its binary representation.
      *
-     * @param bytes The date bytes
+     * @param bytes The binary date representation.
      */
     public NSDate(byte[] bytes){
         this(bytes, 0, bytes.length);
     }
 
     /**
-     * Creates a date from its binary representation.
+     * Creates a new NSDate instance from its binary representation.
      *
-     * @param bytes byte array with all information
-     * @param startIndex int with the starting index of the date
-     * @param endIndex int with the end index of the date
+     * @param bytes The byte array containing the date data.
+     * @param startIndex The index within the array at which the date data begins.
+     * @param endIndex The index within the array at which the data date ends.
      */
     public NSDate(byte[] bytes, final int startIndex, final int endIndex) {
         //dates are 8 byte big-endian double, seconds since the epoch
@@ -68,20 +68,22 @@ public class NSDate extends NSObject {
     }
 
     /**
-     * Parses a date from its textual representation.
-     * That representation has the following pattern: <code>yyyy-MM-dd'T'HH:mm:ss'Z'</code>
+     * Creates a new NSDate instance from is textual representation.
+     * The textual representation must adhere to one of the following patterns.
+     * For XML property lists: <code>yyyy-MM-dd'T'HH:mm:ss'Z'</code>
+     * For ASCII property lists: <code>yyyy-MM-dd HH:mm:ss Z</code>
      *
-     * @param textRepresentation The textual representation of the date (ISO 8601 format)
-     * @throws ParseException When the date could not be parsed, i.e. it does not match the expected pattern.
+     * @param textRepresentation The textual representation of the date.
+     * @throws ParseException If the date could not be parsed, i.e. it does not match the expected pattern.
      */
     public NSDate(String textRepresentation) throws ParseException {
         date = parseDateString(textRepresentation);
     }
 
     /**
-     * Creates a NSDate from a Java Date
+     * Creates a new NSDate instance.
      *
-     * @param d The date
+     * @param d The date.
      */
     public NSDate(Date d) {
         if (d == null)
@@ -95,10 +97,10 @@ public class NSDate extends NSObject {
     }
 
     /**
-     * Parses the XML date string and creates a Java Date object from it.
-     * This function is synchronized as SimpleDateFormat is not thread-safe.
+     * Parses a date string and creates a Java Date object from it.
+     * This function is synchronized because the underlying SimpleDateFormat instances are not thread-safe.
      *
-     * @param textRepresentation The date string as found in the XML property list
+     * @param textRepresentation The date string as found in an ASCII or XML property list
      * @return The parsed Date
      * @throws ParseException If the given string cannot be parsed.
      * @see SimpleDateFormat#parse(java.lang.String)
@@ -112,7 +114,7 @@ public class NSDate extends NSObject {
     }
 
     /**
-     * Generates a String representation of a Java Date object. The string
+     * Generates a string representation of a Java Date object. The string
      * is formatted according to the specification for XML property list dates.
      *
      * @param date The date which should be represented.
@@ -123,7 +125,7 @@ public class NSDate extends NSObject {
     }
 
     /**
-     * Generates a String representation of a Java Date object. The string
+     * Generates a string representation of a Java Date object. The string
      * is formatted according to the specification for GnuStep ASCII property
      * list dates.
      *

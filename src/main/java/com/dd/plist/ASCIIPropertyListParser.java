@@ -158,8 +158,9 @@ public final class ASCIIPropertyListParser {
      */
     private boolean acceptSequence(char... sequence) {
         for (int i = 0; i < sequence.length; i++) {
-            if (data[index + i] != sequence[i])
+            if (this.data[this.index + i] != sequence[i]) {
                 return false;
+            }
         }
 
         return true;
@@ -175,9 +176,11 @@ public final class ASCIIPropertyListParser {
     private boolean accept(char... acceptableSymbols) {
         boolean symbolPresent = false;
         for (char c : acceptableSymbols) {
-            if (data[index] == c)
+            if (this.data[this.index] == c) {
                 symbolPresent = true;
+            }
         }
+
         return symbolPresent;
     }
 
@@ -189,7 +192,7 @@ public final class ASCIIPropertyListParser {
      * @return Whether the symbol can be accepted or not.
      */
     private boolean accept(char acceptableSymbol) {
-        return data[index] == acceptableSymbol;
+        return this.data[this.index] == acceptableSymbol;
     }
 
     /**
@@ -199,14 +202,15 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException If none of the expected symbols could be found.
      */
     private void expect(char... expectedSymbols) throws ParseException {
-        if (!accept(expectedSymbols)) {
+        if (!this.accept(expectedSymbols)) {
             StringBuilder excString = new StringBuilder();
             excString.append("Expected '").append(expectedSymbols[0]).append("'");
             for (int i = 1; i < expectedSymbols.length; i++) {
                 excString.append(" or '").append(expectedSymbols[i]).append("'");
             }
-            excString.append(" but found '").append((char) data[index]).append("'");
-            throw new ParseException(excString.toString(), index);
+
+            excString.append(" but found '").append((char) this.data[this.index]).append("'");
+            throw new ParseException(excString.toString(), this.index);
         }
     }
 
@@ -217,8 +221,9 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException If the expected symbol could be found.
      */
     private void expect(char expectedSymbol) throws ParseException {
-        if (!accept(expectedSymbol))
-            throw new ParseException("Expected '" + expectedSymbol + "' but found '" + (char) data[index] + "'", index);
+        if (!this.accept(expectedSymbol)) {
+            throw new ParseException("Expected '" + expectedSymbol + "' but found '" + (char) this.data[this.index] + "'", this.index);
+        }
     }
 
     /**
@@ -229,14 +234,14 @@ public final class ASCIIPropertyListParser {
      */
     private void read(char symbol) throws ParseException {
         expect(symbol);
-        index++;
+        this.index++;
     }
 
     /**
      * Skips the current symbol.
      */
     private void skip() {
-        index++;
+        this.index++;
     }
 
     /**
@@ -245,7 +250,7 @@ public final class ASCIIPropertyListParser {
      * @param numSymbols The amount of symbols to skip.
      */
     private void skip(int numSymbols) {
-        index += numSymbols;
+        this.index += numSymbols;
     }
 
     /**
@@ -257,25 +262,27 @@ public final class ASCIIPropertyListParser {
             commentSkipped = false;
 
             //Skip whitespaces
-            while (accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB)) {
-                skip();
+            while (this.accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB)) {
+                this.skip();
             }
 
             //Skip single line comments "//..."
-            if (acceptSequence(COMMENT_BEGIN_TOKEN, SINGLELINE_COMMENT_SECOND_TOKEN)) {
-                skip(2);
-                readInputUntil(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE);
+            if (this.acceptSequence(COMMENT_BEGIN_TOKEN, SINGLELINE_COMMENT_SECOND_TOKEN)) {
+                this.skip(2);
+                this.readInputUntil(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE);
                 commentSkipped = true;
             }
+
             //Skip multi line comments "/* ... */"
-            else if (acceptSequence(COMMENT_BEGIN_TOKEN, MULTILINE_COMMENT_SECOND_TOKEN)) {
+            else if (this.acceptSequence(COMMENT_BEGIN_TOKEN, MULTILINE_COMMENT_SECOND_TOKEN)) {
                 skip(2);
                 while (true) {
-                    if (acceptSequence(MULTILINE_COMMENT_SECOND_TOKEN, MULTILINE_COMMENT_END_TOKEN)) {
-                        skip(2);
+                    if (this.acceptSequence(MULTILINE_COMMENT_SECOND_TOKEN, MULTILINE_COMMENT_END_TOKEN)) {
+                        this.skip(2);
                         break;
                     }
-                    skip();
+
+                    this.skip();
                 }
                 commentSkipped = true;
             }
@@ -291,10 +298,11 @@ public final class ASCIIPropertyListParser {
      */
     private String readInputUntil(char... symbols) {
         StringBuilder strBuf = new StringBuilder();
-        while (!accept(symbols)) {
-        	strBuf.append((char) data[index]);
-            skip();
+        while (!this.accept(symbols)) {
+        	  strBuf.append((char) this.data[this.index]);
+            this.skip();
         }
+
         return strBuf.toString();
     }
 
@@ -306,9 +314,9 @@ public final class ASCIIPropertyListParser {
      */
     private String readInputUntil(char symbol) {
         StringBuilder strBuf = new StringBuilder();
-        while (!accept(symbol)) {
-        	strBuf.append((char) data[index]);
-            skip();
+        while (!this.accept(symbol)) {
+        	  strBuf.append((char) this.data[this.index]);
+            this.skip();
         }
         return strBuf.toString();
     }
@@ -321,16 +329,18 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException When an error occured during parsing
      */
     public NSObject parse() throws ParseException {
-        index = 0;
+        this.index = 0;
         //Skip Unicode byte order mark (BOM)
-        if(data.length >= 3 && (data[0] & 0xFF) == 0xEF && (data[1] & 0xFF) == 0xBB && (data[2] & 0xFF) == 0xBF)
-            skip(3);
-        skipWhitespacesAndComments();
-        expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
+        if (this.data.length >= 3 && (this.data[0] & 0xFF) == 0xEF && (this.data[1] & 0xFF) == 0xBB && (this.data[2] & 0xFF) == 0xBF) {
+            this.skip(3);
+        }
+
+        this.skipWhitespacesAndComments();
+        this.expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
         try {
-            return parseObject();
+            return this.parseObject();
         } catch (ArrayIndexOutOfBoundsException ex) {
-            throw new ParseException("Reached end of input unexpectedly.", index);
+            throw new ParseException("Reached end of input unexpectedly.", this.index);
         }
     }
 
@@ -342,18 +352,18 @@ public final class ASCIIPropertyListParser {
      * @see ASCIIPropertyListParser#index
      */
     private NSObject parseObject() throws ParseException {
-        switch (data[index]) {
+        switch (this.data[this.index]) {
             case ARRAY_BEGIN_TOKEN: {
-                return parseArray();
+                return this.parseArray();
             }
             case DICTIONARY_BEGIN_TOKEN: {
-                return parseDictionary();
+                return this.parseDictionary();
             }
             case DATA_BEGIN_TOKEN: {
-                return parseData();
+                return this.parseData();
             }
             case QUOTEDSTRING_BEGIN_TOKEN: {
-                String quotedString = parseQuotedString();
+                String quotedString = this.parseQuotedString();
                 //apple dates are quoted strings of length 20 and after the 4 year digits a dash is found
                 if (quotedString.length() == 20 && quotedString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
                     try {
@@ -368,13 +378,12 @@ public final class ASCIIPropertyListParser {
             }
             default: {
                 //0-9
-                if (data[index] > 0x2F && data[index] < 0x3A) {
+                if (this.data[this.index] > 0x2F && this.data[this.index] < 0x3A) {
                     //could be a date or just a string
-                    return parseDateString();
+                    return this.parseDateString();
                 } else {
                     //non-numerical -> string or boolean
-                    String parsedString = parseString();
-                    return new NSString(parsedString);
+                    return new NSString(this.parseString());
                 }
             }
         }
@@ -388,21 +397,22 @@ public final class ASCIIPropertyListParser {
      */
     private NSArray parseArray() throws ParseException {
         //Skip begin token
-        skip();
-        skipWhitespacesAndComments();
+        this.skip();
+        this.skipWhitespacesAndComments();
         List<NSObject> objects = new LinkedList<NSObject>();
-        while (!accept(ARRAY_END_TOKEN)) {
-            objects.add(parseObject());
-            skipWhitespacesAndComments();
-            if (accept(ARRAY_ITEM_DELIMITER_TOKEN)) {
-                skip();
+        while (!this.accept(ARRAY_END_TOKEN)) {
+            objects.add(this.parseObject());
+            this.skipWhitespacesAndComments();
+            if (this.accept(ARRAY_ITEM_DELIMITER_TOKEN)) {
+                this.skip();
             } else {
                 break; //must have reached end of array
             }
-            skipWhitespacesAndComments();
+
+            this.skipWhitespacesAndComments();
         }
         //parse end token
-        read(ARRAY_END_TOKEN);
+        this.read(ARRAY_END_TOKEN);
         return new NSArray(objects.toArray(new NSObject[objects.size()]));
     }
 
@@ -414,31 +424,34 @@ public final class ASCIIPropertyListParser {
      */
     private NSDictionary parseDictionary() throws ParseException {
         //Skip begin token
-        skip();
-        skipWhitespacesAndComments();
+        this.skip();
+        this.skipWhitespacesAndComments();
         NSDictionary dict = new NSDictionary();
-        while (!accept(DICTIONARY_END_TOKEN)) {
+        while (!this.accept(DICTIONARY_END_TOKEN)) {
             //Parse key
             String keyString;
-            if (accept(QUOTEDSTRING_BEGIN_TOKEN)) {
-                keyString = parseQuotedString();
+            if (this.accept(QUOTEDSTRING_BEGIN_TOKEN)) {
+                keyString = this.parseQuotedString();
             } else {
-                keyString = parseString();
+                keyString = this.parseString();
             }
-            skipWhitespacesAndComments();
+
+            this.skipWhitespacesAndComments();
 
             //Parse assign token
-            read(DICTIONARY_ASSIGN_TOKEN);
-            skipWhitespacesAndComments();
+            this.read(DICTIONARY_ASSIGN_TOKEN);
+            this.skipWhitespacesAndComments();
 
-            NSObject object = parseObject();
+            NSObject object = this.parseObject();
             dict.put(keyString, object);
-            skipWhitespacesAndComments();
-            read(DICTIONARY_ITEM_DELIMITER_TOKEN);
-            skipWhitespacesAndComments();
+            this.skipWhitespacesAndComments();
+            this.read(DICTIONARY_ITEM_DELIMITER_TOKEN);
+            this.skipWhitespacesAndComments();
         }
+
         //skip end token
-        skip();
+        this.skip();
+
         return dict;
     }
 
@@ -452,36 +465,36 @@ public final class ASCIIPropertyListParser {
     private NSObject parseData() throws ParseException {
         NSObject obj = null;
         //Skip begin token
-        skip();
-        if (accept(DATA_GSOBJECT_BEGIN_TOKEN)) {
-            skip();
-            expect(DATA_GSBOOL_BEGIN_TOKEN, DATA_GSDATE_BEGIN_TOKEN, DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN);
-            if (accept(DATA_GSBOOL_BEGIN_TOKEN)) {
+        this.skip();
+        if (this.accept(DATA_GSOBJECT_BEGIN_TOKEN)) {
+            this.skip();
+            this.expect(DATA_GSBOOL_BEGIN_TOKEN, DATA_GSDATE_BEGIN_TOKEN, DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN);
+            if (this.accept(DATA_GSBOOL_BEGIN_TOKEN)) {
                 //Boolean
-                skip();
-                expect(DATA_GSBOOL_TRUE_TOKEN, DATA_GSBOOL_FALSE_TOKEN);
-                if (accept(DATA_GSBOOL_TRUE_TOKEN)) {
+                this.skip();
+                this.expect(DATA_GSBOOL_TRUE_TOKEN, DATA_GSBOOL_FALSE_TOKEN);
+                if (this.accept(DATA_GSBOOL_TRUE_TOKEN)) {
                     obj = new NSNumber(true);
                 } else {
                     obj = new NSNumber(false);
                 }
                 //Skip the parsed boolean token
-                skip();
+                this.skip();
             } else if (accept(DATA_GSDATE_BEGIN_TOKEN)) {
                 //Date
-                skip();
-                String dateString = readInputUntil(DATA_END_TOKEN);
+                this.skip();
+                String dateString = this.readInputUntil(DATA_END_TOKEN);
                 obj = new NSDate(dateString);
             } else if (accept(DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN)) {
                 //Number
-                skip();
-                String numberString = readInputUntil(DATA_END_TOKEN);
+                this.skip();
+                String numberString = this.readInputUntil(DATA_END_TOKEN);
                 obj = new NSNumber(numberString);
             }
             //parse data end token
-            read(DATA_END_TOKEN);
+            this.read(DATA_END_TOKEN);
         } else {
-            String dataString = readInputUntil(DATA_END_TOKEN);
+            String dataString = this.readInputUntil(DATA_END_TOKEN);
             dataString = dataString.replaceAll("\\s+", "");
 
             int numBytes = dataString.length() / 2;
@@ -491,10 +504,11 @@ public final class ASCIIPropertyListParser {
                 int byteValue = Integer.parseInt(byteString, 16);
                 bytes[i] = (byte) byteValue;
             }
+
             obj = new NSData(bytes);
 
             //skip end token
-            skip();
+            this.skip();
         }
 
         return obj;
@@ -506,7 +520,7 @@ public final class ASCIIPropertyListParser {
      * @return A NSDate if the string represents such an object. Otherwise a NSString is returned.
      */
     private NSObject parseDateString() {
-        String numericalString = parseString();
+        String numericalString = this.parseString();
         if (numericalString.length() > 4 && numericalString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
             try {
                 return new NSDate(numericalString);
@@ -514,6 +528,7 @@ public final class ASCIIPropertyListParser {
                 //An exception occurs if the string is not a date but just a string
             }
         }
+
         return new NSString(numericalString);
     }
 
@@ -524,7 +539,7 @@ public final class ASCIIPropertyListParser {
      * @return The string found at the current parsing position.
      */
     private String parseString() {
-        return readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE, WHITESPACE_CARRIAGE_RETURN,
+        return this.readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE, WHITESPACE_CARRIAGE_RETURN,
                 ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN, ARRAY_END_TOKEN);
     }
 
@@ -537,16 +552,17 @@ public final class ASCIIPropertyListParser {
      */
     private String parseQuotedString() throws ParseException {
         //Skip begin token
-        skip();
+        this.skip();
         List<Byte> strBytes = new LinkedList<Byte>();
         boolean unescapedBackslash = true;
         //Read from opening quotation marks to closing quotation marks and skip escaped quotation marks
-        while (data[index] != QUOTEDSTRING_END_TOKEN || (data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)) {
-            strBytes.add(data[index]);
-            if (accept(QUOTEDSTRING_ESCAPE_TOKEN)) {
-                unescapedBackslash = !(data[index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash);
+        while (this.data[this.index] != QUOTEDSTRING_END_TOKEN || (this.data[this.index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)) {
+            strBytes.add(this.data[this.index]);
+            if (this.accept(QUOTEDSTRING_ESCAPE_TOKEN)) {
+                unescapedBackslash = !(this.data[this.index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash);
             }
-            skip();
+
+            this.skip();
         }
 
         byte[] bytArr = new byte[strBytes.size()];
@@ -559,12 +575,14 @@ public final class ASCIIPropertyListParser {
 
         String unescapedString;
         try {
-            unescapedString = parseQuotedString(new String(bytArr, "UTF-8"));
+            unescapedString = this.parseQuotedString(new String(bytArr, "UTF-8"));
         } catch (Exception ex) {
-            throw new ParseException("The quoted string could not be parsed.", index);
+            throw new ParseException("The quoted string could not be parsed.", this.index);
         }
+
         //skip end token
-        skip();
+        this.skip();
+
         return unescapedString;
     }
 
@@ -613,29 +631,28 @@ public final class ASCIIPropertyListParser {
         char c = iterator.next();
         switch (c)
         {
-        case '\\':
-        case '"':
-        case 'b':
-        case 'n':
-        case 'r':
-        case 't':
-            return c;
+            case '\\':
+            case '"':
+            case 'b':
+            case 'n':
+            case 'r':
+            case 't':
+                return c;
 
-        case 'U':
-        case 'u':
-        {
-            //4 digit hex Unicode value
-            String unicodeValue = new String(new char[] {iterator.next(), iterator.next(), iterator.next(), iterator.next()});
-            return (char)Integer.parseInt(unicodeValue, 16);
-        }
+            case 'U':
+            case 'u':
+            {
+                //4 digit hex Unicode value
+                String unicodeValue = new String(new char[] {iterator.next(), iterator.next(), iterator.next(), iterator.next()});
+                return (char)Integer.parseInt(unicodeValue, 16);
+            }
 
-        default:
-        {
-            //3 digit octal ASCII value
-            String num = new String(new char[] {c, iterator.next(), iterator.next()});
-            return (char)Integer.parseInt(num, 8);
-        }
+            default:
+            {
+                //3 digit octal ASCII value
+                String num = new String(new char[] {c, iterator.next(), iterator.next()});
+                return (char)Integer.parseInt(num, 8);
+            }
         }
     }
-
 }

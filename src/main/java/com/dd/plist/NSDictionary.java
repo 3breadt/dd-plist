@@ -33,38 +33,36 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A NSDictionary is a collection of keys and values, essentially a Hashtable.
- * The keys are simple Strings whereas the values can be any kind of NSObject.
+ * The NSDictionary class is a collection of NSObject instances that are identified by strings.
+ * It represents a hash map where the keys are strings and the values NSObject instances.
+ * The implementation is based on a linked hash map, so that the order of the elements in the dictionary is preserved.
  *
- * You can access the keys through the function <code>allKeys()</code>. Access
- * to the objects stored for each key is given through the function
- * <code>objectoForKey(String key)</code>.
+ * You can access the keys through the function <code>allKeys()</code>.
+ * Access to the objects stored for each key is given through the function <code>objectForKey(String key)</code>.
  *
  * @author Daniel Dreibrodt
- * @see java.util.Hashtable
- * @see com.dd.plist.NSObject
+ * @see <a href="https://developer.apple.com/reference/foundation/nsdictionary" target="_blank">Foundation NSDictionary documentation</a>
+ * @see java.util.LinkedHashMap
  */
 public class NSDictionary extends NSObject  implements Map<String, NSObject> {
 
     private final HashMap<String, NSObject> dict;
 
     /**
-     * Creates a new empty NSDictionary.
+     * Creates a new NSDictionary instance.
      */
     public NSDictionary() {
-        //With a linked HashMap the order of elements in the dictionary is kept.
-        dict = new LinkedHashMap<String, NSObject>();
+        this.dict = new LinkedHashMap<String, NSObject>();
     }
 
     /**
-     * Gets the hashmap which stores the keys and values of this dictionary.
-     * Changes to the hashmap's contents are directly reflected in this
-     * dictionary.
+     * Gets the hash map which stores the keys and values of this dictionary.
+     * Changes to the hash map are directly reflected in this dictionary.
      *
-     * @return The hashmap which is used by this dictionary to store its contents.
+     * @return The hash map which is used by this dictionary to store its contents.
      */
     public HashMap<String, NSObject> getHashMap() {
-        return dict;
+        return this.dict;
     }
 
     /**
@@ -74,67 +72,37 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return The object.
      */
     public NSObject objectForKey(String key) {
-        return dict.get(key);
+        return this.dict.get(key);
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#size()
-	 */
     public int size() {
-        return dict.size();
+        return this.dict.size();
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#isEmpty()
-	 */
     public boolean isEmpty() {
-        return dict.isEmpty();
+        return this.dict.isEmpty();
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#containsKey(java.lang.Object)
-	 */
     public boolean containsKey(Object key) {
-        return dict.containsKey(key);
+        return this.dict.containsKey(key);
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#containsValue(java.lang.Object)
-	 */
     public boolean containsValue(Object value) {
         if(value == null)
             return false;
         NSObject wrap = NSObject.fromJavaObject(value);
-        return dict.containsValue(wrap);
+        return this.dict.containsValue(wrap);
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#get(java.lang.Object)
-	 */
     public NSObject get(Object key) {
-        return dict.get(key);
+        return this.dict.get(key);
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#putAll(java.util.Map)
-	 */
     public void putAll(Map<? extends String, ? extends NSObject> values) {
         for (Object object : values.entrySet()) {
             @SuppressWarnings("unchecked")
             Map.Entry<String, NSObject> entry = (Map.Entry<String, NSObject>) object;
-            put(entry.getKey(), entry.getValue());
+            this.put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -151,8 +119,8 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         if(key == null)
             return null;
         if(obj == null)
-            return dict.get(key);
-        return dict.put(key, obj);
+            return this.dict.get(key);
+        return this.dict.put(key, obj);
     }
 
     /**
@@ -165,7 +133,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      *         or null, if no value was associated to it.
      */
     public NSObject put(String key, Object obj) {
-        return put(key, NSObject.fromJavaObject(obj));
+        return this.put(key, NSObject.fromJavaObject(obj));
     }
 
     /**
@@ -175,16 +143,11 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return the value previously associated to the given key.
      */
     public NSObject remove(String key) {
-        return dict.remove(key);
+        return this.dict.remove(key);
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#remove(java.lang.Object)
-	 */
     public NSObject remove(Object key) {
-        return dict.remove(key);
+        return this.dict.remove(key);
     }
 
     /**
@@ -192,32 +155,17 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @see java.util.Map#clear()
      */
     public void clear() {
-        dict.clear();
+        this.dict.clear();
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.Map#keySet()
-	 */
     public Set<String> keySet() {
-        return dict.keySet();
+        return this.dict.keySet();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.util.Map#values()
-     */
     public Collection<NSObject> values() {
         return dict.values();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.util.Map#entrySet()
-     */
     public Set<Entry<String, NSObject>> entrySet() {
         return dict.entrySet();
     }
@@ -239,7 +187,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(NSObject val) {
-        return val != null && dict.containsValue(val);
+        return val != null && this.dict.containsValue(val);
     }
 
     /**
@@ -249,7 +197,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(String val) {
-        for (NSObject o : dict.values()) {
+        for (NSObject o : this.dict.values()) {
             if (o.getClass().equals(NSString.class)) {
                 NSString str = (NSString) o;
                 if (str.getContent().equals(val))
@@ -266,7 +214,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(long val) {
-        for (NSObject o : dict.values()) {
+        for (NSObject o : this.dict.values()) {
             if (o.getClass().equals(NSNumber.class)) {
                 NSNumber num = (NSNumber) o;
                 if (num.isInteger() && num.intValue() == val)
@@ -283,7 +231,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(double val) {
-        for (NSObject o : dict.values()) {
+        for (NSObject o : this.dict.values()) {
             if (o.getClass().equals(NSNumber.class)) {
                 NSNumber num = (NSNumber) o;
                 if (num.isReal() && num.doubleValue() == val)
@@ -300,7 +248,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(boolean val) {
-        for (NSObject o : dict.values()) {
+        for (NSObject o : this.dict.values()) {
             if (o.getClass().equals(NSNumber.class)) {
                 NSNumber num = (NSNumber) o;
                 if (num.isBoolean() && num.boolValue() == val)
@@ -317,7 +265,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(Date val) {
-        for (NSObject o : dict.values()) {
+        for (NSObject o : this.dict.values()) {
             if (o.getClass().equals(NSDate.class)) {
                 NSDate dat = (NSDate) o;
                 if (dat.getDate().equals(val))
@@ -334,7 +282,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsValue(byte[] val) {
-        for (NSObject o : dict.values()) {
+        for (NSObject o : this.dict.values()) {
             if (o.getClass().equals(NSData.class)) {
                 NSData dat = (NSData) o;
                 if (Arrays.equals(dat.bytes(), val))
@@ -350,12 +298,12 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return The size of this NSDictionary.
      */
     public int count() {
-        return dict.size();
+        return this.dict.size();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj.getClass().equals(this.getClass()) && ((NSDictionary) obj).dict.equals(dict);
+        return obj.getClass().equals(this.getClass()) && ((NSDictionary) obj).dict.equals(this.dict);
     }
 
     /**
@@ -364,7 +312,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return The list of all keys used in this NSDictionary.
      */
     public String[] allKeys() {
-        return dict.keySet().toArray(new String[count()]);
+        return this.dict.keySet().toArray(new String[count()]);
     }
 
     @Override
@@ -379,7 +327,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         indent(xml, level);
         xml.append("<dict>");
         xml.append(NSObject.NEWLINE);
-        for (String key : dict.keySet()) {
+        for (String key : this.dict.keySet()) {
             NSObject val = objectForKey(key);
             indent(xml, level + 1);
             xml.append("<key>");
@@ -405,19 +353,19 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
     void assignIDs(BinaryPropertyListWriter out) {
         super.assignIDs(out);
 
-        for (Map.Entry<String, NSObject> entry : dict.entrySet()) {
+        for (Map.Entry<String, NSObject> entry : this.dict.entrySet()) {
             new NSString(entry.getKey()).assignIDs(out);
         }
 
-        for (Map.Entry<String, NSObject> entry : dict.entrySet()) {
+        for (Map.Entry<String, NSObject> entry : this.dict.entrySet()) {
             entry.getValue().assignIDs(out);
         }
     }
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        out.writeIntHeader(0xD, dict.size());
-        Set<Map.Entry<String, NSObject>> entries = dict.entrySet();
+        out.writeIntHeader(0xD, this.dict.size());
+        Set<Map.Entry<String, NSObject>> entries = this.dict.entrySet();
         for (Map.Entry<String, NSObject> entry : entries) {
             out.writeID(out.getID(new NSString(entry.getKey())));
         }

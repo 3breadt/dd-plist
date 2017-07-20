@@ -50,7 +50,7 @@ public final class BinaryPropertyListParser {
     private int minorVersion;
 
     /**
-     * property list in bytes
+     * The property list data.
      */
     private byte[] bytes;
 

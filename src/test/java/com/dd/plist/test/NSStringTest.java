@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 /**
+ * Tests for the NSString class.
  * @author Daniel Dreibrodt
  */
 public class NSStringTest {

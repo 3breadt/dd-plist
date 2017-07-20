@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2011-2017 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,10 @@ import java.util.Locale;
 import java.util.Scanner;
 
 /**
- * A NSString contains a string.
+ * The NSString class is a wrapper for a string.
  *
  * @author Daniel Dreibrodt
+ * @see <a href="https://developer.apple.com/reference/foundation/nsstring" target="_blank">Foundation NSString documentation</a>
  */
 public class NSString extends NSObject implements Comparable<Object> {
 
@@ -43,10 +44,10 @@ public class NSString extends NSObject implements Comparable<Object> {
     private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     /**
-     * Creates an NSString from its binary representation.
+     * Creates a new NSString instance from its binary representation.
      *
      * @param bytes    The binary representation.
-     * @param encoding The encoding of the binary representation, the name of a supported charset.
+     * @param encoding The string encoding (name of the charset).
      * @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
      * @see java.lang.String#String(byte[], String)
      */
@@ -55,21 +56,21 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Creates an NSString from its binary representation.
+     * Creates a new NSString instance from its binary representation.
      *
-     * @param bytes The binary representation.
-     * @param startIndex int with the index where to start (offset)
-     * @param endIndex int with the index where to stop reading (offset + string length)
-     * @param encoding The encoding of the binary representation, the name of a supported charset.
+     * @param bytes An array containing the binary representation of the string.
+     * @param startIndex The offset inside the array at which the string data starts.
+     * @param endIndex The offset inside the array at which the string data ends.
+     * @param encoding The string encoding (name of the charset).
      * @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
-     * @see java.lang.String#String(byte[], String)
+     * @see java.lang.String#String(byte[], int, int, String)
      */
     public NSString(byte[] bytes, final int startIndex, final int endIndex, String encoding) throws UnsupportedEncodingException {
         content = new String(bytes, startIndex, endIndex - startIndex, encoding);
     }
 
     /**
-     * Creates a NSString from a string.
+     * Creates a new NSString instance with the specified content.
      *
      * @param string The string that will be contained in the NSString.
      */
@@ -101,7 +102,7 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Gets the float value of this string.
+     * Gets the floating-point value of this string.
      *
      * @return The floating-point value of this string, assuming a decimal representation
      *         and skipping whitespace at the beginning of the string. If the string
@@ -124,7 +125,7 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Gets the float value of this string.
+     * Gets the floating-point value (double precision) of this string.
      *
      * @return The floating-point value of this string, assuming a decimal representation
      *         and skipping whitespace at the beginning of the string. If the string does not contain
@@ -168,16 +169,16 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Gets this string's content.
+     * Gets the string content of this instance.
      *
-     * @return This NSString as Java String object.
+     * @return This string contained in this instance.
      */
     public String getContent() {
         return content;
     }
 
     /**
-     * Sets the contents of this string.
+     * Sets the string content of this instance.
      *
      * @param c The new content of this string object.
      */
@@ -233,11 +234,6 @@ public class NSString extends NSObject implements Comparable<Object> {
         return content.hashCode();
     }
 
-    /**
-     * The textual representation of this NSString.
-     *
-     * @return The NSString's contents.
-     */
     @Override
     public String toString() {
         return content;
@@ -328,6 +324,16 @@ public class NSString extends NSObject implements Comparable<Object> {
         ascii.append("\"");
     }
 
+    public int compareTo(Object o) {
+        if (o instanceof NSString) {
+            return getContent().compareTo(((NSString) o).getContent());
+        } else if (o instanceof String) {
+            return getContent().compareTo((String) o);
+        } else {
+            return -1;
+        }
+    }
+
     /**
      * Escapes a string for use in ASCII property lists.
      *
@@ -363,15 +369,5 @@ public class NSString extends NSObject implements Comparable<Object> {
             }
         }
         return out.toString();
-    }
-
-    public int compareTo(Object o) {
-        if (o instanceof NSString) {
-            return getContent().compareTo(((NSString) o).getContent());
-        } else if (o instanceof String) {
-            return getContent().compareTo((String) o);
-        } else {
-            return -1;
-        }
     }
 }

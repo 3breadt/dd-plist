@@ -25,7 +25,8 @@ package com.dd.plist;
 import java.io.IOException;
 
 /**
- * A UID. Only found in binary property lists that are keyed archives.
+ * The UID class holds a unique identifier.
+ * Only found in binary property lists that are keyed archives.
  *
  * @author Daniel Dreibrodt
  */
@@ -34,24 +35,37 @@ public class UID extends NSObject {
     private final byte[] bytes;
     private final String name;
 
+    /**
+     * Creates a new UID instance.
+     * @param name The UID name.
+     * @param bytes The UID value.
+     */
     public UID(String name, byte[] bytes) {
         this.name = name;
         this.bytes = bytes;
     }
 
+    /**
+     * Gets this instance's value.
+     * @return The UID's value.
+     */
     public byte[] getBytes() {
         return bytes;
     }
 
+    /**
+     * Gets this instance's name.
+     * @return The UID's name.
+     */
     public String getName() {
         return name;
     }
 
     /**
      * There is no XML representation specified for UIDs.
-     * In this implementation UIDs are represented as strings in the XML output.
+     * In this implementation UIDs are represented as hexadecimal strings in the XML output.
      *
-     * @param xml   The xml StringBuilder
+     * @param xml   The XML StringBuilder
      * @param level The indentation level
      */
     @Override
