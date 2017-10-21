@@ -33,9 +33,9 @@ If you use Maven and want to include the library into your project you can use t
 
 ## Help
 
-The API documentation is included in the download but can also be browsed online: [JavaDoc for com.dd.plist](http://dl.dropbox.com/u/2389669/plist/javadoc/index.html).
+The API documentation is included in the download but can also be browsed online: [JavaDoc for com.dd.plist](https://3breadt.github.io/dd-plist/).
 
-If you have further questions please post them in the Discussion forum plist-discuss on [Google Groups](http://groups.google.com/group/plist-discuss).
+If you have further questions please post them on the [GitHub issue tracker](https://github.com/3breadt/dd-plist/issues) or in the Discussion forum plist-discuss on [Google Groups](http://groups.google.com/group/plist-discuss).
 
 ## Usage examples
 
