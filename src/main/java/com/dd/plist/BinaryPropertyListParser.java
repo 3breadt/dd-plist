@@ -112,9 +112,13 @@ public final class BinaryPropertyListParser {
         // 2.0 - Snow Lion
 
         if (majorVersion > 0) {
-            throw new IllegalArgumentException("Unsupported binary property list format: v" + majorVersion + "." + minorVersion + ". " +
+            throw new PropertyListFormatException("Unsupported binary property list format: v" + majorVersion + "." + minorVersion + ". " +
                     "Version 1.0 and later are not yet supported.");
             //Version 1.0+ is not even supported by OS X's own parser
+        }
+
+        if (bytes.length < 40 /* header + trailer length */) {
+            throw new PropertyListFormatException("The binary property list does not contain a complete object offset table.");
         }
 
         // Parse trailer, last 32 bytes of the file
@@ -128,8 +132,8 @@ public final class BinaryPropertyListParser {
         int offsetTableOffset = (int) parseUnsignedInt(trailer, 24, 32);
 
         // Validate consistency of the trailer
-        if (offsetTableOffset + (numObjects + 1) * offsetSize > bytes.length) {
-            throw new PropertyListFormatException("The property list contains a corrupted object offset table.");
+        if (offsetTableOffset + (numObjects + 1) * offsetSize > bytes.length || topObject >= bytes.length - 32) {
+            throw new PropertyListFormatException("The binary property list contains a corrupted object offset table.");
         }
 
         // Calculate offset table
