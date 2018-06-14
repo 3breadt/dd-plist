@@ -71,7 +71,7 @@ public final class BinaryPropertyListParser {
      * @see BinaryPropertyListParser#parse(byte[])
      */
     private BinaryPropertyListParser() {
-        /** empty **/
+        /* empty */
     }
 
     /**
@@ -117,23 +117,23 @@ public final class BinaryPropertyListParser {
             //Version 1.0+ is not even supported by OS X's own parser
         }
 
-        /*
-         * Handle trailer, last 32 bytes of the file
-         */
+        // Parse trailer, last 32 bytes of the file
         byte[] trailer = copyOfRange(bytes, bytes.length - 32, bytes.length);
-        //6 null bytes (index 0 to 5)
 
+        // Trailer starts with 6 null bytes (index 0 to 5)
         int offsetSize = (int) parseUnsignedInt(trailer, 6, 7);
         objectRefSize = (int) parseUnsignedInt(trailer, 7, 8);
         int numObjects = (int) parseUnsignedInt(trailer, 8, 16);
         int topObject = (int) parseUnsignedInt(trailer, 16, 24);
         int offsetTableOffset = (int) parseUnsignedInt(trailer, 24, 32);
 
-        /*
-         * Handle offset table
-         */
-        offsetTable = new int[numObjects];
+        // Validate consistency of the trailer
+        if (offsetTableOffset + (numObjects + 1) * offsetSize > bytes.length) {
+            throw new PropertyListFormatException("The property list contains a corrupted object offset table.");
+        }
 
+        // Calculate offset table
+        offsetTable = new int[numObjects];
         for (int i = 0; i < numObjects; i++) {
             offsetTable[i] = (int) parseUnsignedInt(bytes, offsetTableOffset + i * offsetSize, offsetTableOffset + (i + 1) * offsetSize);
         }

@@ -1,9 +1,6 @@
 package com.dd.plist.test;
 
-import com.dd.plist.NSData;
-import com.dd.plist.NSDictionary;
-import com.dd.plist.NSObject;
-import com.dd.plist.PropertyListParser;
+import com.dd.plist.*;
 import org.junit.Test;
 
 import java.io.*;
@@ -54,5 +51,11 @@ public class IssueTest  {
         NSDictionary files = (NSDictionary)dict.get("files2");
         NSData hash = (NSData)((NSDictionary)files.get("Base.lproj/Main.storyboardc/MainController.nib")).get("hash");
         assertEquals("1f8b2ef69414fa70ff578a697cfc0919235c8eff", HexConverter.toHex(hash.bytes()));
+    }
+
+    @Test(expected = PropertyListFormatException.class)
+    public void testIssue42_OutOfMemoryErrorWhenBinaryPropertyListTrailerIsCorrupt() throws Exception {
+        File plistFile = new File("test-files/github-issue42.plist");
+        PropertyListParser.parse(plistFile);
     }
 }
