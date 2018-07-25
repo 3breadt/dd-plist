@@ -633,11 +633,15 @@ public final class ASCIIPropertyListParser {
         {
             case '\\':
             case '"':
-            case 'b':
-            case 'n':
-            case 'r':
-            case 't':
                 return c;
+            case 'b':
+                return '\b';
+            case 'n':
+                return '\n';
+            case 'r':
+                return '\r';
+            case 't':
+                return '\t';
 
             case 'U':
             case 'u':

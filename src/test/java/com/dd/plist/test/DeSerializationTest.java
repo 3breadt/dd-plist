@@ -328,4 +328,19 @@ public class DeSerializationTest extends TestCase {
         assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
     }
 
+    public void testParseSpecialCharacters() throws Exception {
+        String asciiPropertyList = "{\n" +
+                "a = \"abc \\n def\";\n" +
+                "b = \"\\r\";\n" +
+                "c = \"xyz\\b\";\n" +
+                "d = \"\\tasdf\";\n" +
+                "e = \"\\\\ \\\"\";\n" +
+                "}";
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        assertEquals("abc \n def", dict.get("a").toString());
+        assertEquals("\r", dict.get("b").toString());
+        assertEquals("xyz\b", dict.get("c").toString());
+        assertEquals("\tasdf", dict.get("d").toString());
+        assertEquals("\\ \"", dict.get("e").toString());
+    }
 }
