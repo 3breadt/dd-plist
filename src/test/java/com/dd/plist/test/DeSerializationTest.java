@@ -335,6 +335,7 @@ public class DeSerializationTest extends TestCase {
                 "c = \"xyz\\b\";\n" +
                 "d = \"\\tasdf\";\n" +
                 "e = \"\\\\ \\\"\";\n" +
+                "f = \"a \\' b\";\n" +
                 "}";
         NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
         assertEquals("abc \n def", dict.get("a").toString());
@@ -342,5 +343,6 @@ public class DeSerializationTest extends TestCase {
         assertEquals("xyz\b", dict.get("c").toString());
         assertEquals("\tasdf", dict.get("d").toString());
         assertEquals("\\ \"", dict.get("e").toString());
+        assertEquals("a ' b", dict.get("f").toString());
     }
 }
