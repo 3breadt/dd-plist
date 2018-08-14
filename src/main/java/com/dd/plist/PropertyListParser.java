@@ -168,8 +168,7 @@ public class PropertyListParser {
      *
      * @param filePath Path to the property list file.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
-     *                                                        could not be created. This should not occur.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list could not be created. This should not occur.
      * @throws java.io.IOException If any IO error occurs while reading the file.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
@@ -184,21 +183,21 @@ public class PropertyListParser {
      *
      * @param f The property list file.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
-     *                                                        could not be created. This should not occur.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list could not be created. This should not occur.
      * @throws java.io.IOException If any IO error occurs while reading the file.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
-        FileInputStream fis = new FileInputStream(f);
+        InputStream fileInputStream = new FileInputStream(f);
         try {
-            return parse(fis);
+            return parse(fileInputStream);
         } finally {
             try {
-                fis.close();
+                fileInputStream.close();
             } catch (IOException e) {
+                // ignore
             }
         }
     }
@@ -208,8 +207,7 @@ public class PropertyListParser {
      *
      * @param bytes The property list data as a byte array.
      * @return The root object in the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
-     *                                                        could not be created. This should not occur.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list could not be created.
      * @throws java.io.IOException If any IO error occurs while reading the byte array.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
@@ -221,11 +219,11 @@ public class PropertyListParser {
 
     /**
      * Parses a property list from an InputStream.
+     * This method does not close the specified input stream.
      *
      * @param is The InputStream delivering the property list data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
-     *                                                        could not be created. This should not occur.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list could not be created.
      * @throws java.io.IOException If any IO error occurs while reading the input stream.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
@@ -261,13 +259,24 @@ public class PropertyListParser {
         if (!parent.exists() && !parent.mkdirs()) {
             throw new IOException("The output directory does not exist and could not be created.");
         }
-        FileOutputStream fous = new FileOutputStream(out);
-        saveAsXML(root, fous);
-        fous.close();
+
+        FileOutputStream fileOutputStream = new FileOutputStream(out);
+        try {
+            saveAsXML(root, fileOutputStream);
+        }
+        finally {
+            try {
+                fileOutputStream.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**
      * Saves a property list with the given object as root in XML format into an output stream.
+     * This method does not close the specified input stream.
      *
      * @param root The root object.
      * @param out  The output stream.
@@ -276,7 +285,7 @@ public class PropertyListParser {
     public static void saveAsXML(NSObject root, OutputStream out) throws IOException {
         OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
         w.write(root.toXMLPropertyList());
-        w.close();
+        w.flush();
     }
 
     /**
@@ -309,11 +318,13 @@ public class PropertyListParser {
         if (!parent.exists() && !parent.mkdirs()) {
             throw new IOException("The output directory does not exist and could not be created.");
         }
+
         BinaryPropertyListWriter.write(out, root);
     }
 
     /**
      * Saves a property list with the given object as root in binary format into an output stream.
+     * This method does not close the specified input stream.
      *
      * @param root The root object.
      * @param out  The output stream.
@@ -352,9 +363,19 @@ public class PropertyListParser {
         if (!parent.exists() && !parent.mkdirs()) {
             throw new IOException("The output directory does not exist and could not be created.");
         }
+
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
-        w.write(root.toASCIIPropertyList());
-        w.close();
+        try {
+            w.write(root.toASCIIPropertyList());
+        }
+        finally {
+            try {
+                w.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -365,9 +386,23 @@ public class PropertyListParser {
      * @throws IOException When an error occurs during the writing process.
      */
     public static void saveAsASCII(NSArray root, File out) throws IOException {
+        File parent = out.getParentFile();
+        if (!parent.exists() && !parent.mkdirs()) {
+            throw new IOException("The output directory does not exist and could not be created.");
+        }
+
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
-        w.write(root.toASCIIPropertyList());
-        w.close();
+        try {
+            w.write(root.toASCIIPropertyList());
+        }
+        finally {
+            try {
+                w.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -408,9 +443,19 @@ public class PropertyListParser {
         if (!parent.exists() && !parent.mkdirs()) {
             throw new IOException("The output directory does not exist and could not be created.");
         }
+
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
-        w.write(root.toGnuStepASCIIPropertyList());
-        w.close();
+        try {
+            w.write(root.toGnuStepASCIIPropertyList());
+        }
+        finally {
+            try {
+                w.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -425,9 +470,19 @@ public class PropertyListParser {
         if (!parent.exists() && !parent.mkdirs()) {
             throw new IOException("The output directory does not exist and could not be created.");
         }
+
         OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
-        w.write(root.toGnuStepASCIIPropertyList());
-        w.close();
+        try {
+            w.write(root.toGnuStepASCIIPropertyList());
+        }
+        finally {
+            try {
+                w.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**

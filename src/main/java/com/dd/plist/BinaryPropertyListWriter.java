@@ -123,13 +123,23 @@ public final class BinaryPropertyListWriter {
      *                     data that cannot be saved.
      */
     public static void write(File file, NSObject root) throws IOException {
-        OutputStream out = new FileOutputStream(file);
-        write(out, root);
-        out.close();
+        OutputStream fileOutputStream = new FileOutputStream(file);
+        try {
+            write(fileOutputStream, root);
+        }
+        finally {
+            try {
+                fileOutputStream.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**
      * Writes a binary plist serialization of the given object as the root.
+     * This method does not close the output stream.
      *
      * @param out  the stream to write to
      * @param root the source of the data to write to the stream

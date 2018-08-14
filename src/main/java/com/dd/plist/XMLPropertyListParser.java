@@ -108,9 +108,18 @@ public class XMLPropertyListParser {
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(File f)
-                throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-
-        return parse(getDocBuilder().parse(new FileInputStream(f)));
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
+        InputStream fileInputStream = new FileInputStream(f);
+        try {
+            return parse(getDocBuilder().parse(fileInputStream));
+        }
+        finally {
+            try {
+                fileInputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -133,6 +142,7 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list from an input stream.
+     * This method does not close the specified input stream.
      *
      * @param is The input stream pointing to the property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
@@ -146,7 +156,6 @@ public class XMLPropertyListParser {
      */
     public static NSObject parse(InputStream is)
                 throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-
         return parse(getDocBuilder().parse(is));
     }
 

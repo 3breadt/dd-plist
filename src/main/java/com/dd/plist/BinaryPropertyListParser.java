@@ -147,6 +147,7 @@ public final class BinaryPropertyListParser {
 
     /**
      * Parses a binary property list from an input stream.
+     * This method does not close the specified input stream.
      *
      * @param is The input stream that points to the property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
@@ -154,8 +155,7 @@ public final class BinaryPropertyListParser {
      * @throws java.io.IOException When a NSString object could not be decoded or an InputStream IO error occurs.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
-        byte[] buf = PropertyListParser.readAll(is);
-        return parse(buf);
+        return parse(PropertyListParser.readAll(is));
     }
 
     /**
@@ -167,7 +167,17 @@ public final class BinaryPropertyListParser {
      * @throws java.io.UnsupportedEncodingException When a NSString object could not be decoded or a file IO error occurs.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException {
-        return parse(new FileInputStream(f));
+        InputStream fileInputStream = new FileInputStream(f);
+        try {
+            return parse(fileInputStream);
+        }
+        finally {
+            try {
+                fileInputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     /**

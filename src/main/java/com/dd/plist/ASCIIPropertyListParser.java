@@ -121,11 +121,22 @@ public final class ASCIIPropertyListParser {
      * @throws java.io.IOException When an error occured while reading from the input stream.
      */
     public static NSObject parse(File f) throws IOException, ParseException {
-        return parse(new FileInputStream(f));
+        InputStream fileInputStream = new FileInputStream(f);
+        try {
+            return parse(fileInputStream);
+        }
+        finally {
+            try {
+                fileInputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     /**
      * Parses an ASCII property list from an input stream.
+     * This method does not close the specified input stream.
      *
      * @param in The input stream that points to the property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
@@ -133,9 +144,7 @@ public final class ASCIIPropertyListParser {
      * @throws java.io.IOException When an error occured while reading from the input stream.
      */
     public static NSObject parse(InputStream in) throws ParseException, IOException {
-        byte[] buf = PropertyListParser.readAll(in);
-        in.close();
-        return parse(buf);
+        return parse(PropertyListParser.readAll(in));
     }
 
     /**
