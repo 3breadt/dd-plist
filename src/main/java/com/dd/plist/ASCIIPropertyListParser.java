@@ -585,8 +585,12 @@ public final class ASCIIPropertyListParser {
         String unescapedString;
         try {
             unescapedString = this.parseQuotedString(new String(bytArr, "UTF-8"));
-        } catch (Exception ex) {
-            throw new ParseException("The quoted string could not be parsed.", this.index);
+        }
+        catch (ParseException ex) {
+            throw new ParseException(ex.getMessage(), this.index);
+        }
+        catch (Exception ex) {
+            throw new ParseException("A quoted string could not be parsed.", this.index);
         }
 
         //skip end token
@@ -603,8 +607,9 @@ public final class ASCIIPropertyListParser {
      * @return The unescaped string in UTF-8 
      * @throws java.io.UnsupportedEncodingException If the en-/decoder for the UTF-8 or ASCII encoding could not be loaded
      * @throws java.nio.charset.CharacterCodingException If the string is encoded neither in ASCII nor in UTF-8
+     * @throws ParseException The string contains an invalid escape sequence.
      */
-    private static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException {
+    private static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException, ParseException {
         StringBuffer result = new StringBuffer();
 
         StringCharacterIterator iterator = new StringCharacterIterator(s);
@@ -634,9 +639,9 @@ public final class ASCIIPropertyListParser {
      * @param iterator The string character iterator pointing to the first character after the backslash
      * @return The unescaped character.
      * @throws UnsupportedEncodingException If an invalid Unicode or ASCII escape sequence is found.
+     * @throws ParseException The string contains an invalid escape sequence.
      */
-    private static char parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException
-    {
+    private static char parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException, ParseException {
         char c = iterator.next();
         switch (c)
         {
@@ -660,12 +665,22 @@ public final class ASCIIPropertyListParser {
                 return (char)Integer.parseInt(unicodeValue, 16);
             }
 
-            default:
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
             {
                 //3 digit octal ASCII value
                 String num = new String(new char[] {c, iterator.next(), iterator.next()});
                 return (char)Integer.parseInt(num, 8);
             }
+
+            default:
+                throw new ParseException("The property list contains an invalid escape sequence: \\" + c, 0);
         }
     }
 }
