@@ -37,7 +37,7 @@ import java.util.List;
  * <p>
  * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format.
  * This parser is based on the recursive descent paradigm, but the underlying grammar
- * is not explicitely defined.
+ * is not explicitly defined.
  * </p>
  * <p>
  * Resources on ASCII property list format:
@@ -584,10 +584,10 @@ public final class ASCIIPropertyListParser {
 
         String unescapedString;
         try {
-            unescapedString = this.parseQuotedString(new String(bytArr, "UTF-8"));
+            unescapedString = parseQuotedString(new String(bytArr, "UTF-8"));
         }
         catch (ParseException ex) {
-            throw new ParseException(ex.getMessage(), this.index);
+            throw new ParseException(ex.getMessage(), this.index + ex.getErrorOffset());
         }
         catch (Exception ex) {
             throw new ParseException("A quoted string could not be parsed.", this.index);
@@ -610,7 +610,7 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException The string contains an invalid escape sequence.
      */
     private static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException, ParseException {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
 
         StringCharacterIterator iterator = new StringCharacterIterator(s);
         char c = iterator.current();
@@ -618,11 +618,11 @@ public final class ASCIIPropertyListParser {
         while (iterator.getIndex() < iterator.getEndIndex()) {
             switch (c) {
                 case '\\': { //An escaped sequence is following
-                	result.append(parseEscapedSequence(iterator));
+                    result.append(parseEscapedSequence(iterator));
                     break;
                 }
                 default: { //a normal UTF-8 char
-                	result.append(c);
+                    result.append(c);
                     break;
                 }
             }
@@ -647,6 +647,7 @@ public final class ASCIIPropertyListParser {
         {
             case '\\':
             case '"':
+            case '\'':
                 return c;
             case 'b':
                 return '\b';
@@ -662,7 +663,12 @@ public final class ASCIIPropertyListParser {
             {
                 //4 digit hex Unicode value
                 String unicodeValue = new String(new char[] {iterator.next(), iterator.next(), iterator.next(), iterator.next()});
-                return (char)Integer.parseInt(unicodeValue, 16);
+                try {
+                    return (char) Integer.parseInt(unicodeValue, 16);
+                }
+                catch (NumberFormatException ex) {
+                    throw new ParseException("The property list contains a string with an invalid escape sequence: \\" + c + unicodeValue, iterator.getIndex() - 4);
+                }
             }
 
             case '0':
@@ -676,11 +682,16 @@ public final class ASCIIPropertyListParser {
             {
                 //3 digit octal ASCII value
                 String num = new String(new char[] {c, iterator.next(), iterator.next()});
-                return (char)Integer.parseInt(num, 8);
+                try {
+                    return (char) Integer.parseInt(num, 8);
+                }
+                catch (NumberFormatException ex) {
+                    throw new ParseException("The property list contains a string with an invalid escape sequence: \\" + num, iterator.getIndex() - 2);
+                }
             }
 
             default:
-                throw new ParseException("The property list contains an invalid escape sequence: \\" + c, 0);
+                throw new ParseException("The property list contains a string with an invalid escape sequence: \\" + c, iterator.getIndex());
         }
     }
 }
