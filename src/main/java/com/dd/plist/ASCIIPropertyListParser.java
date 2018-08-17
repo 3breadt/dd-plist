@@ -22,6 +22,7 @@
  */
 package com.dd.plist;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -299,6 +300,14 @@ public final class ASCIIPropertyListParser {
         while (commentSkipped); //if a comment was skipped more whitespace or another comment can follow, so skip again
     }
 
+    private String toUtf8String(ByteArrayOutputStream stream) {
+        try {
+            return stream.toString("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Reads input until one of the given symbols is found.
      *
@@ -306,13 +315,12 @@ public final class ASCIIPropertyListParser {
      * @return The input until one the given symbols.
      */
     private String readInputUntil(char... symbols) {
-        StringBuilder strBuf = new StringBuilder();
-        while (!this.accept(symbols)) {
-        	  strBuf.append((char) this.data[this.index]);
-            this.skip();
+        ByteArrayOutputStream stringBytes = new ByteArrayOutputStream();
+        while (!accept(symbols)) {
+            stringBytes.write(data[index]);
+            skip();
         }
-
-        return strBuf.toString();
+        return toUtf8String(stringBytes);
     }
 
     /**
@@ -322,12 +330,12 @@ public final class ASCIIPropertyListParser {
      * @return The input until the given symbol.
      */
     private String readInputUntil(char symbol) {
-        StringBuilder strBuf = new StringBuilder();
-        while (!this.accept(symbol)) {
-        	  strBuf.append((char) this.data[this.index]);
-            this.skip();
+        ByteArrayOutputStream stringBytes = new ByteArrayOutputStream();
+        while (!accept(symbol)) {
+            stringBytes.write(data[index]);
+            skip();
         }
-        return strBuf.toString();
+        return toUtf8String(stringBytes);
     }
 
     /**
