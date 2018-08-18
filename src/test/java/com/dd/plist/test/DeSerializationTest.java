@@ -345,4 +345,19 @@ public class DeSerializationTest extends TestCase {
         assertEquals("\\ \"", dict.get("e").toString());
         assertEquals("a ' b", dict.get("f").toString());
     }
+
+    public void testParseNonAscii() throws Exception {
+        String asciiPropertyList = "{\n" +
+                "/* コメント */\n" +
+                "\"quoted\" = \"もじれつ\";\n" +
+                "\"not_quoted\" = クオート無し;\n" +
+                "\"with_escapes\" = \"\\\"\\\\\\\":\\n拡張文字ｷﾀｱｱｱ\";\n" +
+                "\"with_u_escapes\" = \"\\u0020\\u5e78\";\n" +
+                "}";
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        assertEquals("もじれつ", dict.get("quoted").toString());
+        assertEquals("クオート無し", dict.get("not_quoted").toString());
+        assertEquals("\"\\\":\n拡張文字ｷﾀｱｱｱ", dict.get("with_escapes").toString());
+        assertEquals("\u0020\u5e78", dict.get("with_u_escapes").toString());
+    }
 }
