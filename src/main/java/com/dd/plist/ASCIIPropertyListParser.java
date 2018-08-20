@@ -27,7 +27,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.CharacterCodingException;
 import java.text.ParseException;
 import java.text.StringCharacterIterator;
 import java.util.LinkedList;
@@ -109,7 +108,7 @@ public final class ASCIIPropertyListParser {
      * @param propertyListContent The content of the property list that is to be parsed.
      */
     private ASCIIPropertyListParser(byte[] propertyListContent, String encoding) throws UnsupportedEncodingException {
-        data = new String(propertyListContent, encoding).toCharArray();
+        this.data = new String(propertyListContent, encoding).toCharArray();
     }
 
     /**
@@ -192,8 +191,6 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException When an error occurs during parsing.
      */
     public static NSObject parse(byte[] bytes) throws ParseException {
-
-
         try {
             // Check for byte order marks
             if (bytes.length > 2) {
@@ -216,7 +213,7 @@ public final class ASCIIPropertyListParser {
                 }
             }
 
-            return parse(bytes, "ASCII");
+            return parse(bytes, "UTF-8");
         } catch(UnsupportedEncodingException e) {
             // Very unlikely to happen
             throw new RuntimeException("Unsupported property list encoding: " + e.getMessage());
