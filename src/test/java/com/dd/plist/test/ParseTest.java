@@ -157,11 +157,35 @@ public class ParseTest extends TestCase {
 		executor.submit(task).get(5, TimeUnit.SECONDS);
     }
 
-    public static void testAsciiUtf8CharactersInQuotedString() throws Exception {
-        NSObject x = PropertyListParser.parse(new File("test-files/test-ascii-utf8.plist"));
-        NSDictionary d = (NSDictionary)x;
-        assertEquals(2, d.count());
-        assertEquals("JÔÖú@2x.jpg", d.objectForKey("path").toString());
-        assertEquals("QÔÖú@2x 啕.jpg", d.objectForKey("Key QÔÖª@2x 䌡").toString());
+    public static void testAsciiPropertyListEncodedWithUtf8() throws Exception {
+        testAsciiUnicode("test-ascii-utf8.plist");
+    }
+
+    public static void testAsciiPropertyListEncodedWithUtf16Be() throws Exception {
+        testAsciiUnicode("test-ascii-utf16-be.plist");
+    }
+
+    public static void testAsciiPropertyListEncodedWithUtf16Le() throws Exception {
+        testAsciiUnicode("test-ascii-utf16-le.plist");
+    }
+
+    public static void testAsciiPropertyListEncodedWithUtf32Be() throws Exception {
+        testAsciiUnicode("test-ascii-utf32-be.plist");
+    }
+
+    public static void testAsciiPropertyListEncodedWithUtf32Le() throws Exception {
+        testAsciiUnicode("test-ascii-utf32-le.plist");
+    }
+
+    private static void testAsciiUnicode(String filename) throws Exception {
+        // contains BOM, encoding shall be automatically detected
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(new File("test-files/" + filename));
+        assertEquals(6, dict.count());
+        assertEquals("JÔÖú@2x.jpg", dict.objectForKey("path").toString());
+        assertEquals("QÔÖú@2x 啕.jpg", dict.objectForKey("Key QÔÖª@2x 䌡").toString());
+        assertEquals("もじれつ", dict.get("quoted").toString());
+        assertEquals("クオート無し", dict.get("not_quoted").toString());
+        assertEquals("\"\\\":\n拡張文字ｷﾀｱｱｱ", dict.get("with_escapes").toString());
+        assertEquals("\u0020\u5e78", dict.get("with_u_escapes").toString());
     }
 }

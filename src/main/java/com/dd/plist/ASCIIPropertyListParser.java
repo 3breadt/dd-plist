@@ -27,7 +27,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.CharacterCodingException;
 import java.text.ParseException;
 import java.text.StringCharacterIterator;
 import java.util.LinkedList;
@@ -97,7 +96,7 @@ public final class ASCIIPropertyListParser {
     /**
      * Property list source data
      */
-    private final byte[] data;
+    private final char[] data;
     /**
      * Current parsing index
      */
@@ -108,8 +107,8 @@ public final class ASCIIPropertyListParser {
      *
      * @param propertyListContent The content of the property list that is to be parsed.
      */
-    private ASCIIPropertyListParser(byte[] propertyListContent) {
-        data = propertyListContent;
+    private ASCIIPropertyListParser(byte[] propertyListContent, String encoding) throws UnsupportedEncodingException {
+        this.data = new String(propertyListContent, encoding).toCharArray();
     }
 
     /**
@@ -118,12 +117,35 @@ public final class ASCIIPropertyListParser {
      * @param f The ASCII property list file.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occured while reading from the input stream.
+     * @throws java.io.IOException When an error occurs while reading from the input stream.
      */
     public static NSObject parse(File f) throws IOException, ParseException {
         InputStream fileInputStream = new FileInputStream(f);
         try {
             return parse(fileInputStream);
+        }
+        finally {
+            try {
+                fileInputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+
+    /**
+     * Parses an ASCII property list file.
+     *
+     * @param f The ASCII property list file.
+     * @param encoding The name of a supported @see java.nio.charset.Charset charset to decode the property list.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws java.text.ParseException When an error occurs during parsing.
+     * @throws java.io.IOException When an error occurs while reading from the input stream.
+     */
+    public static NSObject parse(File f, String encoding) throws IOException, ParseException {
+        InputStream fileInputStream = new FileInputStream(f);
+        try {
+            return parse(fileInputStream, encoding);
         }
         finally {
             try {
@@ -141,10 +163,24 @@ public final class ASCIIPropertyListParser {
      * @param in The input stream that points to the property list's data.
      * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
      * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occured while reading from the input stream.
+     * @throws java.io.IOException When an error occurs while reading from the input stream.
      */
     public static NSObject parse(InputStream in) throws ParseException, IOException {
         return parse(PropertyListParser.readAll(in));
+    }
+
+    /**
+     * Parses an ASCII property list from an input stream.
+     * This method does not close the specified input stream.
+     *
+     * @param in The input stream that points to the property list's data.
+     * @param encoding The name of a supported @see java.nio.charset.Charset charset to decode the property list.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws java.text.ParseException When an error occurs during parsing.
+     * @throws java.io.IOException When an error occurs while reading from the input stream.
+     */
+    public static NSObject parse(InputStream in, String encoding) throws ParseException, IOException {
+        return parse(PropertyListParser.readAll(in), encoding);
     }
 
     /**
@@ -155,7 +191,45 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException When an error occurs during parsing.
      */
     public static NSObject parse(byte[] bytes) throws ParseException {
-        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes);
+        try {
+            // Check for byte order marks
+            if (bytes.length > 2) {
+                if (bytes[0] == (byte)0xFE && bytes[1] == (byte)0xFF) {
+                    return parse(bytes, "UTF-16");
+                }
+                else if (bytes[0] == (byte)0xFF && bytes[1] == (byte)0xFE) {
+                    if (bytes.length > 4 && bytes[2] == (byte)0x00 && bytes[3] == (byte)0x00) {
+                        return parse(bytes, "UTF-32");
+                    }
+                    return parse(bytes, "UTF-16");
+                }
+                else if (bytes.length > 3) {
+                    if (bytes[0] == (byte)0xEF && bytes[1] == (byte)0xBB && bytes[2] == (byte)0xBF) {
+                        return parse(bytes, "UTF-8");
+                    }
+                    else if (bytes.length > 4 && bytes[0] == (byte)0x00 && bytes[1] == (byte)0x00 && bytes[2] == (byte)0xFE && bytes[3] == (byte)0xFF) {
+                        return parse(bytes, "UTF-32");
+                    }
+                }
+            }
+
+            return parse(bytes, "UTF-8");
+        } catch(UnsupportedEncodingException e) {
+            // Very unlikely to happen
+            throw new RuntimeException("Unsupported property list encoding: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Parses an ASCII property list from a byte array.
+     *
+     * @param bytes The ASCII property list data.
+     * @param encoding The name of a supported @see java.nio.charset.Charset charset to decode the property list.
+     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @throws ParseException When an error occurs during parsing.
+     */
+    public static NSObject parse(byte[] bytes, String encoding) throws ParseException, UnsupportedEncodingException {
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes, encoding);
         return parser.parse();
     }
 
@@ -218,7 +292,7 @@ public final class ASCIIPropertyListParser {
                 excString.append(" or '").append(expectedSymbols[i]).append("'");
             }
 
-            excString.append(" but found '").append((char) this.data[this.index]).append("'");
+            excString.append(" but found '").append(this.data[this.index]).append("'");
             throw new ParseException(excString.toString(), this.index);
         }
     }
@@ -231,7 +305,7 @@ public final class ASCIIPropertyListParser {
      */
     private void expect(char expectedSymbol) throws ParseException {
         if (!this.accept(expectedSymbol)) {
-            throw new ParseException("Expected '" + expectedSymbol + "' but found '" + (char) this.data[this.index] + "'", this.index);
+            throw new ParseException("Expected '" + expectedSymbol + "' but found '" + this.data[this.index] + "'", this.index);
         }
     }
 
@@ -308,7 +382,7 @@ public final class ASCIIPropertyListParser {
     private String readInputUntil(char... symbols) {
         StringBuilder strBuf = new StringBuilder();
         while (!this.accept(symbols)) {
-        	  strBuf.append((char) this.data[this.index]);
+        	  strBuf.append(this.data[this.index]);
             this.skip();
         }
 
@@ -324,7 +398,7 @@ public final class ASCIIPropertyListParser {
     private String readInputUntil(char symbol) {
         StringBuilder strBuf = new StringBuilder();
         while (!this.accept(symbol)) {
-        	  strBuf.append((char) this.data[this.index]);
+        	  strBuf.append(this.data[this.index]);
             this.skip();
         }
         return strBuf.toString();
@@ -335,13 +409,17 @@ public final class ASCIIPropertyListParser {
      * of the property list.
      *
      * @return The root object of the property list. This can either be a NSDictionary or a NSArray.
-     * @throws ParseException When an error occured during parsing
+     * @throws ParseException When an error occurred during parsing
      */
     public NSObject parse() throws ParseException {
         this.index = 0;
+        if (this.data.length == 0) {
+           throw new ParseException("The property list is empty.", 0);
+        }
+
         //Skip Unicode byte order mark (BOM)
-        if (this.data.length >= 3 && (this.data[0] & 0xFF) == 0xEF && (this.data[1] & 0xFF) == 0xBB && (this.data[2] & 0xFF) == 0xBF) {
-            this.skip(3);
+        if (this.data[0] == '\uFEFF') {
+            this.skip(1);
         }
 
         this.skipWhitespacesAndComments();
@@ -387,7 +465,7 @@ public final class ASCIIPropertyListParser {
             }
             default: {
                 //0-9
-                if (this.data[this.index] > 0x2F && this.data[this.index] < 0x3A) {
+                if (this.data[this.index] >= '0' && this.data[this.index] <= '9') {
                     //could be a date or just a string
                     return this.parseDateString();
                 } else {
@@ -420,6 +498,7 @@ public final class ASCIIPropertyListParser {
 
             this.skipWhitespacesAndComments();
         }
+
         //parse end token
         this.read(ARRAY_END_TOKEN);
         return new NSArray(objects.toArray(new NSObject[objects.size()]));
@@ -487,6 +566,7 @@ public final class ASCIIPropertyListParser {
                 } else {
                     obj = new NSNumber(false);
                 }
+
                 //Skip the parsed boolean token
                 this.skip();
             } else if (accept(DATA_GSDATE_BEGIN_TOKEN)) {
@@ -500,6 +580,7 @@ public final class ASCIIPropertyListParser {
                 String numberString = this.readInputUntil(DATA_END_TOKEN);
                 obj = new NSNumber(numberString);
             }
+
             //parse data end token
             this.read(DATA_END_TOKEN);
         } else {
@@ -562,11 +643,11 @@ public final class ASCIIPropertyListParser {
     private String parseQuotedString() throws ParseException {
         //Skip begin token
         this.skip();
-        List<Byte> strBytes = new LinkedList<Byte>();
+        StringBuilder stringBuilder = new StringBuilder();
         boolean unescapedBackslash = true;
         //Read from opening quotation marks to closing quotation marks and skip escaped quotation marks
         while (this.data[this.index] != QUOTEDSTRING_END_TOKEN || (this.data[this.index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash)) {
-            strBytes.add(this.data[this.index]);
+            stringBuilder.append(this.data[this.index]);
             if (this.accept(QUOTEDSTRING_ESCAPE_TOKEN)) {
                 unescapedBackslash = !(this.data[this.index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash);
             }
@@ -574,17 +655,9 @@ public final class ASCIIPropertyListParser {
             this.skip();
         }
 
-        byte[] bytArr = new byte[strBytes.size()];
-        int i = 0;
-        for (Byte b : strBytes)
-        {
-            bytArr[i] = b;
-            i++;
-        }
-
         String unescapedString;
         try {
-            unescapedString = parseQuotedString(new String(bytArr, "UTF-8"));
+            unescapedString = parseQuotedString(stringBuilder.toString());
         }
         catch (ParseException ex) {
             throw new ParseException(ex.getMessage(), this.index + ex.getErrorOffset());
@@ -604,12 +677,10 @@ public final class ASCIIPropertyListParser {
      * Such strings can contain escape sequences which are unescaped in this method.
      *
      * @param s The escaped string according to the ASCII property list format, without leading and trailing quotation marks.
-     * @return The unescaped string in UTF-8 
-     * @throws java.io.UnsupportedEncodingException If the en-/decoder for the UTF-8 or ASCII encoding could not be loaded
-     * @throws java.nio.charset.CharacterCodingException If the string is encoded neither in ASCII nor in UTF-8
+     * @return The unescaped string in UTF-8
      * @throws ParseException The string contains an invalid escape sequence.
      */
-    private static synchronized String parseQuotedString(String s) throws UnsupportedEncodingException, CharacterCodingException, ParseException {
+    private static synchronized String parseQuotedString(String s) throws ParseException {
         StringBuilder result = new StringBuilder();
 
         StringCharacterIterator iterator = new StringCharacterIterator(s);
@@ -638,10 +709,9 @@ public final class ASCIIPropertyListParser {
      *
      * @param iterator The string character iterator pointing to the first character after the backslash
      * @return The unescaped character.
-     * @throws UnsupportedEncodingException If an invalid Unicode or ASCII escape sequence is found.
      * @throws ParseException The string contains an invalid escape sequence.
      */
-    private static char parseEscapedSequence(StringCharacterIterator iterator) throws UnsupportedEncodingException, ParseException {
+    private static char parseEscapedSequence(StringCharacterIterator iterator) throws ParseException {
         char c = iterator.next();
         switch (c)
         {
