@@ -63,7 +63,7 @@ public final class BinaryPropertyListWriter {
      * Creates a new binary property list writer
      *
      * @param outStr The output stream into which the binary property list will be written
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
     BinaryPropertyListWriter(OutputStream outStr) throws IOException {
@@ -119,7 +119,7 @@ public final class BinaryPropertyListWriter {
      *
      * @param file the file to write to
      * @param root the source of the data to write to the file
-     * @throws IOException When an IO error occurs while writing to the file or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
      *                     data that cannot be saved.
      */
     public static void write(File file, NSObject root) throws IOException {
@@ -143,7 +143,7 @@ public final class BinaryPropertyListWriter {
      *
      * @param out  the stream to write to
      * @param root the source of the data to write to the stream
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
     public static void write(OutputStream out, NSObject root) throws IOException {
@@ -164,7 +164,7 @@ public final class BinaryPropertyListWriter {
      *
      * @param root The root object of the property list
      * @return The byte array containing the serialized property list
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
     public static byte[] writeToArray(NSObject root) throws IOException {
@@ -178,7 +178,7 @@ public final class BinaryPropertyListWriter {
         this.write(new byte[]{'b', 'p', 'l', 'i', 's', 't'});
 
         //version
-        switch (version) {
+        switch (this.version) {
             case VERSION_00: {
                 this.write(new byte[]{'0', '0'});
                 break;
@@ -202,7 +202,7 @@ public final class BinaryPropertyListWriter {
         // assign IDs to all the objects.
         root.assignIDs(this);
 
-        idSizeInBytes = computeIdSizeInBytes(this.idMap.size());
+        this.idSizeInBytes = computeIdSizeInBytes(this.idMap.size());
 
         // offsets of each object, indexed by ID
         long[] offsets = new long[this.idMap.size()];
@@ -211,22 +211,22 @@ public final class BinaryPropertyListWriter {
         for (Map.Entry<NSObject, Integer> entry : this.idMap.entrySet()) {
             NSObject obj = entry.getKey();
             int id = entry.getValue();
-            offsets[id] = count;
+            offsets[id] = this.count;
             if (obj == null) {
-                write(0x00);
+                this.write(0x00);
             } else {
                 obj.toBinary(this);
             }
         }
 
         // write offset table
-        long offsetTableOffset = count;
-        int offsetSizeInBytes = computeOffsetSizeInBytes(count);
+        long offsetTableOffset = this.count;
+        int offsetSizeInBytes = this.computeOffsetSizeInBytes(this.count);
         for (long offset : offsets) {
             this.writeBytes(offset, offsetSizeInBytes);
         }
 
-        if (version != VERSION_15) {
+        if (this.version != VERSION_15) {
             // write trailer
             // 6 null bytes
             this.write(new byte[6]);

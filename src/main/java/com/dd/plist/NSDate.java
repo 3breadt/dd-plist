@@ -64,7 +64,7 @@ public class NSDate extends NSObject {
      */
     public NSDate(byte[] bytes, final int startIndex, final int endIndex) {
         //dates are 8 byte big-endian double, seconds since the epoch
-        date = new Date(EPOCH + (long) (1000 * BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex)));
+        this.date = new Date(EPOCH + (long) (1000 * BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex)));
     }
 
     /**
@@ -77,7 +77,7 @@ public class NSDate extends NSObject {
      * @throws ParseException If the date could not be parsed, i.e. it does not match the expected pattern.
      */
     public NSDate(String textRepresentation) throws ParseException {
-        date = parseDateString(textRepresentation);
+        this.date = parseDateString(textRepresentation);
     }
 
     /**
@@ -88,7 +88,7 @@ public class NSDate extends NSObject {
     public NSDate(Date d) {
         if (d == null)
             throw new IllegalArgumentException("Date cannot be null");
-        date = d;
+        this.date = d;
     }
 
     static {
@@ -142,31 +142,36 @@ public class NSDate extends NSObject {
      * @return The date.
      */
     public Date getDate() {
-        return date;
+        return this.date;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj.getClass().equals(getClass()) && date.equals(((NSDate) obj).getDate());
+        return obj.getClass().equals(this.getClass()) && this.date.equals(((NSDate) obj).getDate());
     }
 
     @Override
     public int hashCode() {
-        return date.hashCode();
+        return this.date.hashCode();
+    }
+
+    @Override
+    public NSDate clone() {
+        return new NSDate((Date)this.getDate().clone());
     }
 
     @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<date>");
-        xml.append(makeDateString(date));
+        xml.append(makeDateString(this.date));
         xml.append("</date>");
     }
 
     @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
         out.write(0x33);
-        out.writeDouble((date.getTime() - EPOCH) / 1000.0);
+        out.writeDouble((this.date.getTime() - EPOCH) / 1000.0);
     }
 
     /**
@@ -177,22 +182,22 @@ public class NSDate extends NSObject {
      */
     @Override
     public String toString() {
-        return date.toString();
+        return this.date.toString();
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append('"');
-        ascii.append(makeDateString(date));
+        ascii.append(makeDateString(this.date));
         ascii.append('"');
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append("<*D");
-        ascii.append(makeDateStringGnuStep(date));
+        ascii.append(makeDateStringGnuStep(this.date));
         ascii.append('>');
     }
 }

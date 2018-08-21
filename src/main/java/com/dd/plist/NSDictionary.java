@@ -163,11 +163,11 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
     }
 
     public Collection<NSObject> values() {
-        return dict.values();
+        return this.dict.values();
     }
 
     public Set<Entry<String, NSObject>> entrySet() {
-        return dict.entrySet();
+        return this.dict.entrySet();
     }
 
     /**
@@ -177,7 +177,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return Whether the key is contained in this dictionary.
      */
     public boolean containsKey(String key) {
-        return dict.containsKey(key);
+        return this.dict.containsKey(key);
     }
 
     /**
@@ -312,24 +312,34 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @return The list of all keys used in this NSDictionary.
      */
     public String[] allKeys() {
-        return this.dict.keySet().toArray(new String[count()]);
+        return this.dict.keySet().toArray(new String[this.count()]);
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 83 * hash + (this.dict != null ? this.dict.hashCode() : 0);
+        hash = 83 * hash + this.dict.hashCode();
         return hash;
     }
 
     @Override
+    public NSDictionary clone() {
+        NSDictionary clone = new NSDictionary();
+        for(Entry<String, NSObject> entry : this.dict.entrySet()) {
+            clone.dict.put(entry.getKey(), entry.getValue() != null ? entry.getValue().clone() : null);
+        }
+
+        return clone;
+    }
+
+    @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<dict>");
         xml.append(NSObject.NEWLINE);
         for (String key : this.dict.keySet()) {
-            NSObject val = objectForKey(key);
-            indent(xml, level + 1);
+            NSObject val = this.objectForKey(key);
+            this.indent(xml, level + 1);
             xml.append("<key>");
             //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
             //contain the characters < or &. Also the > character should be escaped.
@@ -345,7 +355,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
             val.toXML(xml, level + 1);
             xml.append(NSObject.NEWLINE);
         }
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("</dict>");
     }
 
@@ -384,7 +394,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      */
     public String toASCIIPropertyList() {
         StringBuilder ascii = new StringBuilder();
-        toASCII(ascii, 0);
+        this.toASCII(ascii, 0);
         ascii.append(NEWLINE);
         return ascii.toString();
     }
@@ -400,20 +410,20 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      */
     public String toGnuStepASCIIPropertyList() {
         StringBuilder ascii = new StringBuilder();
-        toASCIIGnuStep(ascii, 0);
+        this.toASCIIGnuStep(ascii, 0);
         ascii.append(NEWLINE);
         return ascii.toString();
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
         ascii.append(NEWLINE);
-        String[] keys = allKeys();
+        String[] keys = this.allKeys();
         for (String key : keys) {
-            NSObject val = objectForKey(key);
-            indent(ascii, level + 1);
+            NSObject val = this.objectForKey(key);
+            this.indent(ascii, level + 1);
             ascii.append('"');
             ascii.append(NSString.escapeStringForASCII(key));
             ascii.append("\" =");
@@ -428,19 +438,19 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
             ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
             ascii.append(NEWLINE);
         }
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
         ascii.append(NEWLINE);
-        String[] keys = dict.keySet().toArray(new String[dict.size()]);
+        String[] keys = this.dict.keySet().toArray(new String[this.dict.size()]);
         for (String key : keys) {
-            NSObject val = objectForKey(key);
-            indent(ascii, level + 1);
+            NSObject val = this.objectForKey(key);
+            this.indent(ascii, level + 1);
             ascii.append('"');
             ascii.append(NSString.escapeStringForASCII(key));
             ascii.append("\" =");
@@ -455,7 +465,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
             ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
             ascii.append(NEWLINE);
         }
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
     }
 }

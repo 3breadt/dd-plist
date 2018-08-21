@@ -119,12 +119,12 @@ public class NSData extends NSObject {
      * @return The data as a Base64 encoded <code>String</code>.
      */
     public String getBase64EncodedData() {
-        return Base64.encodeBytes(bytes);
+        return Base64.encodeBytes(this.bytes);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj.getClass().equals(getClass()) && Arrays.equals(((NSData) obj).bytes, bytes);
+        return obj.getClass().equals(this.getClass()) && Arrays.equals(((NSData) obj).bytes, this.bytes);
     }
 
     @Override
@@ -135,40 +135,45 @@ public class NSData extends NSObject {
     }
 
     @Override
+    public NSData clone() {
+        return new NSData(this.bytes.clone());
+    }
+
+    @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<data>");
         xml.append(NSObject.NEWLINE);
-        String base64 = getBase64EncodedData();
+        String base64 = this.getBase64EncodedData();
         for (String line : base64.split("\n")) {
-            indent(xml, level + 1);
+            this.indent(xml, level + 1);
             xml.append(line);
             xml.append(NSObject.NEWLINE);
         }
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("</data>");
     }
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        out.writeIntHeader(0x4, bytes.length);
-        out.write(bytes);
+        out.writeIntHeader(0x4, this.bytes.length);
+        out.write(this.bytes);
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DATA_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for (int i = 0; i < bytes.length; i++) {
-            int b = bytes[i] & 0xFF;
+        for (int i = 0; i < this.bytes.length; i++) {
+            int b = this.bytes[i] & 0xFF;
             if (b < 16)
                 ascii.append('0');
             ascii.append(Integer.toHexString(b));
             if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
                 ascii.append(NEWLINE);
                 indexOfLastNewLine = ascii.length();
-            } else if ((i + 1) % 2 == 0 && i != bytes.length - 1) {
+            } else if ((i + 1) % 2 == 0 && i != this.bytes.length - 1) {
                 ascii.append(' ');
             }
         }
@@ -177,6 +182,6 @@ public class NSData extends NSObject {
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        toASCII(ascii, level);
+        this.toASCII(ascii, level);
     }
 }

@@ -219,15 +219,25 @@ public class NSArray extends NSObject {
     }
 
     @Override
+    public NSArray clone() {
+        NSObject[] clonedArray = new NSObject[this.array.length];
+        for(int i = 0; i < this.array.length; i++) {
+            clonedArray[i] = this.array[i] != null ? this.array[i].clone() : null;
+        }
+
+        return new NSArray(clonedArray);
+    }
+
+    @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<array>");
         xml.append(NSObject.NEWLINE);
         for(NSObject o : this.array) {
             o.toXML(xml, level + 1);
             xml.append(NSObject.NEWLINE);
         }
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("</array>");
     }
 
@@ -257,7 +267,7 @@ public class NSArray extends NSObject {
      */
     public String toASCIIPropertyList() {
         StringBuilder ascii = new StringBuilder();
-        toASCII(ascii, 0);
+        this.toASCII(ascii, 0);
         ascii.append(NEWLINE);
         return ascii.toString();
     }
@@ -273,14 +283,14 @@ public class NSArray extends NSObject {
      */
     public String toGnuStepASCIIPropertyList() {
         StringBuilder ascii = new StringBuilder();
-        toASCIIGnuStep(ascii, 0);
+        this.toASCIIGnuStep(ascii, 0);
         ascii.append(NEWLINE);
         return ascii.toString();
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
         for(int i = 0; i < this.array.length; i++) {
@@ -309,7 +319,7 @@ public class NSArray extends NSObject {
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
         for(int i = 0; i < this.array.length; i++) {

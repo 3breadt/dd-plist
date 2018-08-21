@@ -106,6 +106,8 @@ public final class ASCIIPropertyListParser {
      * Creates a new parser for the given property list content.
      *
      * @param propertyListContent The content of the property list that is to be parsed.
+     * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the property list.
+     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
     private ASCIIPropertyListParser(byte[] propertyListContent, String encoding) throws UnsupportedEncodingException {
         this.data = new String(propertyListContent, encoding).toCharArray();
@@ -115,9 +117,9 @@ public final class ASCIIPropertyListParser {
      * Parses an ASCII property list file.
      *
      * @param f The ASCII property list file.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occurs while reading from the input stream.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException If an error occurs while reading from the input stream.
      */
     public static NSObject parse(File f) throws IOException, ParseException {
         InputStream fileInputStream = new FileInputStream(f);
@@ -137,10 +139,11 @@ public final class ASCIIPropertyListParser {
      * Parses an ASCII property list file.
      *
      * @param f The ASCII property list file.
-     * @param encoding The name of a supported @see java.nio.charset.Charset charset to decode the property list.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occurs while reading from the input stream.
+     * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the property list.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException If an error occurs while reading from the input stream.
+     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
     public static NSObject parse(File f, String encoding) throws IOException, ParseException {
         InputStream fileInputStream = new FileInputStream(f);
@@ -161,9 +164,9 @@ public final class ASCIIPropertyListParser {
      * This method does not close the specified input stream.
      *
      * @param in The input stream that points to the property list's data.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occurs while reading from the input stream.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException If an error occurs while reading from the input stream.
      */
     public static NSObject parse(InputStream in) throws ParseException, IOException {
         return parse(PropertyListParser.readAll(in));
@@ -174,10 +177,11 @@ public final class ASCIIPropertyListParser {
      * This method does not close the specified input stream.
      *
      * @param in The input stream that points to the property list's data.
-     * @param encoding The name of a supported @see java.nio.charset.Charset charset to decode the property list.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws java.text.ParseException When an error occurs during parsing.
-     * @throws java.io.IOException When an error occurs while reading from the input stream.
+     * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the property list.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException If an error occurs while reading from the input stream.
+     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
     public static NSObject parse(InputStream in, String encoding) throws ParseException, IOException {
         return parse(PropertyListParser.readAll(in), encoding);
@@ -187,8 +191,8 @@ public final class ASCIIPropertyListParser {
      * Parses an ASCII property list from a byte array.
      *
      * @param bytes The ASCII property list data.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws ParseException When an error occurs during parsing.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws ParseException If an error occurs during parsing.
      */
     public static NSObject parse(byte[] bytes) throws ParseException {
         try {
@@ -224,9 +228,10 @@ public final class ASCIIPropertyListParser {
      * Parses an ASCII property list from a byte array.
      *
      * @param bytes The ASCII property list data.
-     * @param encoding The name of a supported @see java.nio.charset.Charset charset to decode the property list.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
-     * @throws ParseException When an error occurs during parsing.
+     * @param encoding The name of a supported {@link java.nio.charset.Charset} charset to decode the property list.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws ParseException If an error occurs during parsing.
+     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
     public static NSObject parse(byte[] bytes, String encoding) throws ParseException, UnsupportedEncodingException {
         ASCIIPropertyListParser parser = new ASCIIPropertyListParser(bytes, encoding);
@@ -316,7 +321,7 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException If the expected symbol could not be read.
      */
     private void read(char symbol) throws ParseException {
-        expect(symbol);
+        this.expect(symbol);
         this.index++;
     }
 
@@ -358,7 +363,7 @@ public final class ASCIIPropertyListParser {
 
             //Skip multi line comments "/* ... */"
             else if (this.acceptSequence(COMMENT_BEGIN_TOKEN, MULTILINE_COMMENT_SECOND_TOKEN)) {
-                skip(2);
+                this.skip(2);
                 while (true) {
                     if (this.acceptSequence(MULTILINE_COMMENT_SECOND_TOKEN, MULTILINE_COMMENT_END_TOKEN)) {
                         this.skip(2);
@@ -409,7 +414,7 @@ public final class ASCIIPropertyListParser {
      * of the property list.
      *
      * @return The root object of the property list. This can either be a NSDictionary or a NSArray.
-     * @throws ParseException When an error occurred during parsing
+     * @throws ParseException If an error occurred during parsing
      */
     public NSObject parse() throws ParseException {
         this.index = 0;
@@ -569,12 +574,12 @@ public final class ASCIIPropertyListParser {
 
                 //Skip the parsed boolean token
                 this.skip();
-            } else if (accept(DATA_GSDATE_BEGIN_TOKEN)) {
+            } else if (this.accept(DATA_GSDATE_BEGIN_TOKEN)) {
                 //Date
                 this.skip();
                 String dateString = this.readInputUntil(DATA_END_TOKEN);
                 obj = new NSDate(dateString);
-            } else if (accept(DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN)) {
+            } else if (this.accept(DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN)) {
                 //Number
                 this.skip();
                 String numberString = this.readInputUntil(DATA_END_TOKEN);

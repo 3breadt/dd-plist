@@ -85,12 +85,12 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     public NSNumber(byte[] bytes, final int startIndex, final int endIndex, final int type){
         switch (type) {
             case INTEGER: {
-                doubleValue = longValue = BinaryPropertyListParser.parseLong(bytes, startIndex, endIndex);
+                this.doubleValue = this.longValue = BinaryPropertyListParser.parseLong(bytes, startIndex, endIndex);
                 break;
             }
             case REAL: {
-                doubleValue = BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex);
-                longValue = Math.round(doubleValue);
+                this.doubleValue = BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex);
+                this.longValue = Math.round(this.doubleValue);
                 break;
             }
             default: {
@@ -124,12 +124,12 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         } catch (Exception ex) {
             try {
                 this.doubleValue = Double.parseDouble(text);
-                this.longValue = Math.round(doubleValue);
+                this.longValue = Math.round(this.doubleValue);
                 this.type = REAL;
             } catch (Exception ex2) {
                 try {
                     this.boolValue = text.equalsIgnoreCase("true") || text.equalsIgnoreCase("yes");
-                    if(!boolValue && !(text.equalsIgnoreCase("false") || text.equalsIgnoreCase("no"))) {
+                    if(!this.boolValue && !(text.equalsIgnoreCase("false") || text.equalsIgnoreCase("no"))) {
                         throw new Exception("not a boolean");
                     }
                     this.type = BOOLEAN;
@@ -278,7 +278,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * @return The human-readable string representation of this number.
      */
     public String stringValue() {
-        switch (this.type()) {
+        switch (this.type) {
             case INTEGER: {
                 return String.valueOf(this.longValue());
             }
@@ -289,7 +289,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                 return String.valueOf(this.boolValue());
             }
             default: {
-                throw new IllegalStateException();
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
             }
         }
     }
@@ -310,11 +310,29 @@ public class NSNumber extends NSObject implements Comparable<Object> {
 
     @Override
     public int hashCode() {
-        int hash = type;
+        int hash = this.type;
         hash = 37 * hash + (int) (this.longValue ^ (this.longValue >>> 32));
         hash = 37 * hash + (int) (Double.doubleToLongBits(this.doubleValue) ^ (Double.doubleToLongBits(this.doubleValue) >>> 32));
-        hash = 37 * hash + (boolValue() ? 1 : 0);
+        hash = 37 * hash + (this.boolValue() ? 1 : 0);
         return hash;
+    }
+
+    @Override
+    public NSNumber clone() {
+        switch (this.type) {
+            case INTEGER: {
+                return new NSNumber(this.longValue);
+            }
+            case REAL: {
+                return new NSNumber(this.doubleValue);
+            }
+            case BOOLEAN: {
+                return new NSNumber(this.boolValue);
+            }
+            default: {
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
+            }
+        }
     }
 
     @Override
@@ -337,7 +355,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
 
     @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         switch (this.type()) {
             case INTEGER: {
                 xml.append("<integer>");
@@ -352,7 +370,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                 break;
             }
             case BOOLEAN: {
-                if (boolValue())
+                if (this.boolValue())
                     xml.append("<true/>");
                 else
                     xml.append("<false/>");
@@ -367,7 +385,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     void toBinary(BinaryPropertyListWriter out) throws IOException {
         switch (this.type()) {
             case INTEGER: {
-                if (longValue() < 0) {
+                if (this.longValue() < 0) {
                     out.write(0x13);
                     out.writeBytes(this.longValue(), 8);
                 } else if (this.longValue() <= 0xff) {
@@ -401,17 +419,17 @@ public class NSNumber extends NSObject implements Comparable<Object> {
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         if (this.isBoolean()) {
             ascii.append(this.boolValue() ? "YES" : "NO");
         } else {
-            ascii.append(toString());
+            ascii.append(this.toString());
         }
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         switch (this.type()) {
             case INTEGER: {
                 ascii.append("<*I");

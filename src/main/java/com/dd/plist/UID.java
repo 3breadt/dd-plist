@@ -50,7 +50,7 @@ public class UID extends NSObject {
      * @return The UID's value.
      */
     public byte[] getBytes() {
-        return bytes;
+        return this.bytes;
     }
 
     /**
@@ -58,7 +58,12 @@ public class UID extends NSObject {
      * @return The UID's name.
      */
     public String getName() {
-        return name;
+        return this.name;
+    }
+
+    @Override
+    public UID clone() {
+        return new UID(this.name, this.bytes.clone());
     }
 
     /**
@@ -70,10 +75,10 @@ public class UID extends NSObject {
      */
     @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<string>");
-        for (int i = 0; i < bytes.length; i++) {
-            byte b = bytes[i];
+        for (int i = 0; i < this.bytes.length; i++) {
+            byte b = this.bytes[i];
             if (b < 16)
                 xml.append('0');
             xml.append(Integer.toHexString(b));
@@ -83,16 +88,16 @@ public class UID extends NSObject {
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        out.write(0x80 + bytes.length - 1);
-        out.write(bytes);
+        out.write(0x80 + this.bytes.length - 1);
+        out.write(this.bytes);
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append('"');
-        for (int i = 0; i < bytes.length; i++) {
-            byte b = bytes[i];
+        for (int i = 0; i < this.bytes.length; i++) {
+            byte b = this.bytes[i];
             if (b < 16)
                 ascii.append('0');
             ascii.append(Integer.toHexString(b));
@@ -102,6 +107,6 @@ public class UID extends NSObject {
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        toASCII(ascii, level);
+        this.toASCII(ascii, level);
     }
 }
