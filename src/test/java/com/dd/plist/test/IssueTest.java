@@ -58,4 +58,10 @@ public class IssueTest  {
         File plistFile = new File("test-files/github-issue42.plist");
         PropertyListParser.parse(plistFile);
     }
+
+    @Test
+    public void testIssue49_NSNumberToFloat() throws Exception {
+        NSNumber number = new NSNumber(1);
+        assertEquals(1.0, number.toJavaObject(Float.class), 0.0);
+    }
 }

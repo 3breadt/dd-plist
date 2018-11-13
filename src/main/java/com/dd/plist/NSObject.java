@@ -597,14 +597,14 @@ public abstract class NSObject implements Cloneable {
             }
         }
 
-        if (number.isReal()) {
+        if (number.isInteger() || number.isReal()) {
             if (clazz == double.class || clazz == Double.class) {
                 return number.doubleValue();
             }
 
             if (clazz == float.class || clazz == Float.class) {
                 //XXX possible overflow
-                return (float) number.doubleValue();
+                return number.floatValue();
             }
         }
 
