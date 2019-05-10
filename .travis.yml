@@ -1,6 +1,5 @@
 language: java
 jdk:
-  - oraclejdk9
   - openjdk8
 install: true
 script: mvn test
