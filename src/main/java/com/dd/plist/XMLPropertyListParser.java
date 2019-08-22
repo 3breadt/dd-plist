@@ -30,12 +30,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +77,7 @@ public class XMLPropertyListParser {
 
     /**
      * Gets a {@link DocumentBuilder} to parse a XML property list.
-     * As {@link DocumentBuilder} iinstance are not thread-safe a new {@link DocumentBuilder} is generated for each request.
+     * As {@link DocumentBuilder} instance are not thread-safe a new {@link DocumentBuilder} is generated for each request.
      *
      * @return A new {@link DocumentBuilder} that can parse property lists without an internet connection.
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
