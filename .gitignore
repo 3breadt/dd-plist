@@ -3,6 +3,7 @@ bin/
 target/
 bin-test/
 build/
+javadoc/
 test-files/out*.plist
 
 # exclude auto-generated folder
