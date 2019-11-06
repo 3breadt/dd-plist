@@ -1,16 +1,15 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
 
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Regression tests for various issues and bugs that have been encountered
@@ -55,10 +54,10 @@ public class IssueTest  {
         assertEquals("1f8b2ef69414fa70ff578a697cfc0919235c8eff", HexConverter.toHex(hash.bytes()));
     }
 
-    @Test(expected = PropertyListFormatException.class)
+    @Test
     public void testIssue42_OutOfMemoryErrorWhenBinaryPropertyListTrailerIsCorrupt() throws Exception {
         File plistFile = new File("test-files/github-issue42.plist");
-        PropertyListParser.parse(plistFile);
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
     }
 
     @Test
@@ -86,12 +85,6 @@ public class IssueTest  {
                 "<lolz>&lol9;</lolz>";
         InputStream is = new ByteArrayInputStream(plist.getBytes());
 
-        try {
-            XMLPropertyListParser.parse(is);
-            Assert.fail();
-        }
-        catch (SAXParseException ex) {
-            // This is the expectation
-        }
+        assertThrows(SAXParseException.class, () -> XMLPropertyListParser.parse(is));
     }
 }

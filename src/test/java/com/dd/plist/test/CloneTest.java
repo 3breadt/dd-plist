@@ -1,15 +1,18 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
-
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 /**
  * @author Daniel Dreibrodt
  */
-public class CloneTest extends TestCase {
+public class CloneTest {
+    @Test
     public void testCloneEquals() throws Exception {
         NSDictionary root = (NSDictionary)PropertyListParser.parse(new File("test-files/test1.plist"));
         NSDictionary clonedDictionary = root.clone();
@@ -17,6 +20,7 @@ public class CloneTest extends TestCase {
         assertEquals(clonedDictionary, root);
     }
 
+    @Test
     public void testCloneIsDeep() throws Exception {
         NSDictionary root = (NSDictionary)PropertyListParser.parse(new File("test-files/test1.plist"));
         NSDictionary clonedDictionary = root.clone();

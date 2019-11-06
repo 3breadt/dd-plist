@@ -2,14 +2,18 @@ package com.dd.plist.test;
 
 import com.dd.plist.*;
 import com.dd.plist.test.model.*;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.Charset;
 import java.util.*;
 
-public class DeSerializationTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class DeSerializationTest {
     private static final Date date = new Date();
 
+    @Test
     public void testSimpleMap() throws Exception {
         Map<String, String> map = new HashMap<String, String>();
         map.put("key", "value");
@@ -19,6 +23,7 @@ public class DeSerializationTest extends TestCase {
         assertEquals(map, result);
     }
 
+    @Test
     public void testSimpleMapNS() throws Exception {
         Map<String, String> map = new HashMap<String, String>();
         map.put("key", "value");
@@ -30,6 +35,7 @@ public class DeSerializationTest extends TestCase {
         assertEquals(test, result);
     }
 
+    @Test
     public void testPojoMap() throws Exception {
         TestClassMap test = new TestClassMap();
         test.setStringMap(mapFromArr("key", "value"));
@@ -61,20 +67,18 @@ public class DeSerializationTest extends TestCase {
         assertEquals(test, dict.toJavaObject(TestClassMap.class));
     }
 
+    @Test
     public void testDictSet() throws Exception {
         assertEquals(NSObject.fromJavaObject(genTestSetObject()), genTestSetDict());
     }
 
+    @Test
     public void testPojoSet() throws Exception {
         TestClassSet test = genTestSetObject();
         NSDictionary dict = genTestSetDict();
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
         dict.put("test3Set", new NSSet((genTest3DictOfSets())));
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
-    }
-
-    public void testUid() throws Exception {
-
     }
 
     private NSDictionary genTestSetDict() {

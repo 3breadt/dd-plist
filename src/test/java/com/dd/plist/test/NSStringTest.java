@@ -1,12 +1,9 @@
 package com.dd.plist.test;
 
 import com.dd.plist.NSString;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for the NSString class.
@@ -14,31 +11,31 @@ import static org.junit.Assert.assertFalse;
  */
 public class NSStringTest {
     @Test
-    public void intValuePositive() {
+    public void testIntValuePositive() {
         NSString s = new NSString("42");
         assertEquals(42, s.intValue());
     }
 
     @Test
-    public void intValueNegative() {
+    public void testIntValueNegative() {
         NSString s = new NSString("-42");
         assertEquals(-42, s.intValue());
     }
 
     @Test
-    public void intValueFloat() {
+    public void testIntValueFloat() {
         NSString s = new NSString("42.87654");
         assertEquals(42, s.intValue());
     }
 
     @Test
-    public void intValueSkipsWhitespace() {
+    public void testIntValueSkipsWhitespace() {
         NSString s = new NSString("  42");
         assertEquals(42, s.intValue());
     }
 
     @Test
-    public void intValueIgnoresSubsequentCharacters() {
+    public void testIntValueIgnoresSubsequentCharacters() {
         NSString s = new NSString("  42 is the meaning of life. 12345678.");
         assertEquals(42, s.intValue());
 
@@ -47,55 +44,55 @@ public class NSStringTest {
     }
 
     @Test
-    public void intValueMaxValue() {
+    public void testIntValueMaxValue() {
         NSString s = new NSString("2147483647");
         assertEquals(Integer.MAX_VALUE, s.intValue());
     }
 
     @Test
-    public void intValueMoreThanMaxValue() {
+    public void testIntValueMoreThanMaxValue() {
         NSString s = new NSString("2147483648");
         assertEquals(Integer.MAX_VALUE, s.intValue());
     }
 
     @Test
-    public void intValueMinValue() {
+    public void testIntValueMinValue() {
         NSString s = new NSString("-2147483648");
         assertEquals(Integer.MIN_VALUE, s.intValue());
     }
 
     @Test
-    public void intValueLessThanMinValue() {
+    public void testIntValueLessThanMinValue() {
         NSString s = new NSString("-2147483649");
         assertEquals(Integer.MIN_VALUE, s.intValue());
     }
 
     @Test
-    public void floatValuePositive() {
+    public void testFloatValuePositive() {
         NSString s = new NSString("42");
         assertEquals(42, s.floatValue(), 0);
     }
 
     @Test
-    public void floatValueNegative() {
+    public void testFloatValueNegative() {
         NSString s = new NSString("-42");
         assertEquals(-42, s.floatValue(), 0);
     }
 
     @Test
-    public void floatValueFloat() {
+    public void testFloatValueFloat() {
         NSString s = new NSString("42.87654");
         assertEquals(42.87654, s.floatValue(), 1E-5);
     }
 
     @Test
-    public void floatValueSkipsWhitespace() {
+    public void testFloatValueSkipsWhitespace() {
         NSString s = new NSString("  42.1234");
         assertEquals(42.1234, s.floatValue(), 1E-5);
     }
 
     @Test
-    public void floatValueIgnoresSubsequentCharacters() {
+    public void testFloatValueIgnoresSubsequentCharacters() {
         NSString s = new NSString("  42.5 is the meaning of life. 12345678.");
         assertEquals(42.5, s.floatValue(), 0);
 
@@ -104,55 +101,55 @@ public class NSStringTest {
     }
 
     @Test
-    public void floatValueMaxValue() {
+    public void testFloatValueMaxValue() {
         NSString s = new NSString("340282350000000000000000000000000000000");
         assertEquals(Float.MAX_VALUE, s.floatValue(), 0);
     }
 
     @Test
-    public void floatValueMoreThanMaxValue() {
+    public void testFloatValueMoreThanMaxValue() {
         NSString s = new NSString("340282350000000000000000000000000000000.1");
         assertEquals(Float.MAX_VALUE, s.floatValue(), 0);
     }
 
     @Test
-    public void floatValueMinValue() {
+    public void testFloatValueMinValue() {
         NSString s = new NSString("-340282350000000000000000000000000000000");
         assertEquals(-Float.MAX_VALUE, s.floatValue(), 0);
     }
 
     @Test
-    public void floatValueLessThanMinValue() {
+    public void testFloatValueLessThanMinValue() {
         NSString s = new NSString("-340282350000000000000000000000000000000.1");
         assertEquals(-Float.MAX_VALUE, s.floatValue(), 0);
     }
 
     @Test
-    public void doubleValuePositive() {
+    public void testDoubleValuePositive() {
         NSString s = new NSString("42");
         assertEquals(42, s.doubleValue(), 0);
     }
 
     @Test
-    public void doubleValueNegative() {
+    public void testDoubleValueNegative() {
         NSString s = new NSString("-42");
         assertEquals(-42, s.doubleValue(), 0);
     }
 
     @Test
-    public void doubleValueFloat() {
+    public void testDoubleValueFloat() {
         NSString s = new NSString("42.87654");
         assertEquals(42.87654, s.doubleValue(), 1E-5);
     }
 
     @Test
-    public void doubleValueSkipsWhitespace() {
+    public void testDoubleValueSkipsWhitespace() {
         NSString s = new NSString("  42.1234");
         assertEquals(42.1234, s.doubleValue(), 1E-5);
     }
 
     @Test
-    public void doubleValueIgnoresSubsequentCharacters() {
+    public void testDoubleValueIgnoresSubsequentCharacters() {
         NSString s = new NSString("  42.5 is the meaning of life. 12345678.");
         assertEquals(42.5, s.doubleValue(), 0);
 
@@ -161,7 +158,7 @@ public class NSStringTest {
     }
 
     @Test
-    public void boolValueRegularCases() {
+    public void testBoolValueRegularCases() {
         assertTrue(new NSString("YES").boolValue());
         assertTrue(new NSString("yes").boolValue());
         assertTrue(new NSString("TRUE").boolValue());
@@ -176,7 +173,7 @@ public class NSStringTest {
     }
 
     @Test
-    public void boolValueLeadingWhitespace() {
+    public void testBoolValueLeadingWhitespace() {
         assertTrue(new NSString(" YES").boolValue());
         assertTrue(new NSString(" yes").boolValue());
         assertTrue(new NSString(" TRUE").boolValue());
@@ -191,7 +188,7 @@ public class NSStringTest {
     }
 
     @Test
-    public void boolValueLeadingZeroes() {
+    public void testBoolValueLeadingZeroes() {
         assertTrue(new NSString("0YES").boolValue());
         assertTrue(new NSString("0yes").boolValue());
         assertTrue(new NSString("0TRUE").boolValue());
@@ -206,7 +203,7 @@ public class NSStringTest {
     }
 
     @Test
-    public void boolValueSign() {
+    public void testBoolValueSign() {
         assertTrue(new NSString("+YES").boolValue());
         assertTrue(new NSString("-yes").boolValue());
         assertTrue(new NSString("-TRUE").boolValue());
@@ -221,7 +218,7 @@ public class NSStringTest {
     }
 
     @Test
-    public void boolValueIntegers() {
+    public void testBoolValueIntegers() {
         assertTrue(new NSString("002").boolValue());
         assertTrue(new NSString("+03").boolValue());
         assertTrue(new NSString("  04").boolValue());
