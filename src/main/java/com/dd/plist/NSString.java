@@ -247,31 +247,22 @@ public class NSString extends NSObject implements Comparable<Object> {
         this.indent(xml, level);
         xml.append("<string>");
 
-        //Make sure that the string is encoded in UTF-8 for the XML output
-        synchronized (NSString.class) {
-            if (utf8Encoder == null)
-                utf8Encoder = Charset.forName("UTF-8").newEncoder();
-            else
-                utf8Encoder.reset();
-
-            try {
-                ByteBuffer byteBuf = utf8Encoder.encode(CharBuffer.wrap(this.content));
-                byte[] bytes = new byte[byteBuf.remaining()];
-                byteBuf.get(bytes);
-                this.content = new String(bytes, "UTF-8");
-            } catch (Exception ex) {
-                throw new RuntimeException("Could not encode the NSString into UTF-8: " + String.valueOf(ex.getMessage()));
-            }
+        //XML documents MUST NEVER contain null characters
+        String copy = this.content; // make a local copy to (potentially) modify
+        int ptr = copy.indexOf(0);
+        if (ptr != -1) {
+            // truncate our copy to the first null, assuming it's just some messed-up null-terminated string
+            copy = content.substring(0,ptr);
         }
 
         //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
         //contain the characters < or &. Also the > character should be escaped.
-        if (this.content.contains("&") || this.content.contains("<") || this.content.contains(">")) {
+        if (copy.contains("&") || copy.contains("<") || copy.contains(">")) {
             xml.append("<![CDATA[");
-            xml.append(this.content.replaceAll("]]>", "]]]]><![CDATA[>"));
+            xml.append(copy.replaceAll("]]>", "]]]]><![CDATA[>"));
             xml.append("]]>");
         } else {
-            xml.append(this.content);
+            xml.append(copy);
         }
         xml.append("</string>");
     }
