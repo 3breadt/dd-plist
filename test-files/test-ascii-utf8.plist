@@ -1,5 +1,10 @@
-// !$*UTF8*$!
+﻿// !$*UTF8*$!
 {
-    path = "JÔÖú@2x.jpg";
-    "Key QÔÖª@2x \u4321" = "QÔÖú@2x 啕.jpg";
+   path = "JÔÖú@2x.jpg";
+   "Key QÔÖª@2x \u4321" = "QÔÖú@2x 啕.jpg";
+   /* コメント */
+   "quoted" = "もじれつ";
+   "not_quoted" = クオート無し;
+   "with_escapes" = "\"\\\":\n拡張文字ｷﾀｱｱｱ";
+   "with_u_escapes" = "\u0020\u5e78";
 } 

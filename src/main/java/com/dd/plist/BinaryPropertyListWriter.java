@@ -63,16 +63,16 @@ public final class BinaryPropertyListWriter {
      * Creates a new binary property list writer
      *
      * @param outStr The output stream into which the binary property list will be written
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
     BinaryPropertyListWriter(OutputStream outStr) throws IOException {
-        out = new BufferedOutputStream(outStr);
+        this.out = new BufferedOutputStream(outStr);
     }
 
     BinaryPropertyListWriter(OutputStream outStr, int version) throws IOException {
         this.version = version;
-        out = new BufferedOutputStream(outStr);
+        this.out = new BufferedOutputStream(outStr);
     }
 
     /**
@@ -119,21 +119,31 @@ public final class BinaryPropertyListWriter {
      *
      * @param file the file to write to
      * @param root the source of the data to write to the file
-     * @throws IOException When an IO error occurs while writing to the file or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
      *                     data that cannot be saved.
      */
     public static void write(File file, NSObject root) throws IOException {
-        OutputStream out = new FileOutputStream(file);
-        write(out, root);
-        out.close();
+        OutputStream fileOutputStream = new FileOutputStream(file);
+        try {
+            write(fileOutputStream, root);
+        }
+        finally {
+            try {
+                fileOutputStream.close();
+            }
+            catch (IOException ex) {
+                // ignore
+            }
+        }
     }
 
     /**
      * Writes a binary plist serialization of the given object as the root.
+     * This method does not close the output stream.
      *
      * @param out  the stream to write to
      * @param root the source of the data to write to the stream
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
     public static void write(OutputStream out, NSObject root) throws IOException {
@@ -143,6 +153,7 @@ public final class BinaryPropertyListWriter {
             throw new IOException("The given property list structure cannot be saved. " +
                     "The required version of the binary format (" + versionString + ") is not yet supported.");
         }
+
         BinaryPropertyListWriter w = new BinaryPropertyListWriter(out, minVersion);
         w.write(root);
     }
@@ -153,7 +164,7 @@ public final class BinaryPropertyListWriter {
      *
      * @param root The root object of the property list
      * @return The byte array containing the serialized property list
-     * @throws IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
     public static byte[] writeToArray(NSObject root) throws IOException {
@@ -164,24 +175,24 @@ public final class BinaryPropertyListWriter {
 
     void write(NSObject root) throws IOException {
         // magic bytes
-        write(new byte[]{'b', 'p', 'l', 'i', 's', 't'});
+        this.write(new byte[]{'b', 'p', 'l', 'i', 's', 't'});
 
         //version
-        switch (version) {
+        switch (this.version) {
             case VERSION_00: {
-                write(new byte[]{'0', '0'});
+                this.write(new byte[]{'0', '0'});
                 break;
             }
             case VERSION_10: {
-                write(new byte[]{'1', '0'});
+                this.write(new byte[]{'1', '0'});
                 break;
             }
             case VERSION_15: {
-                write(new byte[]{'1', '5'});
+                this.write(new byte[]{'1', '5'});
                 break;
             }
             case VERSION_20: {
-                write(new byte[]{'2', '0'});
+                this.write(new byte[]{'2', '0'});
                 break;
             }
             default:
@@ -191,57 +202,57 @@ public final class BinaryPropertyListWriter {
         // assign IDs to all the objects.
         root.assignIDs(this);
 
-        idSizeInBytes = computeIdSizeInBytes(idMap.size());
+        this.idSizeInBytes = computeIdSizeInBytes(this.idMap.size());
 
         // offsets of each object, indexed by ID
-        long[] offsets = new long[idMap.size()];
+        long[] offsets = new long[this.idMap.size()];
 
         // write each object, save offset
-        for (Map.Entry<NSObject, Integer> entry : idMap.entrySet()) {
+        for (Map.Entry<NSObject, Integer> entry : this.idMap.entrySet()) {
             NSObject obj = entry.getKey();
             int id = entry.getValue();
-            offsets[id] = count;
+            offsets[id] = this.count;
             if (obj == null) {
-                write(0x00);
+                this.write(0x00);
             } else {
                 obj.toBinary(this);
             }
         }
 
         // write offset table
-        long offsetTableOffset = count;
-        int offsetSizeInBytes = computeOffsetSizeInBytes(count);
+        long offsetTableOffset = this.count;
+        int offsetSizeInBytes = this.computeOffsetSizeInBytes(this.count);
         for (long offset : offsets) {
-            writeBytes(offset, offsetSizeInBytes);
+            this.writeBytes(offset, offsetSizeInBytes);
         }
 
-        if (version != VERSION_15) {
+        if (this.version != VERSION_15) {
             // write trailer
             // 6 null bytes
-            write(new byte[6]);
+            this.write(new byte[6]);
             // size of an offset
-            write(offsetSizeInBytes);
+            this.write(offsetSizeInBytes);
             // size of a ref
-            write(idSizeInBytes);
+            this.write(this.idSizeInBytes);
             // number of objects
-            writeLong(idMap.size());
+            this.writeLong(this.idMap.size());
             // top object
-            writeLong(idMap.get(root));
+            this.writeLong(this.idMap.get(root));
             // offset table offset
-            writeLong(offsetTableOffset);
+            this.writeLong(offsetTableOffset);
         }
 
-        out.flush();
+        this.out.flush();
     }
 
     void assignID(NSObject obj) {
-        if (!idMap.containsKey(obj)) {
-            idMap.put(obj, idMap.size());
+        if (!this.idMap.containsKey(obj)) {
+            this.idMap.put(obj, this.idMap.size());
         }
     }
 
     int getID(NSObject obj) {
-        return idMap.get(obj);
+        return this.idMap.get(obj);
     }
 
     private static int computeIdSizeInBytes(int numberOfIds) {
@@ -260,48 +271,48 @@ public final class BinaryPropertyListWriter {
     void writeIntHeader(int kind, int value) throws IOException {
         assert value >= 0;
         if (value < 15) {
-            write((kind << 4) + value);
+            this.write((kind << 4) + value);
         } else if (value < 256) {
-            write((kind << 4) + 15);
-            write(0x10);
-            writeBytes(value, 1);
+            this.write((kind << 4) + 15);
+            this.write(0x10);
+            this.writeBytes(value, 1);
         } else if (value < 65536) {
-            write((kind << 4) + 15);
-            write(0x11);
-            writeBytes(value, 2);
+            this.write((kind << 4) + 15);
+            this.write(0x11);
+            this.writeBytes(value, 2);
         } else {
-            write((kind << 4) + 15);
-            write(0x12);
-            writeBytes(value, 4);
+            this.write((kind << 4) + 15);
+            this.write(0x12);
+            this.writeBytes(value, 4);
         }
     }
 
     void write(int b) throws IOException {
-        out.write(b);
-        count++;
+        this.out.write(b);
+        this.count++;
     }
 
     void write(byte[] bytes) throws IOException {
-        out.write(bytes);
-        count += bytes.length;
+        this.out.write(bytes);
+        this.count += bytes.length;
     }
 
     void writeBytes(long value, int bytes) throws IOException {
         // write low-order bytes big-endian style
         for (int i = bytes - 1; i >= 0; i--) {
-            write((int) (value >> (8 * i)));
+            this.write((int) (value >> (8 * i)));
         }
     }
 
     void writeID(int id) throws IOException {
-        writeBytes(id, idSizeInBytes);
+        this.writeBytes(id, this.idSizeInBytes);
     }
 
     void writeLong(long value) throws IOException {
-        writeBytes(value, 8);
+        this.writeBytes(value, 8);
     }
 
     void writeDouble(double value) throws IOException {
-        writeLong(Double.doubleToRawLongBits(value));
+        this.writeLong(Double.doubleToRawLongBits(value));
     }
 }

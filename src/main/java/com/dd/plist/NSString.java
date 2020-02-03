@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2011-2017 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,14 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.util.Locale;
+import java.util.Scanner;
 
 /**
- * A NSString contains a string.
+ * The NSString class is a wrapper for a string.
  *
  * @author Daniel Dreibrodt
+ * @see <a href="https://developer.apple.com/reference/foundation/nsstring" target="_blank">Foundation NSString documentation</a>
  */
 public class NSString extends NSObject implements Comparable<Object> {
 
@@ -41,10 +44,10 @@ public class NSString extends NSObject implements Comparable<Object> {
     private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     /**
-     * Creates an NSString from its binary representation.
+     * Creates a new NSString instance from its binary representation.
      *
      * @param bytes    The binary representation.
-     * @param encoding The encoding of the binary representation, the name of a supported charset.
+     * @param encoding The string encoding (name of the charset).
      * @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
      * @see java.lang.String#String(byte[], String)
      */
@@ -53,44 +56,134 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Creates an NSString from its binary representation.
+     * Creates a new NSString instance from its binary representation.
      *
-     * @param bytes The binary representation.
-     * @param startIndex int with the index where to start (offset)
-     * @param endIndex int with the index where to stop reading (offset + string length)
-     * @param encoding The encoding of the binary representation, the name of a supported charset.
+     * @param bytes An array containing the binary representation of the string.
+     * @param startIndex The offset inside the array at which the string data starts.
+     * @param endIndex The offset inside the array at which the string data ends.
+     * @param encoding The string encoding (name of the charset).
      * @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
-     * @see java.lang.String#String(byte[], String)
+     * @see java.lang.String#String(byte[], int, int, String)
      */
     public NSString(byte[] bytes, final int startIndex, final int endIndex, String encoding) throws UnsupportedEncodingException {
-        content = new String(bytes, startIndex, endIndex - startIndex, encoding);
+        this.content = new String(bytes, startIndex, endIndex - startIndex, encoding);
     }
 
     /**
-     * Creates a NSString from a string.
+     * Creates a new NSString instance with the specified content.
      *
      * @param string The string that will be contained in the NSString.
      */
     public NSString(String string) {
-        content = string;
+        this.content = string;
     }
 
     /**
-     * Gets this strings content.
+     * Gets the integer value of this string.
      *
-     * @return This NSString as Java String object.
+     * @return The integer value of this string, assuming a decimal representation
+     *         and skipping whitespace at the beginning of the string. If the string
+     *         does not contain a valid decimal representation of a number, 0 is returned.
+     *         If the string contains an integer larger than Integer.MAX_VALUE, Integer.MAX_VALUE is returned.
+     *         If the string contains an integer less than Integer.MIN_VALUE, Integer.MIN_VALUE is returned.
+     */
+    public int intValue() {
+        double d = this.doubleValue();
+
+        if (d > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+
+        if (d < Integer.MIN_VALUE) {
+            return Integer.MIN_VALUE;
+        }
+
+        return (int)d;
+    }
+
+    /**
+     * Gets the floating-point value of this string.
+     *
+     * @return The floating-point value of this string, assuming a decimal representation
+     *         and skipping whitespace at the beginning of the string. If the string
+     *         does not contain a valid decimal representation of a number, 0 is returned.
+     *         If the string contains an integer larger than Float.MAX_VALUE, Float.MAX_VALUE is returned.
+     *         If the string contains an integer less than -Float.MAX_VALUE, -Float.MAX_VALUE is returned.
+     */
+    public float floatValue() {
+        double d = this.doubleValue();
+
+        if (d > Float.MAX_VALUE) {
+            return Float.MAX_VALUE;
+        }
+
+        if (d < -Float.MAX_VALUE) {
+            return -Float.MAX_VALUE;
+        }
+
+        return (float)d;
+    }
+
+    /**
+     * Gets the floating-point value (double precision) of this string.
+     *
+     * @return The floating-point value of this string, assuming a decimal representation
+     *         and skipping whitespace at the beginning of the string. If the string does not contain
+     *         a valid decimal representation of a floating-point number, 0 is returned.
+     */
+    public double doubleValue() {
+        Scanner s = new Scanner(this.content.trim()).useLocale(Locale.ROOT).useDelimiter("[^0-9.+-]+");
+        if(s.hasNextDouble()) {
+            return s.nextDouble();
+        }
+        else {
+            return 0d;
+        }
+    }
+
+    /**
+     * Gets the boolean value of this string.
+     *
+     * @return The boolean value of this string. Leading whitespaces are ignored. Any + or - sign and leading zeroes are
+     *         ignored.
+     *         If the remaining string starts with 'Y', 'y', 'T', 't' or a positive digit (1-9), true is returned.
+     *         Otherwise, false is returned.
+     *
+     *         Examples:
+     *         "YES" is true
+     *         "true" is true
+     *         " YES" is true
+     *         "+1" is true
+     *         "-9" is true
+     *         " +01" is true
+     *         "0" is false
+     *         "false" is false
+     *         "no" is false
+     *         "1FALSE" is true
+     *         "0TRUE" is true
+     *         "FALSE1" is false
+     */
+    public boolean boolValue() {
+        Scanner s = new Scanner(this.content.trim()).useLocale(Locale.ROOT);
+        return s.hasNext("([+-]?[0]*)?[YyTt1-9].*");
+    }
+
+    /**
+     * Gets the string content of this instance.
+     *
+     * @return This string contained in this instance.
      */
     public String getContent() {
-        return content;
+        return this.content;
     }
 
     /**
-     * Sets the contents of this string.
+     * Sets the string content of this instance.
      *
      * @param c The new content of this string object.
      */
     public void setContent(String c) {
-        content = c;
+        this.content = c;
     }
 
     /**
@@ -99,7 +192,7 @@ public class NSString extends NSObject implements Comparable<Object> {
      * @param s The string to append.
      */
     public void append(NSString s) {
-        append(s.getContent());
+        this.append(s.getContent());
     }
 
     /**
@@ -108,7 +201,7 @@ public class NSString extends NSObject implements Comparable<Object> {
      * @param s The string to append.
      */
     public void append(String s) {
-        content += s;
+        this.content += s;
     }
 
     /**
@@ -117,7 +210,7 @@ public class NSString extends NSObject implements Comparable<Object> {
      * @param s The string to prepend.
      */
     public void prepend(String s) {
-        content = s + content;
+        this.content = s + this.content;
     }
 
     /**
@@ -126,34 +219,32 @@ public class NSString extends NSObject implements Comparable<Object> {
      * @param s The string to prepend.
      */
     public void prepend(NSString s) {
-        prepend(s.getContent());
+        this.prepend(s.getContent());
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this.getClass() != obj.getClass()) return false;
-        return content.equals(((NSString) obj).content);
+        return obj != null && this.getClass() == obj.getClass() && this.content.equals(((NSString) obj).content);
     }
 
     @Override
     public int hashCode() {
-        return content.hashCode();
+        return this.content.hashCode();
     }
 
-    /**
-     * The textual representation of this NSString.
-     *
-     * @return The NSString's contents.
-     */
     @Override
     public String toString() {
-        return content;
+        return this.content;
+    }
+
+    @Override
+    public NSString clone() {
+        return new NSString(this.content);
     }
 
     @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<string>");
 
         //Make sure that the string is encoded in UTF-8 for the XML output
@@ -164,10 +255,10 @@ public class NSString extends NSObject implements Comparable<Object> {
                 utf8Encoder.reset();
 
             try {
-                ByteBuffer byteBuf = utf8Encoder.encode(CharBuffer.wrap(content));
+                ByteBuffer byteBuf = utf8Encoder.encode(CharBuffer.wrap(this.content));
                 byte[] bytes = new byte[byteBuf.remaining()];
                 byteBuf.get(bytes);
-                content = new String(bytes, "UTF-8");
+                this.content = new String(bytes, "UTF-8");
             } catch (Exception ex) {
                 throw new RuntimeException("Could not encode the NSString into UTF-8: " + String.valueOf(ex.getMessage()));
             }
@@ -175,12 +266,12 @@ public class NSString extends NSObject implements Comparable<Object> {
 
         //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
         //contain the characters < or &. Also the > character should be escaped.
-        if (content.contains("&") || content.contains("<") || content.contains(">")) {
+        if (this.content.contains("&") || this.content.contains("<") || this.content.contains(">")) {
             xml.append("<![CDATA[");
-            xml.append(content.replaceAll("]]>", "]]]]><![CDATA[>"));
+            xml.append(this.content.replaceAll("]]>", "]]]]><![CDATA[>"));
             xml.append("]]>");
         } else {
-            xml.append(content);
+            xml.append(this.content);
         }
         xml.append("</string>");
     }
@@ -188,7 +279,7 @@ public class NSString extends NSObject implements Comparable<Object> {
 
     @Override
     public void toBinary(BinaryPropertyListWriter out) throws IOException {
-        CharBuffer charBuf = CharBuffer.wrap(content);
+        CharBuffer charBuf = CharBuffer.wrap(this.content);
         int kind;
         ByteBuffer byteBuf;
         synchronized (NSString.class) {
@@ -212,28 +303,38 @@ public class NSString extends NSObject implements Comparable<Object> {
         }
         byte[] bytes = new byte[byteBuf.remaining()];
         byteBuf.get(bytes);
-        out.writeIntHeader(kind, content.length());
+        out.writeIntHeader(kind, this.content.length());
         out.write(bytes);
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append("\"");
         //According to https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
         //non-ASCII characters are not escaped but simply written into the
         //file, thus actually violating the ASCII plain text format.
         //We will escape the string anyway because current Xcode project files (ASCII property lists) also escape their strings.
-        ascii.append(escapeStringForASCII(content));
+        ascii.append(escapeStringForASCII(this.content));
         ascii.append("\"");
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append("\"");
-        ascii.append(escapeStringForASCII(content));
+        ascii.append(escapeStringForASCII(this.content));
         ascii.append("\"");
+    }
+
+    public int compareTo(Object o) {
+        if (o instanceof NSString) {
+            return this.getContent().compareTo(((NSString) o).getContent());
+        } else if (o instanceof String) {
+            return this.getContent().compareTo((String) o);
+        } else {
+            return -1;
+        }
     }
 
     /**
@@ -244,42 +345,30 @@ public class NSString extends NSObject implements Comparable<Object> {
      */
     static String escapeStringForASCII(String s) {
         StringBuilder out = new StringBuilder();
-        char[] cArray = s.toCharArray();
-        for (int i = 0; i < cArray.length; i++) {
-            char c = cArray[i];
-            if (c > 127) {
+        for(char c : s.toCharArray()) {
+            if(c > 127) {
                 //non-ASCII Unicode
                 out.append("\\U");
                 String hex = Integer.toHexString(c);
-                while (hex.length() < 4)
+                while(hex.length() < 4)
                     hex = "0" + hex;
                 out.append(hex);
-            } else if (c == '\\') {
+            } else if(c == '\\') {
                 out.append("\\\\");
-            } else if (c == '\"') {
+            } else if(c == '\"') {
                 out.append("\\\"");
-            } else if (c == '\b') {
+            } else if(c == '\b') {
                 out.append("\\b");
-            } else if (c == '\n') {
+            } else if(c == '\n') {
                 out.append("\\n");
-            } else if (c == '\r') {
+            } else if(c == '\r') {
                 out.append("\\r");
-            } else if (c == '\t') {
+            } else if(c == '\t') {
                 out.append("\\t");
             } else {
                 out.append(c);
             }
         }
         return out.toString();
-    }
-
-    public int compareTo(Object o) {
-        if (o instanceof NSString) {
-            return getContent().compareTo(((NSString) o).getContent());
-        } else if (o instanceof String) {
-            return getContent().compareTo((String) o);
-        } else {
-            return -1;
-        }
     }
 }

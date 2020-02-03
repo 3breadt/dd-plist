@@ -20,115 +20,115 @@ public class TestClass2 {
     private boolean aPrimitiveBoolean;
     private Date aDate;
 
-    public String getaString() {
+    public String getString() {
         return aString;
     }
 
-    public void setaString(String aString) {
+    public void setString(String aString) {
         this.aString = aString;
     }
 
-    public Integer getaInteger() {
+    public Integer getInteger() {
         return aInteger;
     }
 
-    public void setaInteger(Integer aInteger) {
+    public void setInteger(Integer aInteger) {
         this.aInteger = aInteger;
     }
 
-    public Long getaLong() {
+    public Long getLong() {
         return aLong;
     }
 
-    public void setaLong(Long aLong) {
+    public void setLong(Long aLong) {
         this.aLong = aLong;
     }
 
-    public Double getaDouble() {
+    public Double getDouble() {
         return aDouble;
     }
 
-    public void setaDouble(Double aDouble) {
+    public void setDouble(Double aDouble) {
         this.aDouble = aDouble;
     }
 
-    public Float getaFloat() {
+    public Float getFloat() {
         return aFloat;
     }
 
-    public void setaFloat(Float aFloat) {
+    public void setFloat(Float aFloat) {
         this.aFloat = aFloat;
     }
 
-    public Short getaShort() {
+    public Short getShort() {
         return aShort;
     }
 
-    public void setaShort(Short aShort) {
+    public void setShort(Short aShort) {
         this.aShort = aShort;
     }
 
-    public int getaPrimitiveInteger() {
+    public int getPrimitiveInteger() {
         return aPrimitiveInteger;
     }
 
-    public void setaPrimitiveInteger(int aPrimitiveInteger) {
+    public void setPrimitiveInteger(int aPrimitiveInteger) {
         this.aPrimitiveInteger = aPrimitiveInteger;
     }
 
-    public long getaPrimitiveLong() {
+    public long getPrimitiveLong() {
         return aPrimitiveLong;
     }
 
-    public void setaPrimitiveLong(long aPrimitiveLong) {
+    public void setPrimitiveLong(long aPrimitiveLong) {
         this.aPrimitiveLong = aPrimitiveLong;
     }
 
-    public double getaPrimitiveDouble() {
+    public double getPrimitiveDouble() {
         return aPrimitiveDouble;
     }
 
-    public void setaPrimitiveDouble(double aPrimitiveDouble) {
+    public void setPrimitiveDouble(double aPrimitiveDouble) {
         this.aPrimitiveDouble = aPrimitiveDouble;
     }
 
-    public float getaPrimitiveFloat() {
+    public float getPrimitiveFloat() {
         return aPrimitiveFloat;
     }
 
-    public void setaPrimitiveFloat(float aPrimitiveFloat) {
+    public void setPrimitiveFloat(float aPrimitiveFloat) {
         this.aPrimitiveFloat = aPrimitiveFloat;
     }
 
-    public short getaPrimitiveShort() {
+    public short getPrimitiveShort() {
         return aPrimitiveShort;
     }
 
-    public void setaPrimitiveShort(short aPrimitiveShort) {
+    public void setPrimitiveShort(short aPrimitiveShort) {
         this.aPrimitiveShort = aPrimitiveShort;
     }
 
-    public Boolean getaBoolean() {
+    public Boolean getBoolean() {
         return aBoolean;
     }
 
-    public void setaBoolean(Boolean aBoolean) {
+    public void setBoolean(Boolean aBoolean) {
         this.aBoolean = aBoolean;
     }
 
-    public boolean isaPrimitiveBoolean() {
+    public boolean isPrimitiveBoolean() {
         return aPrimitiveBoolean;
     }
 
-    public void setaPrimitiveBoolean(boolean aPrimitiveBoolean) {
+    public void setPrimitiveBoolean(boolean aPrimitiveBoolean) {
         this.aPrimitiveBoolean = aPrimitiveBoolean;
     }
 
-    public Date getaDate() {
+    public Date getDate() {
         return aDate;
     }
 
-    public void setaDate(Date aDate) {
+    public void setDate(Date aDate) {
         this.aDate = aDate;
     }
 
@@ -181,20 +181,20 @@ public class TestClass2 {
     @Override
     public String toString() {
         return "TestClass2{" +
-                "aString='" + aString + '\'' +
-                ", aInteger=" + aInteger +
-                ", aLong=" + aLong +
-                ", aDouble=" + aDouble +
-                ", aFloat=" + aFloat +
-                ", aShort=" + aShort +
-                ", aPrimitiveInteger=" + aPrimitiveInteger +
-                ", aPrimitiveLong=" + aPrimitiveLong +
-                ", aPrimitiveDouble=" + aPrimitiveDouble +
-                ", aPrimitiveFloat=" + aPrimitiveFloat +
-                ", aPrimitiveShort=" + aPrimitiveShort +
-                ", aBoolean=" + aBoolean +
-                ", aPrimitiveBoolean=" + aPrimitiveBoolean +
-                ", aDate=" + aDate +
-                '}';
+                "\n String='" + aString + '\'' +
+                "\n Integer=" + aInteger +
+                "\n Long=" + aLong +
+                "\n Double=" + aDouble +
+                "\n Float=" + aFloat +
+                "\n Short=" + aShort +
+                "\n PrimitiveInteger=" + aPrimitiveInteger +
+                "\n PrimitiveLong=" + aPrimitiveLong +
+                "\n PrimitiveDouble=" + aPrimitiveDouble +
+                "\n PrimitiveFloat=" + aPrimitiveFloat +
+                "\n PrimitiveShort=" + aPrimitiveShort +
+                "\n Boolean=" + aBoolean +
+                "\n PrimitiveBoolean=" + aPrimitiveBoolean +
+                "\n Date=" + aDate +
+                "\n}";
     }
 }

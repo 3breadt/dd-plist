@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt
+ * Copyright (C) 2011-2017 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * NSData objects are wrappers for byte buffers.
- *
+ * The NSData class is a wrapper for a byte buffer.
+ * @see <a href="https://developer.apple.com/reference/foundation/nsdata" target="_blank">Foundation NSData documentation</a>
  * @author Daniel Dreibrodt
  */
 public class NSData extends NSObject {
@@ -39,92 +39,92 @@ public class NSData extends NSObject {
     private final byte[] bytes;
 
     /**
-     * Creates the NSData object from the binary representation of it.
+     * Creates a new NSData instance with the specified content.
      *
-     * @param bytes The raw data contained in the NSData object.
+     * @param bytes The data content.
      */
     public NSData(byte[] bytes) {
         this.bytes = bytes;
     }
 
     /**
-     * Creates a NSData object from its textual representation, which is a Base64 encoded amount of bytes.
+     * Creates a new NSData instance with the specified Base64 encoded content.
      *
-     * @param base64 The Base64 encoded contents of the NSData object.
+     * @param base64 The Base64 encoded data content.
      * @throws IOException When the given string is not a proper Base64 formatted string.
      */
     public NSData(String base64) throws IOException {
         //Remove all white spaces from the string so that it is parsed completely
         //and not just until the first white space occurs.
         String data = base64.replaceAll("\\s+", "");
-        bytes = Base64.decode(data);
+        this.bytes = Base64.decode(data, Base64.DONT_GUNZIP);
     }
 
     /**
-     * Creates a NSData object from a file. Using the files contents as the contents of this NSData object.
+     * Creates a new NSData instance with the specified file as content.
      *
      * @param file The file containing the data.
      * @throws FileNotFoundException If the file could not be found.
      * @throws IOException           If the file could not be read.
      */
     public NSData(File file) throws IOException {
-        bytes = new byte[(int) file.length()];
+        this.bytes = new byte[(int) file.length()];
         RandomAccessFile raf = new RandomAccessFile(file, "r");
-        raf.read(bytes);
+        raf.read(this.bytes);
         raf.close();
     }
 
     /**
-     * The bytes contained in this NSData object.
+     * Returns the bytes contained in this instance.
      *
      * @return The data as bytes
      */
     public byte[] bytes() {
-        return bytes;
+        return this.bytes;
     }
 
     /**
-     * Gets the amount of data stored in this object.
+     * Returns the number of bytes stored in this instance.
      *
      * @return The number of bytes contained in this object.
      */
     public int length() {
-        return bytes.length;
+        return this.bytes.length;
     }
 
     /**
-     * Loads the bytes from this NSData object into a byte buffer
+     * Copies data from this instance into the specified buffer.
      *
-     * @param buf    The byte buffer which will contain the data
-     * @param length The amount of data to copy
+     * @param buf    The byte buffer which will contain the data.
+     * @param length The number of bytes to copy.
      */
     public void getBytes(ByteBuffer buf, int length) {
-        buf.put(bytes, 0, Math.min(bytes.length, length));
+        buf.put(this.bytes, 0, Math.min(this.bytes.length, length));
     }
 
     /**
-     * Loads the bytes from this NSData object into a byte buffer
+     * Copies data from this instance into the specified buffer.
      *
-     * @param buf        The byte buffer which will contain the data
-     * @param rangeStart The start index
-     * @param rangeStop  The stop index
+     * @param buf        The byte buffer which will contain the data.
+     * @param rangeStart The index from which to start copying.
+     * @param rangeStop  The index at which to stop copying.
      */
     public void getBytes(ByteBuffer buf, int rangeStart, int rangeStop) {
-        buf.put(bytes, rangeStart, Math.min(bytes.length, rangeStop));
+        buf.put(this.bytes, rangeStart, Math.min(this.bytes.length, rangeStop));
     }
 
     /**
-     * Gets the Base64 encoded data contained in this NSData object.
+     * Gets the Base64 encoded data contained in this instance.
      *
-     * @return The Base64 encoded data as a <code>String</code>.
+     * @return The data as a Base64 encoded <code>String</code>.
      */
     public String getBase64EncodedData() {
-        return Base64.encodeBytes(bytes);
+        return Base64.encodeBytes(this.bytes);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj.getClass().equals(getClass()) && Arrays.equals(((NSData) obj).bytes, bytes);
+        return obj.getClass().equals(this.getClass()) && Arrays.equals(((NSData) obj).bytes, this.bytes);
     }
 
     @Override
@@ -135,40 +135,45 @@ public class NSData extends NSObject {
     }
 
     @Override
+    public NSData clone() {
+        return new NSData(this.bytes.clone());
+    }
+
+    @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<data>");
         xml.append(NSObject.NEWLINE);
-        String base64 = getBase64EncodedData();
+        String base64 = this.getBase64EncodedData();
         for (String line : base64.split("\n")) {
-            indent(xml, level + 1);
+            this.indent(xml, level + 1);
             xml.append(line);
             xml.append(NSObject.NEWLINE);
         }
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("</data>");
     }
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        out.writeIntHeader(0x4, bytes.length);
-        out.write(bytes);
+        out.writeIntHeader(0x4, this.bytes.length);
+        out.write(this.bytes);
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
+        this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DATA_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for (int i = 0; i < bytes.length; i++) {
-            int b = bytes[i] & 0xFF;
+        for (int i = 0; i < this.bytes.length; i++) {
+            int b = this.bytes[i] & 0xFF;
             if (b < 16)
                 ascii.append('0');
             ascii.append(Integer.toHexString(b));
             if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
                 ascii.append(NEWLINE);
                 indexOfLastNewLine = ascii.length();
-            } else if ((i + 1) % 2 == 0 && i != bytes.length - 1) {
+            } else if ((i + 1) % 2 == 0 && i != this.bytes.length - 1) {
                 ascii.append(' ');
             }
         }
@@ -177,6 +182,6 @@ public class NSData extends NSObject {
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        toASCII(ascii, level);
+        this.toASCII(ascii, level);
     }
 }

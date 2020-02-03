@@ -27,13 +27,12 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * Abstract interface for any object contained in a property list.
- * The names and functions of the various objects orient themselves
- * towards Apple's Cocoa API.
+ * Abstract interface for an object contained in a property list.
+ * The names and functions of the various objects orient themselves towards Apple's Cocoa API.
  *
  * @author Daniel Dreibrodt
  */
-public abstract class NSObject {
+public abstract class NSObject implements Cloneable {
 
     /**
      * The newline character used for generating the XML output.
@@ -56,9 +55,16 @@ public abstract class NSObject {
     private final static String INDENT = "\t";
 
     /**
+     * Creates and returns a deep copy of this instance.
+     * @return A clone of this instance.
+     */
+    @Override
+    public abstract NSObject clone();
+
+    /**
      * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
      *
-     * @param xml   The StringBuilder onto which the XML representation is appended.
+     * @param xml   The {@link StringBuilder} onto which the XML representation is appended.
      * @param level The indentation level of the object.
      */
     abstract void toXML(StringBuilder xml, int level);
@@ -76,7 +82,7 @@ public abstract class NSObject {
      * Generates the binary representation of the object.
      *
      * @param out The output stream to serialize the object to.
-     * @throws java.io.IOException When an IO error occurs while writing to the stream or the object structure contains
+     * @throws java.io.IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                             data that cannot be saved.
      */
     abstract void toBinary(BinaryPropertyListWriter out) throws IOException;
@@ -93,7 +99,7 @@ public abstract class NSObject {
                 .append(NSObject.NEWLINE)
                 .append("<plist version=\"1.0\">")
                 .append(NSObject.NEWLINE);
-        toXML(xml, 0);
+        this.toXML(xml, 0);
         xml.append(NSObject.NEWLINE).append("</plist>");
         return xml.toString();
     }
@@ -101,9 +107,9 @@ public abstract class NSObject {
     /**
      * Generates the ASCII representation of this object.
      * The generated ASCII representation does not end with a newline.
-     * Complies with https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
+     * Complies with the <a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html" target="_blank">Old-Style ASCII Property Lists definition</a>.
      *
-     * @param ascii The StringBuilder onto which the ASCII representation is appended.
+     * @param ascii The {@link StringBuilder} onto which the ASCII representation is appended.
      * @param level The indentation level of the object.
      */
     protected abstract void toASCII(StringBuilder ascii, int level);
@@ -112,18 +118,18 @@ public abstract class NSObject {
      * Generates the ASCII representation of this object in the GnuStep format.
      * The generated ASCII representation does not end with a newline.
      *
-     * @param ascii The StringBuilder onto which the ASCII representation is appended.
+     * @param ascii The {@link StringBuilder} onto which the ASCII representation is appended.
      * @param level The indentation level of the object.
      */
     protected abstract void toASCIIGnuStep(StringBuilder ascii, int level);
 
     /**
-     * Helper method that adds correct identation to the xml output.
+     * Helper method that adds correct indentation to the xml output.
      * Calling this method will add <code>level</code> number of tab characters
      * to the <code>xml</code> string.
      *
-     * @param xml   The string builder for the XML document.
-     * @param level The level of identation.
+     * @param xml   The {@link StringBuilder} onto which the XML representation is appended.
+     * @param level The level of indentation.
      */
     void indent(StringBuilder xml, int level) {
         for (int i = 0; i < level; i++)
@@ -133,14 +139,14 @@ public abstract class NSObject {
     /**
      * Converts this NSObject into an equivalent object of the Java Runtime Environment.
      * <ul>
-     * <li>NSArray objects are converted to arrays.</li>
-     * <li>NSDictionary objects are converted to objects extending the java.util.Map class.</li>
-     * <li>NSSet objects are converted to objects extending the java.util.Set class.</li>
-     * <li>NSNumber objects are converted to primitive number values (int, long, double or boolean).</li>
-     * <li>NSString objects are converted to String objects.</li>
-     * <li>NSData objects are converted to byte arrays.</li>
-     * <li>NSDate objects are converted to java.util.Date objects.</li>
-     * <li>UID objects are converted to byte arrays.</li>
+     * <li>{@link NSArray} objects are converted to arrays.</li>
+     * <li>{@link NSDictionary} objects are converted to objects extending the {@link java.util.Map} class.</li>
+     * <li>{@link NSSet} objects are converted to objects extending the {@link java.util.Set} class.</li>
+     * <li>{@link NSNumber} objects are converted to primitive number values (int, long, double or boolean).</li>
+     * <li>{@link NSString} objects are converted to {@link String} objects.</li>
+     * <li>{@link NSData} objects are converted to byte arrays.</li>
+     * <li>{@link NSDate} objects are converted to {@link java.util.Date} objects.</li>
+     * <li>{@link UID} objects are converted to byte arrays.</li>
      * </ul>
      * @return A native java object representing this NSObject's value.
      */
@@ -168,17 +174,19 @@ public abstract class NSObject {
 
     /**
      * Converts this NSObject into an object of the specified class.
+     * @param <T> The target object type.
      * @param clazz The target class.
      * @return A new instance of the specified class, deserialized from this NSObject.
      * @throws IllegalArgumentException If the specified class cannot be deserialized from this NSObject.
      */
+    @SuppressWarnings("unchecked")
     public <T> T toJavaObject(Class<T> clazz) {
-        return (T)toJavaObject(this, clazz, null);
+        return (T) this.toJavaObject(this, clazz, null);
     }
 
     /**
      * Serializes the specified object into an NSObject.
-     * Objects which do not have a direct type correspondence to an NSObject type will be serialized as a NSDictionary.
+     * Objects which do not have a direct type correspondence to an NSObject type will be serialized as a {@link NSDictionary}.
      * The dictionary will contain the values of all publicly accessible fields and properties.
      * @param object The object to serialize.
      * @return A NSObject instance.
@@ -276,10 +284,16 @@ public abstract class NSObject {
         }
     }
 
+    private static String makeFirstCharLowercase(String input) {
+        char[] chars = input.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return new String(chars);
+    }
+
     private Object toJavaObject(NSObject payload, Class<?> clazz, Type[] types) {
         if (clazz.isArray()) {
             //generics and arrays do not mix
-            return deserializeArray(payload, clazz);
+            return this.deserializeArray(payload, clazz);
         }
 
         if (isSimple(clazz)) {
@@ -291,15 +305,15 @@ public abstract class NSObject {
         }
 
         if (payload instanceof NSSet && Collection.class.isAssignableFrom(clazz)) {
-            return deserializeCollection(payload, clazz, types);
+            return this.deserializeCollection(payload, clazz, types);
         }
 
         if (payload instanceof NSArray && Collection.class.isAssignableFrom(clazz)) {
-            return deserializeCollection(payload, clazz, types);
+            return this.deserializeCollection(payload, clazz, types);
         }
 
         if (payload instanceof NSDictionary) {
-            return deserializeObject((NSDictionary) payload, clazz, types);
+            return this.deserializeObject((NSDictionary) payload, clazz, types);
         }
 
         throw new IllegalArgumentException("Cannot process " + clazz.getSimpleName());
@@ -309,7 +323,7 @@ public abstract class NSObject {
         Map<String, NSObject> map = payload.getHashMap();
 
         if (Map.class.isAssignableFrom(clazz)) {
-            return deserializeMap(clazz, types, map);
+            return this.deserializeMap(clazz, types, map);
         }
 
         Object result = getInstance(clazz);
@@ -319,19 +333,18 @@ public abstract class NSObject {
         for (Method method : clazz.getMethods()) {
             String name = method.getName();
             if (name.startsWith("get")) {
-                getters.put(name.substring(3, 4).toLowerCase() + name.substring(4), method);
+                getters.put(makeFirstCharLowercase(name.substring(3)), method);
             } else if (name.startsWith("set")) {
-                setters.put(name.substring(3, 4).toLowerCase() + name.substring(4), method);
+                setters.put(makeFirstCharLowercase(name.substring(3)), method);
             } else if (name.startsWith("is")) {
-                getters.put(name.substring(2, 3).toLowerCase() + name.substring(3), method);
+                getters.put(makeFirstCharLowercase(name.substring(2)), method);
             }
         }
 
         for (Map.Entry<String, NSObject> entry : map.entrySet()) {
-            Method setter = setters.get(entry.getKey());
-            Method getter = getters.get(entry.getKey());
+            Method setter = setters.get(makeFirstCharLowercase(entry.getKey()));
+            Method getter = getters.get(makeFirstCharLowercase(entry.getKey()));
             if (setter != null && getter != null) {
-
                 Class<?> elemClass = getter.getReturnType();
                 Type[] elemTypes = null;
                 Type type = getter.getGenericReturnType();
@@ -340,7 +353,7 @@ public abstract class NSObject {
                 }
 
                 try {
-                    setter.invoke(result, toJavaObject(entry.getValue(), elemClass, elemTypes));
+                    setter.invoke(result, this.toJavaObject(entry.getValue(), elemClass, elemTypes));
                 } catch (IllegalAccessException e) {
                     throw new IllegalArgumentException("Could not access setter " + setter);
                 } catch (InvocationTargetException e) {
@@ -386,7 +399,7 @@ public abstract class NSObject {
             }
         }
         for (Map.Entry<String, NSObject> entry : map.entrySet()) {
-            result.put(entry.getKey(), toJavaObject(entry.getValue(), elemClass, elemParams));
+            result.put(entry.getKey(), this.toJavaObject(entry.getValue(), elemClass, elemParams));
         }
 
         return result;
@@ -422,14 +435,14 @@ public abstract class NSObject {
         }
         if (payload instanceof NSArray) {
             for (NSObject nsObject : ((NSArray) payload).getArray()) {
-                result.add(toJavaObject(nsObject, elemClass, elemTypes));
+                result.add(this.toJavaObject(nsObject, elemClass, elemTypes));
             }
             return result;
         }
 
         if (payload instanceof NSSet) {
             for (NSObject nsObject : ((NSSet) payload).getSet()) {
-                result.add(toJavaObject(nsObject, elemClass, elemTypes));
+                result.add(this.toJavaObject(nsObject, elemClass, elemTypes));
             }
             return result;
         }
@@ -453,7 +466,7 @@ public abstract class NSObject {
             NSObject[] array = ((NSArray) payload).getArray();
             Object result = Array.newInstance(elementClass, array.length);
             for (int i = 0; i < array.length; i++) {
-                Array.set(result, i, toJavaObject(array[i], elementClass, null));
+                Array.set(result, i, this.toJavaObject(array[i], elementClass, null));
             }
             return result;
         }
@@ -463,7 +476,7 @@ public abstract class NSObject {
             Object result = Array.newInstance(elementClass, set.size());
             int i = 0;
             for (NSObject aSet : set) {
-                Array.set(result, i, toJavaObject(aSet, elementClass, null));
+                Array.set(result, i, this.toJavaObject(aSet, elementClass, null));
                 i++;
             }
             return result;
@@ -584,14 +597,14 @@ public abstract class NSObject {
             }
         }
 
-        if (number.isReal()) {
+        if (number.isInteger() || number.isReal()) {
             if (clazz == double.class || clazz == Double.class) {
                 return number.doubleValue();
             }
 
             if (clazz == float.class || clazz == Float.class) {
                 //XXX possible overflow
-                return (float) number.doubleValue();
+                return number.floatValue();
             }
         }
 
@@ -604,6 +617,7 @@ public abstract class NSObject {
         throw new IllegalArgumentException("Cannot map NSNumber to " + clazz.getSimpleName());
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static NSObject fromSimple(Object object, Class<?> objClass) {
         if (object instanceof Long || objClass == long.class) {
             return new NSNumber((Long) object);
@@ -655,9 +669,9 @@ public abstract class NSObject {
             }
             String name = method.getName();
             if (name.startsWith("get")) {
-                name = name.substring(3, 4).toLowerCase() + name.substring(4);
+                name = makeFirstCharLowercase(name.substring(3));
             } else if (name.startsWith("is")) {
-                name = name.substring(2, 3).toLowerCase() + name.substring(3);
+                name = makeFirstCharLowercase(name.substring(2));
             } else {
                 ///not a getter
                 continue;
@@ -666,9 +680,9 @@ public abstract class NSObject {
             try {
                 result.put(name, fromJavaObject(method.invoke(object)));
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Could not access getter " + method);
+                throw new IllegalArgumentException("Could not access getter " + method.getName());
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException("Could not invoke getter " + method);
+                throw new IllegalArgumentException("Could not invoke getter " + method.getName());
             }
         }
 
@@ -680,7 +694,7 @@ public abstract class NSObject {
             try {
                 result.put(field.getName(), fromJavaObject(field.get(object)));
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Could not access field " + field);
+                throw new IllegalArgumentException("Could not access field " + field.getName());
             }
         }
 

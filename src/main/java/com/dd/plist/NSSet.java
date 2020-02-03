@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * A set is an interface to an unordered collection of objects.
+ * The NSSet class is an unordered collection of NSObject instances.
  * This implementation uses a <code>LinkedHashSet</code> or <code>TreeSet</code>as the underlying
  * data structure.
  *
@@ -41,16 +41,16 @@ public class NSSet extends NSObject {
     private boolean ordered = false;
 
     /**
-     * Creates an empty unordered set.
+     * Creates a new NSSet instance. The created set is unordered.
      *
      * @see java.util.LinkedHashSet
      */
     public NSSet() {
-        set = new LinkedHashSet<NSObject>();
+        this.set = new LinkedHashSet<NSObject>();
     }
 
     /**
-     * Creates an empty set.
+     * Creates a new NSSet instance.
      *
      * @param ordered Indicates whether the created set should be ordered or unordered.
      * @see java.util.LinkedHashSet
@@ -59,24 +59,24 @@ public class NSSet extends NSObject {
     public NSSet(boolean ordered) {
         this.ordered = ordered;
         if (!ordered)
-            set = new LinkedHashSet<NSObject>();
+            this.set = new LinkedHashSet<NSObject>();
         else
-            set = new TreeSet<NSObject>();
+            this.set = new TreeSet<NSObject>();
     }
 
     /**
-     * Create a set and fill it with the given objects.
+     * Creates a new NSSet instance with the specified content. The created set is unordered.
      *
      * @param objects The objects to populate the set.
      * @see java.util.LinkedHashSet
      */
     public NSSet(NSObject... objects) {
-        set = new LinkedHashSet<NSObject>();
-        set.addAll(Arrays.asList(objects));
+        this.set = new LinkedHashSet<NSObject>();
+        this.set.addAll(Arrays.asList(objects));
     }
 
     /**
-     * Create a set and fill it with the given objects.
+     * Create a new NSSet instance with the specified content.
      *
      * @param ordered Indicates whether the created set should be ordered or unordered.
      * @param objects The objects to populate the set.
@@ -86,10 +86,10 @@ public class NSSet extends NSObject {
     public NSSet(boolean ordered, NSObject... objects) {
         this.ordered = ordered;
         if (!ordered)
-            set = new LinkedHashSet<NSObject>();
+            this.set = new LinkedHashSet<NSObject>();
         else
-            set = new TreeSet<NSObject>();
-        set.addAll(Arrays.asList(objects));
+            this.set = new TreeSet<NSObject>();
+        this.set.addAll(Arrays.asList(objects));
     }
 
     /**
@@ -98,7 +98,7 @@ public class NSSet extends NSObject {
      * @param obj The object to add.
      */
     public synchronized void addObject(NSObject obj) {
-        set.add(obj);
+        this.set.add(obj);
     }
 
     /**
@@ -107,7 +107,7 @@ public class NSSet extends NSObject {
      * @param obj The object to remove.
      */
     public synchronized void removeObject(NSObject obj) {
-        set.remove(obj);
+        this.set.remove(obj);
     }
 
     /**
@@ -116,7 +116,7 @@ public class NSSet extends NSObject {
      * @return An array of all objects in the set.
      */
     public synchronized NSObject[] allObjects() {
-        return set.toArray(new NSObject[count()]);
+        return this.set.toArray(new NSObject[this.count()]);
     }
 
     /**
@@ -126,31 +126,31 @@ public class NSSet extends NSObject {
      * @return The first object in the set, or <code>null</code> if the set is empty.
      */
     public synchronized NSObject anyObject() {
-        if (set.isEmpty())
+        if (this.set.isEmpty())
             return null;
         else
-            return set.iterator().next();
+            return this.set.iterator().next();
     }
 
     /**
-     * Finds out whether a given object is contained in the set.
+     * Finds out whether the given object is contained in the set.
      *
      * @param obj The object to look for.
      * @return <code>true</code>, when the object was found, <code>false</code> otherwise.
      */
     public boolean containsObject(NSObject obj) {
-        return set.contains(obj);
+        return this.set.contains(obj);
     }
 
     /**
-     * Determines whether the set contains an object equal to a given object
+     * Determines whether the set contains an object equal to the given object
      * and returns that object if it is present.
      *
      * @param obj The object to look for.
      * @return The object if it is present, <code>null</code> otherwise.
      */
     public synchronized NSObject member(NSObject obj) {
-        for (NSObject o : set) {
+        for (NSObject o : this.set) {
             if (o.equals(obj))
                 return o;
         }
@@ -164,7 +164,7 @@ public class NSSet extends NSObject {
      * @return <code>false</code> if the intersection of both sets is empty, <code>true</code> otherwise.
      */
     public synchronized boolean intersectsSet(NSSet otherSet) {
-        for (NSObject o : set) {
+        for (NSObject o : this.set) {
             if (otherSet.containsObject(o))
                 return true;
         }
@@ -178,7 +178,7 @@ public class NSSet extends NSObject {
      * @return <code>true</code> if all elements in this set are also present in the other set, <code>false</code> otherwise.
      */
     public synchronized boolean isSubsetOfSet(NSSet otherSet) {
-        for (NSObject o : set) {
+        for (NSObject o : this.set) {
             if (!otherSet.containsObject(o))
                 return false;
         }
@@ -193,7 +193,7 @@ public class NSSet extends NSObject {
      * @return The iterator for the set.
      */
     public synchronized Iterator<NSObject> objectIterator() {
-        return set.iterator();
+        return this.set.iterator();
     }
 
     /**
@@ -201,7 +201,7 @@ public class NSSet extends NSObject {
      * @return A Set object.
      */
     Set<NSObject> getSet() {
-        return set;
+        return this.set;
     }
 
     @Override
@@ -216,7 +216,7 @@ public class NSSet extends NSObject {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (this.getClass() != obj.getClass()) {
             return false;
         }
         final NSSet other = (NSSet) obj;
@@ -230,11 +230,22 @@ public class NSSet extends NSObject {
      * @see Set#size()
      */
     public synchronized int count() {
-        return set.size();
+        return this.set.size();
+    }
+
+    @Override
+    public NSSet clone() {
+        NSObject[] clonedSet = new NSObject[this.set.size()];
+        int i = 0;
+        for(NSObject element : this.set) {
+            clonedSet[i++] = element != null ? element.clone() : null;
+        }
+
+        return new NSSet(this.ordered, clonedSet);
     }
 
     /**
-     * Returns the XML representantion for this set.
+     * Returns the XML representation for this set.
      * There is no official XML representation specified for sets.
      * In this implementation it is represented by an array.
      *
@@ -243,33 +254,33 @@ public class NSSet extends NSObject {
      */
     @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("<array>");
         xml.append(NSObject.NEWLINE);
-        for (NSObject o : set) {
+        for (NSObject o : this.set) {
             o.toXML(xml, level + 1);
             xml.append(NSObject.NEWLINE);
         }
-        indent(xml, level);
+        this.indent(xml, level);
         xml.append("</array>");
     }
 
     @Override
     void assignIDs(BinaryPropertyListWriter out) {
         super.assignIDs(out);
-        for (NSObject obj : set) {
+        for (NSObject obj : this.set) {
             obj.assignIDs(out);
         }
     }
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        if (ordered) {
-            out.writeIntHeader(0xB, set.size());
+        if (this.ordered) {
+            out.writeIntHeader(0xB, this.set.size());
         } else {
-            out.writeIntHeader(0xC, set.size());
+            out.writeIntHeader(0xC, this.set.size());
         }
-        for (NSObject obj : set) {
+        for (NSObject obj : this.set) {
             out.writeID(out.getID(obj));
         }
     }
@@ -284,8 +295,8 @@ public class NSSet extends NSObject {
      */
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
-        NSObject[] array = allObjects();
+        this.indent(ascii, level);
+        NSObject[] array = this.allObjects();
         ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
         for (int i = 0; i < array.length; i++) {
@@ -322,8 +333,8 @@ public class NSSet extends NSObject {
      */
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
-        NSObject[] array = allObjects();
+        this.indent(ascii, level);
+        NSObject[] array = this.allObjects();
         ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
         for (int i = 0; i < array.length; i++) {

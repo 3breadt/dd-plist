@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011 Daniel Dreibrodt, Keith Randall
+ * Copyright (C) 2011-2017 Daniel Dreibrodt, Keith Randall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@ package com.dd.plist;
 import java.io.IOException;
 
 /**
- * A number whose value is either an integer, a real number or boolean.
- *
+ * The NSNumber class wraps a numeric value. The value can be an integer a floating point number or a boolean value.
+ * @see <a href="https://developer.apple.com/reference/foundation/nsnumber" target="_blank">Foundation NSNumber documentation</a>
  * @author Daniel Dreibrodt
  */
 public class NSNumber extends NSObject implements Comparable<Object> {
@@ -51,7 +51,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      */
     public static final int BOOLEAN = 2;
 
-    //Holds the current type of this number
+    /** Holds the current type of this number */
     private int type;
 
     private long longValue;
@@ -59,38 +59,38 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     private boolean boolValue;
 
     /**
-     * Parses integers and real numbers from their binary representation.
-     * <i>Note: real numbers are not yet supported.</i>
+     * Creates a new NSNumber instance from its binary representation.
      *
-     * @param bytes The binary representation of only this number
-     * @param type  The type of number
+     * @param bytes The binary representation of this number.
+     * @param type  The type of number.
      * @see #INTEGER
      * @see #REAL
+     * @see #BOOLEAN
      */
     public NSNumber(byte[] bytes, int type){
         this(bytes, 0, bytes.length, type);
     }
 
     /**
-     * Parses integers and real numbers from their binary representation.
-     * <i>Note: real numbers are not yet supported.</i>
+     * Creates a new NSNumber instance from its binary representation.
      *
-     * @param bytes array of bytes that contains this number's binary representation
-     * @param startIndex int with the position where to start reading from the byte array
-     * @param endIndex int with the position where to end reading from the byte array
-     * @param type  The type of number
+     * @param bytes An array of bytes containing the binary representation of the number.
+     * @param startIndex The position in the array at which the number is stored.
+     * @param endIndex The position in the array at which the number's data ends.
+     * @param type The type of number
      * @see #INTEGER
      * @see #REAL
+     * @see #BOOLEAN
      */
     public NSNumber(byte[] bytes, final int startIndex, final int endIndex, final int type){
         switch (type) {
             case INTEGER: {
-                doubleValue = longValue = BinaryPropertyListParser.parseLong(bytes, startIndex, endIndex);
+                this.doubleValue = this.longValue = BinaryPropertyListParser.parseLong(bytes, startIndex, endIndex);
                 break;
             }
             case REAL: {
-                doubleValue = BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex);
-                longValue = Math.round(doubleValue);
+                this.doubleValue = BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex);
+                this.longValue = Math.round(this.doubleValue);
                 break;
             }
             default: {
@@ -101,7 +101,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Creates a number from its textual representation.
+     * Create a NSNumber instance from its textual representation.
      *
      * @param text The textual representation of the number.
      * @throws IllegalArgumentException If the text does not represent an integer, real number or boolean value.
@@ -112,29 +112,38 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     public NSNumber(String text) {
         if (text == null)
             throw new IllegalArgumentException("The given string is null and cannot be parsed as number.");
-        try {
-            long l;
-            if (text.startsWith("0x")) {
-                l  = Long.parseLong(text.substring(2), 16);
-            } else {
-                l  = Long.parseLong(text);
-            }
-            doubleValue = longValue = l;
-            type = INTEGER;
-        } catch (Exception ex) {
+
+        if (text.equalsIgnoreCase("nan")) {
+            this.doubleValue = Double.NaN;
+            this.longValue = 0;
+            this.type = REAL;
+        }
+        else if (text.equalsIgnoreCase("true") || text.equalsIgnoreCase("yes")) {
+            this.type = BOOLEAN;
+            this.boolValue = true;
+            this.doubleValue = this.longValue = 1;
+        }
+        else if (text.equalsIgnoreCase("false") || text.equalsIgnoreCase("no")) {
+            this.type = BOOLEAN;
+            this.boolValue = false;
+            this.doubleValue = this.longValue = 0;
+        }
+        else {
             try {
-                doubleValue = Double.parseDouble(text);
-                longValue = Math.round(doubleValue);
-                type = REAL;
-            } catch (Exception ex2) {
+                long l;
+                if(text.startsWith("0x")) {
+                    l = Long.parseLong(text.substring(2), 16);
+                } else {
+                    l = Long.parseLong(text);
+                }
+                this.doubleValue = this.longValue = l;
+                this.type = INTEGER;
+            } catch(Exception ex) {
                 try {
-                    boolValue = text.equalsIgnoreCase("true") || text.equalsIgnoreCase("yes");
-                    if(!boolValue && !(text.equalsIgnoreCase("false") || text.equalsIgnoreCase("no"))) {
-                        throw new Exception("not a boolean");
-                    }
-                    type = BOOLEAN;
-                    doubleValue = longValue = boolValue ? 1 : 0;
-                } catch (Exception ex3) {
+                    this.doubleValue = Double.parseDouble(text);
+                    this.longValue = Math.round(this.doubleValue);
+                    this.type = REAL;
+                } catch(Exception ex2) {
                     throw new IllegalArgumentException("The given string neither represents a double, an int nor a boolean value.");
                 }
             }
@@ -142,48 +151,48 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     /**
-     * Creates an integer number.
+     * Creates a new NSNumber instance with the specified value.
      *
      * @param i The integer value.
      */
     public NSNumber(int i) {
-        doubleValue = longValue = i;
-        type = INTEGER;
+        this.doubleValue = this.longValue = i;
+        this.type = INTEGER;
     }
 
     /**
-     * Creates an integer number.
+     * Creates a new NSNumber instance with the specified value.
      *
      * @param l The long integer value.
      */
     public NSNumber(long l) {
-        doubleValue = longValue = l;
-        type = INTEGER;
+        this.doubleValue = this.longValue = l;
+        this.type = INTEGER;
     }
 
     /**
-     * Creates a real number.
+     * Creates a new NSNumber instance with the specified value.
      *
      * @param d The real value.
      */
     public NSNumber(double d) {
-        longValue = (long) (doubleValue = d);
-        type = REAL;
+        this.longValue = (long) (this.doubleValue = d);
+        this.type = REAL;
     }
 
     /**
-     * Creates a boolean number.
+     * Creates a new NSNumber instance with the specified value.
      *
      * @param b The boolean value.
      */
     public NSNumber(boolean b) {
-        boolValue = b;
-        doubleValue = longValue = b ? 1 : 0;
-        type = BOOLEAN;
+        this.boolValue = b;
+        this.doubleValue = this.longValue = b ? 1 : 0;
+        this.type = BOOLEAN;
     }
 
     /**
-     * Gets the type of this number's value.
+     * Gets the type of this instance's value.
      *
      * @return The type flag.
      * @see #BOOLEAN
@@ -191,86 +200,117 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * @see #REAL
      */
     public int type() {
-        return type;
+        return this.type;
     }
 
     /**
-     * Checks whether the value of this NSNumber is a boolean.
+     * Gets a value indicating whether the value of this NSNumber is a boolean.
      *
      * @return Whether the number's value is a boolean.
      */
     public boolean isBoolean() {
-        return type == BOOLEAN;
+        return this.type == BOOLEAN;
     }
 
     /**
-     * Checks whether the value of this NSNumber is an integer.
+     * Gets a value indicating whether the value of this NSNumber is an integer.
      *
      * @return Whether the number's value is an integer.
      */
     public boolean isInteger() {
-        return type == INTEGER;
+        return this.type == INTEGER;
     }
 
     /**
-     * Checks whether the value of this NSNumber is a real number.
+     * Gets a value indicating whether the value of this NSNumber is a real number.
      *
      * @return Whether the number's value is a real number.
      */
     public boolean isReal() {
-        return type == REAL;
+        return this.type == REAL;
     }
 
     /**
-     * The number's boolean value.
+     * Gets this instance's boolean value.
      *
-     * @return <code>true</code> if the value is true or non-zero, <code>false</code> otherwise.
+     * @return <code>true</code> if the value is true or non-zero and not <code>Double.NaN</code>; otherwise, <code>false</code>.
      */
     public boolean boolValue() {
-        if (type == BOOLEAN)
-            return boolValue;
+        if (this.type == BOOLEAN)
+            return this.boolValue;
         else
-            return longValue != 0;
+            return !Double.isNaN(this.doubleValue) && this.doubleValue != 0;
     }
 
     /**
-     * The number's long value.
+     * Gets this instance's long integer value.
      *
-     * @return The value of the number as long
+     * @return The value of the number as a <code>long</code>.
+     * @throws IllegalStateException The integer value is not available because the value of this NSNumber instance is NaN.
      */
     public long longValue() {
-        return longValue;
+        if (this.type == REAL && Double.isNaN(this.doubleValue)) {
+            throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is NaN.");
+        }
+
+        return this.longValue;
     }
 
     /**
-     * The number's int value.
+     * Gets this instance's integer value.
      * <i>Note: Even though the number's type might be INTEGER it can be larger than a Java int.
      * Use intValue() only if you are certain that it contains a number from the int range.
-     * Otherwise the value might be innaccurate.</i>
+     * Otherwise the value might be inaccurate.</i>
      *
-     * @return The value of the number as int
+     * @return The value of the number as an <code>int</code>.
+     * @throws IllegalStateException The integer value is not available because the value of this NSNumber instance is NaN.
      */
     public int intValue() {
-        return (int) longValue;
+        if (this.type == REAL && Double.isNaN(this.doubleValue)) {
+            throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is NaN.");
+        }
+
+        return (int) this.longValue;
     }
 
     /**
-     * The number's double value.
+     * Gets this instance's <code>double</code> value.
      *
-     * @return The value of the number as double.
+     * @return The value of the number as a <code>double</code>.
      */
     public double doubleValue() {
-        return doubleValue;
+        return this.doubleValue;
     }
 
     /**
-     * The number's float value.
+     * Gets this instance's <code>float</code> value.
      * WARNING: Possible loss of precision if the value is outside the float range.
      *
-     * @return The value of the number as float.
+     * @return The value of the number as a <code>float</code>.
      */
     public float floatValue() {
-        return (float) doubleValue;
+        return (float) this.doubleValue;
+    }
+
+    /**
+     * Gets this instance's value expressed as a human-readable string.
+     * @return The human-readable string representation of this number.
+     */
+    public String stringValue() {
+        switch (this.type) {
+            case INTEGER: {
+                return String.valueOf(this.longValue);
+            }
+            case REAL: {
+                return String.valueOf(this.doubleValue);
+            }
+            case BOOLEAN: {
+                return String.valueOf(this.boolValue);
+            }
+            default: {
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
+            }
+        }
     }
 
     /**
@@ -284,30 +324,47 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         if (obj == null) return false;
         if (this.getClass() != obj.getClass()) return false;
         NSNumber n = (NSNumber) obj;
-        return type == n.type && longValue == n.longValue && doubleValue == n.doubleValue && boolValue == n.boolValue;
+        return this.type == n.type && this.longValue == n.longValue && this.doubleValue == n.doubleValue && this.boolValue == n.boolValue;
     }
 
     @Override
     public int hashCode() {
-        int hash = type;
+        int hash = this.type;
         hash = 37 * hash + (int) (this.longValue ^ (this.longValue >>> 32));
         hash = 37 * hash + (int) (Double.doubleToLongBits(this.doubleValue) ^ (Double.doubleToLongBits(this.doubleValue) >>> 32));
-        hash = 37 * hash + (boolValue() ? 1 : 0);
+        hash = 37 * hash + (this.boolValue() ? 1 : 0);
         return hash;
     }
 
+    @Override
+    public NSNumber clone() {
+        switch (this.type) {
+            case INTEGER: {
+                return new NSNumber(this.longValue);
+            }
+            case REAL: {
+                return new NSNumber(this.doubleValue);
+            }
+            case BOOLEAN: {
+                return new NSNumber(this.boolValue);
+            }
+            default: {
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
+            }
+        }
+    }
 
     @Override
     public String toString() {
-        switch (type) {
+        switch (this.type()) {
             case INTEGER: {
-                return String.valueOf(longValue());
+                return String.valueOf(this.longValue);
             }
             case REAL: {
-                return String.valueOf(doubleValue());
+                return String.valueOf(this.doubleValue);
             }
             case BOOLEAN: {
-                return String.valueOf(boolValue());
+                return String.valueOf(this.boolValue);
             }
             default: {
                 return super.toString();
@@ -317,108 +374,112 @@ public class NSNumber extends NSObject implements Comparable<Object> {
 
     @Override
     void toXML(StringBuilder xml, int level) {
-        indent(xml, level);
-        switch (type) {
+        this.indent(xml, level);
+        switch (this.type()) {
             case INTEGER: {
                 xml.append("<integer>");
-                xml.append(longValue());
+                xml.append(this.longValue);
                 xml.append("</integer>");
                 break;
             }
             case REAL: {
                 xml.append("<real>");
-                xml.append(doubleValue());
+                xml.append(Double.isNaN(this.doubleValue) ? "nan" : String.valueOf(this.doubleValue));
                 xml.append("</real>");
                 break;
             }
             case BOOLEAN: {
-                if (boolValue())
+                if (this.boolValue)
                     xml.append("<true/>");
                 else
                     xml.append("<false/>");
                 break;
             }
-            default:
-                break;
+            default: {
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
+            }
         }
     }
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        switch (type()) {
+        switch (this.type()) {
             case INTEGER: {
-                if (longValue() < 0) {
+                if (this.longValue() < 0) {
                     out.write(0x13);
-                    out.writeBytes(longValue(), 8);
-                } else if (longValue() <= 0xff) {
+                    out.writeBytes(this.longValue, 8);
+                } else if (this.longValue <= 0xff) {
                     out.write(0x10);
-                    out.writeBytes(longValue(), 1);
-                } else if (longValue() <= 0xffff) {
+                    out.writeBytes(this.longValue(), 1);
+                } else if (this.longValue <= 0xffff) {
                     out.write(0x11);
-                    out.writeBytes(longValue(), 2);
-                } else if (longValue() <= 0xffffffffL) {
+                    out.writeBytes(this.longValue(), 2);
+                } else if (this.longValue <= 0xffffffffL) {
                     out.write(0x12);
-                    out.writeBytes(longValue(), 4);
+                    out.writeBytes(this.longValue, 4);
                 } else {
                     out.write(0x13);
-                    out.writeBytes(longValue(), 8);
+                    out.writeBytes(this.longValue, 8);
                 }
                 break;
             }
             case REAL: {
                 out.write(0x23);
-                out.writeDouble(doubleValue());
+                out.writeDouble(this.doubleValue);
                 break;
             }
             case BOOLEAN: {
-                out.write(boolValue() ? 0x09 : 0x08);
+                out.write(this.boolValue ? 0x09 : 0x08);
                 break;
             }
-            default:
-                break;
+            default: {
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
+            }
         }
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        indent(ascii, level);
-        if (type == BOOLEAN) {
-            ascii.append(boolValue ? "YES" : "NO");
+        this.indent(ascii, level);
+        if (this.isBoolean()) {
+            ascii.append(this.boolValue ? "YES" : "NO");
         } else {
-            ascii.append(toString());
+            ascii.append(this.toString());
         }
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        indent(ascii, level);
-        switch (type) {
+        this.indent(ascii, level);
+        switch (this.type()) {
             case INTEGER: {
                 ascii.append("<*I");
-                ascii.append(toString());
+                ascii.append(this.toString());
                 ascii.append('>');
                 break;
             }
             case REAL: {
                 ascii.append("<*R");
-                ascii.append(toString());
+                ascii.append(this.toString());
                 ascii.append('>');
                 break;
             }
             case BOOLEAN: {
-                if (boolValue) {
+                if (this.boolValue()) {
                     ascii.append("<*BY>");
                 } else {
                     ascii.append("<*BN>");
                 }
-            }
-            default:
                 break;
+            }
+            default: {
+                throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
+            }
         }
     }
 
     public int compareTo(Object o) {
-        double x = doubleValue();
+        double x = this.doubleValue();
         double y;
         if (o instanceof NSNumber) {
             NSNumber num = (NSNumber) o;

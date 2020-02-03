@@ -30,12 +30,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,24 +42,32 @@ import java.util.List;
  */
 public class XMLPropertyListParser {
     private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
+
     static {
-	//
-	// Attempt to disable parser features that can lead to XXE exploits; see:
-	// https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
-	//
+        //
+        // Attempt to disable parser features that can lead to XXE exploits; see:
+        // https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
+        //
         try {
             FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException ignored) {
         }
+
         try {
             FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException ignored) {
         }
+
         try {
             FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException ignored) {
         }
-        FACTORY.setXIncludeAware(false);
+
+        try {
+            FACTORY.setXIncludeAware(false);
+        } catch (UnsupportedOperationException ignored) {
+        }
+
         FACTORY.setExpandEntityReferences(false);
         FACTORY.setNamespaceAware(false);
         FACTORY.setIgnoringComments(true);
@@ -73,16 +76,16 @@ public class XMLPropertyListParser {
     }
 
     /**
-     * Gets a DocumentBuilder to parse a XML property list.
-     * As DocumentBuilders are not thread-safe a new DocBuilder is generated for each request.
+     * Gets a {@link DocumentBuilder} to parse a XML property list.
+     * As {@link DocumentBuilder} instance are not thread-safe a new {@link DocumentBuilder} is generated for each request.
      *
-     * @return A new DocBuilder that can parse property lists w/o an internet connection.
+     * @return A new {@link DocumentBuilder} that can parse property lists without an internet connection.
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
      *                                                        could not be created. This should not occur.
      */
-    public static synchronized DocumentBuilder getDocBuilder() throws ParserConfigurationException {
+    public static DocumentBuilder getDocBuilder() throws ParserConfigurationException {
         DocumentBuilder builder = FACTORY.newDocumentBuilder();
-        builder.setEntityResolver(new PlistDTDResolver());
+        builder.setEntityResolver(new PlistDtdResolver());
         return builder;
     }
 
@@ -90,29 +93,38 @@ public class XMLPropertyListParser {
      * Parses a XML property list file.
      *
      * @param f The XML property list file.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any IO error occurs while reading the file.
+     * @throws java.io.IOException If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(File f)
-                throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-
-        return parse(getDocBuilder().parse(new FileInputStream(f)));
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
+        InputStream fileInputStream = new FileInputStream(f);
+        try {
+            return parse(getDocBuilder().parse(fileInputStream));
+        }
+        finally {
+            try {
+                fileInputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     /**
      * Parses a XML property list from a byte array.
      *
      * @param bytes The byte array containing the property list's data.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any IO error occurs while reading the file.
+     * @throws java.io.IOException If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
@@ -125,20 +137,20 @@ public class XMLPropertyListParser {
 
     /**
      * Parses a XML property list from an input stream.
+     * This method does not close the specified input stream.
      *
      * @param is The input stream pointing to the property list's data.
-     * @return The root object of the property list. This is usually a NSDictionary but can also be a NSArray.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any IO error occurs while reading the file.
+     * @throws java.io.IOException If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     public static NSObject parse(InputStream is)
                 throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-
         return parse(getDocBuilder().parse(is));
     }
 
@@ -147,7 +159,7 @@ public class XMLPropertyListParser {
      *
      * @param doc The XML document.
      * @return The root NSObject of the property list contained in the XML document.
-     * @throws java.io.IOException If any IO error occurs while reading the file.
+     * @throws java.io.IOException If any I/O error occurs while reading the file.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
@@ -186,7 +198,7 @@ public class XMLPropertyListParser {
      *
      * @param n The XML node.
      * @return The corresponding NSObject.
-     * @throws java.io.IOException If any IO error occurs while parsing a Base64 encoded NSData object.
+     * @throws java.io.IOException If any I/O error occurs while parsing a Base64 encoded NSData object.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     private static NSObject parseObject(Node n) throws ParseException, IOException {
@@ -285,20 +297,26 @@ public class XMLPropertyListParser {
     }
 
     /**
-     * Resolves only the Apple PLIST DTD.
+     * Offline resolver for Apple's PLIST DTDs.
      */
-    static class PlistDTDResolver implements EntityResolver {
-        private static final String PLIST_SYSTEMID_1 = "-//Apple Computer//DTD PLIST 1.0//EN";
-        private static final String PLIST_SYSTEMID_2 = "-//Apple//DTD PLIST 1.0//EN";
+    private static class PlistDtdResolver implements EntityResolver {
+        private static final String PLIST_PUBLIC_ID_1 = "-//Apple Computer//DTD PLIST 1.0//EN";
+        private static final String PLIST_PUBLIC_ID_2 = "-//Apple//DTD PLIST 1.0//EN";
 
-        PlistDTDResolver() {
+        PlistDtdResolver() {
         }
 
-        // Implement EntityResolver
-
+        /**
+         * Allow the application to resolve external entities.
+         * This specific implementation returns an empty definition for Apple's PLIST DTDs
+         * so that parsing can happen offline.
+         * @param publicId The public identifier of the external entity being referenced, or null if none was supplied.
+         * @param systemId The system identifier of the external entity being referenced.
+         * @return An empty input source for the PLIST DTDs. For all other DTDs null is returned.
+         */
         public InputSource resolveEntity(String publicId, String systemId) {
-            if (PLIST_SYSTEMID_1.equals(publicId) || PLIST_SYSTEMID_2.equals(publicId)) {
-                return new InputSource(new StringReader(""));
+            if (PLIST_PUBLIC_ID_1.equals(publicId) || PLIST_PUBLIC_ID_2.equals(publicId)) {
+                return new InputSource(new ByteArrayInputStream(new byte[0]));
             }
             return null;
         }

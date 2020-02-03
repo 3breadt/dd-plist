@@ -1,23 +1,27 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * This class contains tests for issues that were managed with the Google Code issue tracking system
  */
-public class GoogleCodeIssueTest extends TestCase {
-    public static void testIssue4() throws Exception {
+public class GoogleCodeIssueTest {
+    @Test
+    public void testIssue4() throws Exception {
         NSDictionary d = (NSDictionary)PropertyListParser.parse(new File("test-files/issue4.plist"));
         assertTrue(((NSString)d.objectForKey("Device Name")).toString().equals("Kid\u2019s iPhone"));
     }
 
-    public static void testIssue7() throws Exception {
+    @Test
+    public void testIssue7() throws Exception {
         // also a test for issue 12
         // the issue4 test has a UTF-16-BE string in its binary representation
         NSObject x = PropertyListParser.parse(new File("test-files/issue4.plist"));
@@ -26,24 +30,28 @@ public class GoogleCodeIssueTest extends TestCase {
         assertTrue(x.equals(y));
     }
 
-    public static void testIssue16() throws Exception {
+    @Test
+    public void testIssue16() throws Exception {
         float x = ((NSNumber)PropertyListParser.parse(new File("test-files/issue16.plist"))).floatValue();
         assertTrue(x == (float)2.71828);
     }
 
-    public static void testIssue18() throws Exception {
+    @Test
+    public void testIssue18() throws Exception {
         NSNumber x = new NSNumber(-999);
         PropertyListParser.saveAsBinary(x, new File("test-files/out-testIssue18.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testIssue18.plist"));
         assertTrue(x.equals(y));
     }
 
-    public static void testIssue21() throws Exception {
+    @Test
+    public void testIssue21() throws Exception {
         String x = ((NSString)PropertyListParser.parse(new File("test-files/issue21.plist"))).toString();
         assertTrue(x.equals("Lot&s of &persand&s and other escapable \"\'<>€ characters"));
     }
 
-    public static void testIssue22() throws Exception {
+    @Test
+    public void testIssue22() throws Exception {
         NSDictionary x1 = ((NSDictionary)PropertyListParser.parse(new File("test-files/issue22-emoji.plist")));
         NSDictionary x2 = ((NSDictionary)PropertyListParser.parse(new File("test-files/issue22-emoji-xml.plist")));
         PropertyListParser.saveAsBinary(x1, new File("test-files/out-testIssue22.plist"));
@@ -64,14 +72,18 @@ public class GoogleCodeIssueTest extends TestCase {
         assertTrue(emojiString.equals(y2.objectForKey("emojiString").toString()));
     }
 
-    public static void testIssue30() throws Exception {
+    @Test
+    public void testIssue30() throws Exception {
         NSArray arr = (NSArray)PropertyListParser.parse(new File("test-files/issue30.plist"));
     }
 
-    public static void testIssue33() throws Exception {
+    @Test
+    public void testIssue33() throws Exception {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
     }
-    public static void testIssue38() throws Exception {
+
+    @Test
+    public void testIssue38() throws Exception {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
         NSObject fileRef = ((NSDictionary) ((NSDictionary)dict.get("objects")).get("65541A9C16D13B8C00A968D5")).get("fileRef");
         assertTrue(fileRef.equals(new NSString("65541A9B16D13B8C00A968D5")));
@@ -80,7 +92,8 @@ public class GoogleCodeIssueTest extends TestCase {
     /**
      * Test storing null values
      */
-    public static void testIssue41() {
+    @Test
+    public void testIssue41() {
         //Dictionary
         Map<String, Object> nullMap = new HashMap<String, Object>();
         nullMap.put("key", null);
@@ -140,7 +153,8 @@ public class GoogleCodeIssueTest extends TestCase {
         }
     }
 
-    public static void testIssue49() throws Exception {
+    @Test
+    public void testIssue49() throws Exception {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue49.plist"));
         assertEquals(0, dict.count());
     }
