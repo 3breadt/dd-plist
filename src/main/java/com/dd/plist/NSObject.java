@@ -2,7 +2,7 @@
  * plist - An open source library to parse and generate property lists
  * Copyright (C) 2014 Daniel Dreibrodt
  *
-* Permission is hereby granted, free of charge, to any person obtaining a copy
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -56,6 +56,7 @@ public abstract class NSObject implements Cloneable {
 
     /**
      * Creates and returns a deep copy of this instance.
+     *
      * @return A clone of this instance.
      */
     @Override
@@ -148,25 +149,26 @@ public abstract class NSObject implements Cloneable {
      * <li>{@link NSDate} objects are converted to {@link java.util.Date} objects.</li>
      * <li>{@link UID} objects are converted to byte arrays.</li>
      * </ul>
+     *
      * @return A native java object representing this NSObject's value.
      */
     public Object toJavaObject() {
-        if(this instanceof NSArray) {
+        if (this instanceof NSArray) {
             return this.deserializeArray();
         } else if (this instanceof NSDictionary) {
             return this.deserializeMap();
-        } else if(this instanceof NSSet) {
+        } else if (this instanceof NSSet) {
             return this.deserializeSet();
-        } else if(this instanceof NSNumber) {
+        } else if (this instanceof NSNumber) {
             return this.deserializeNumber();
-        } else if(this instanceof NSString) {
-            return ((NSString)this).getContent();
-        } else if(this instanceof NSData) {
-            return ((NSData)this).bytes();
-        } else if(this instanceof NSDate) {
-            return ((NSDate)this).getDate();
-        } else if(this instanceof UID) {
-            return ((UID)this).getBytes();
+        } else if (this instanceof NSString) {
+            return ((NSString) this).getContent();
+        } else if (this instanceof NSData) {
+            return ((NSData) this).bytes();
+        } else if (this instanceof NSDate) {
+            return ((NSDate) this).getDate();
+        } else if (this instanceof UID) {
+            return ((UID) this).getBytes();
         } else {
             return this;
         }
@@ -174,7 +176,8 @@ public abstract class NSObject implements Cloneable {
 
     /**
      * Converts this NSObject into an object of the specified class.
-     * @param <T> The target object type.
+     *
+     * @param <T>   The target object type.
      * @param clazz The target class.
      * @return A new instance of the specified class, deserialized from this NSObject.
      * @throws IllegalArgumentException If the specified class cannot be deserialized from this NSObject.
@@ -188,6 +191,7 @@ public abstract class NSObject implements Cloneable {
      * Serializes the specified object into an NSObject.
      * Objects which do not have a direct type correspondence to an NSObject type will be serialized as a {@link NSDictionary}.
      * The dictionary will contain the values of all publicly accessible fields and properties.
+     *
      * @param object The object to serialize.
      * @return A NSObject instance.
      * @throws IllegalArgumentException If the specified object throws an exception while getting its properties.
@@ -197,8 +201,8 @@ public abstract class NSObject implements Cloneable {
             return null;
         }
 
-        if(object instanceof NSObject) {
-            return (NSObject)object;
+        if (object instanceof NSObject) {
+            return (NSObject) object;
         }
 
         Class<?> objClass = object.getClass();
@@ -251,7 +255,7 @@ public abstract class NSObject implements Cloneable {
 
     private static Class<?> getClassForName(String className) {
         int spaceIndex = className.indexOf(' ');
-        if(spaceIndex != -1) {
+        if (spaceIndex != -1) {
             className = className.substring(spaceIndex + 1);
         }
 
@@ -366,9 +370,9 @@ public abstract class NSObject implements Cloneable {
     }
 
     private HashMap<String, Object> deserializeMap() {
-        HashMap<String, NSObject> originalMap = ((NSDictionary)this).getHashMap();
+        HashMap<String, NSObject> originalMap = ((NSDictionary) this).getHashMap();
         HashMap<String, Object> clonedMap = new HashMap<String, Object>(originalMap.size());
-        for(String key:originalMap.keySet()) {
+        for (String key : originalMap.keySet()) {
             clonedMap.put(key, originalMap.get(key).toJavaObject());
         }
 
@@ -450,9 +454,9 @@ public abstract class NSObject implements Cloneable {
     }
 
     private Object[] deserializeArray() {
-        NSObject[] originalArray = ((NSArray)this).getArray();
+        NSObject[] originalArray = ((NSArray) this).getArray();
         Object[] clonedArray = new Object[originalArray.length];
-        for(int i = 0; i < originalArray.length; i++) {
+        for (int i = 0; i < originalArray.length; i++) {
             clonedArray[i] = originalArray[i].toJavaObject();
         }
 
@@ -490,14 +494,14 @@ public abstract class NSObject implements Cloneable {
     }
 
     private Set<Object> deserializeSet() {
-        Set<NSObject> originalSet = ((NSSet)this).getSet();
+        Set<NSObject> originalSet = ((NSSet) this).getSet();
         Set<Object> clonedSet;
-        if(originalSet instanceof LinkedHashSet) {
+        if (originalSet instanceof LinkedHashSet) {
             clonedSet = new LinkedHashSet<Object>(originalSet.size());
         } else {
             clonedSet = new TreeSet<Object>();
         }
-        for(NSObject o : originalSet) {
+        for (NSObject o : originalSet) {
             clonedSet.add(o.toJavaObject());
         }
         return clonedSet;
@@ -553,23 +557,23 @@ public abstract class NSObject implements Cloneable {
     }
 
     private Object deserializeNumber() {
-        NSNumber num = (NSNumber)this;
-        switch(num.type()) {
-            case NSNumber.INTEGER : {
+        NSNumber num = (NSNumber) this;
+        switch (num.type()) {
+            case NSNumber.INTEGER: {
                 long longVal = num.longValue();
-                if(longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
+                if (longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
                     return longVal;
                 } else {
                     return num.intValue();
                 }
             }
-            case NSNumber.REAL : {
+            case NSNumber.REAL: {
                 return num.doubleValue();
             }
-            case NSNumber.BOOLEAN : {
+            case NSNumber.BOOLEAN: {
                 return num.boolValue();
             }
-            default : {
+            default: {
                 return num.doubleValue();
             }
         }
@@ -686,8 +690,8 @@ public abstract class NSObject implements Cloneable {
             }
         }
 
-        for(Field field : objClass.getFields()) {
-            if(Modifier.isStatic(field.getModifiers())) {
+        for (Field field : objClass.getFields()) {
+            if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
 
@@ -715,7 +719,7 @@ public abstract class NSObject implements Cloneable {
 
     private static NSObject fromArray(Object object, Class<?> objClass) {
         Class<?> elementClass = objClass.getComponentType();
-        if(elementClass == byte.class || elementClass == Byte.class) {
+        if (elementClass == byte.class || elementClass == Byte.class) {
             return fromData(object);
         }
 
@@ -732,7 +736,7 @@ public abstract class NSObject implements Cloneable {
         int size = Array.getLength(object);
         byte[] array = new byte[size];
         for (int i = 0; i < size; i++) {
-            array[i] = (Byte)(Array.get(object, i));
+            array[i] = (Byte) (Array.get(object, i));
         }
 
         return new NSData(array);
