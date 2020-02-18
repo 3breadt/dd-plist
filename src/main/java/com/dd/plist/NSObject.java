@@ -22,7 +22,14 @@
  */
 package com.dd.plist;
 
+import com.dd.plist.annotations.PlistAlias;
+import com.dd.plist.annotations.PlistIgnore;
+import com.dd.plist.annotations.PlistOptions;
+import com.dd.plist.utils.ReflectionUtils;
+import com.dd.plist.utils.TextUtils;
+
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -662,45 +669,85 @@ public abstract class NSObject implements Cloneable {
         throw new IllegalArgumentException("Cannot map " + objClass.getSimpleName() + " as a simple type.");
     }
 
+
     private static NSDictionary fromPojo(Object object, Class<?> objClass) {
         NSDictionary result = new NSDictionary();
 
-        for (Method method : objClass.getMethods()) {
-            if (Modifier.isNative(method.getModifiers()) ||
-                    Modifier.isStatic(method.getModifiers()) ||
-                    method.getParameterTypes().length != 0) {
-                continue;
+        if (objClass.isAnnotationPresent(PlistOptions.class)) {
+            PlistOptions options = objClass.getAnnotation(PlistOptions.class);
+            List<Field> fields = ReflectionUtils.getAllFields(objClass);
+
+            for (Field field : fields) {
+                int modifiers = field.getModifiers();
+
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)
+                        || field.isAnnotationPresent(PlistIgnore.class)) {
+                    continue;
+                }
+
+                String name;
+
+                if (field.isAnnotationPresent(PlistAlias.class)) {
+                    PlistAlias alias = field.getAnnotation(PlistAlias.class);
+                    name = alias.value();
+                } else {
+                    name = field.getName();
+                    if (options.upperCamelCase() && name.length() > 1) {
+                        name = TextUtils.toUpperCase(name.charAt(0)) + name.substring(1);
+                    }
+                }
+
+                try {
+                    field.setAccessible(true);
+                    result.put(name, fromJavaObject(field.get(object)));
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException("Could not access field " + field.getName());
+                }
             }
-            String name = method.getName();
-            if (name.startsWith("get")) {
-                name = makeFirstCharLowercase(name.substring(3));
-            } else if (name.startsWith("is")) {
-                name = makeFirstCharLowercase(name.substring(2));
-            } else {
-                ///not a getter
-                continue;
+        } else {
+            for (Method method : objClass.getMethods()) {
+                int modifiers = method.getModifiers();
+
+                if (Modifier.isNative(modifiers) ||
+                        Modifier.isStatic(modifiers) ||
+                        method.getParameterTypes().length != 0) {
+                    continue;
+                }
+
+                String name = method.getName();
+                if (name.startsWith("get")) {
+                    name = makeFirstCharLowercase(name.substring(3));
+                } else if (name.startsWith("is")) {
+                    name = makeFirstCharLowercase(name.substring(2));
+                } else {
+                    ///not a getter
+                    continue;
+                }
+
+                try {
+                    result.put(name, fromJavaObject(method.invoke(object)));
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException("Could not access getter " + method.getName());
+                } catch (InvocationTargetException e) {
+                    throw new IllegalArgumentException("Could not invoke getter " + method.getName());
+                }
             }
 
-            try {
-                result.put(name, fromJavaObject(method.invoke(object)));
-            } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Could not access getter " + method.getName());
-            } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException("Could not invoke getter " + method.getName());
+            for (Field field : objClass.getFields()) {
+                int modifiers = field.getModifiers();
+
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)) {
+                    continue;
+                }
+
+                try {
+                    result.put(field.getName(), fromJavaObject(field.get(object)));
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException("Could not access field " + field.getName());
+                }
             }
         }
 
-        for (Field field : objClass.getFields()) {
-            if (Modifier.isStatic(field.getModifiers())) {
-                continue;
-            }
-
-            try {
-                result.put(field.getName(), fromJavaObject(field.get(object)));
-            } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Could not access field " + field.getName());
-            }
-        }
 
         return result;
     }
