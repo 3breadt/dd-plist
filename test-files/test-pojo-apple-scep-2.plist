@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>PayloadContent</key>
+        <dict>
+            <key>Challenge</key>
+            <string>123</string>
+            <key>Key Type</key>
+            <string>RSA</string>
+            <key>Keysize</key>
+            <integer>2048</integer>
+            <key>Name</key>
+            <string>SCEP NAME</string>
+            <key>Retries</key>
+            <integer>3</integer>
+            <key>RetryDelay</key>
+            <integer>10</integer>
+            <key>Subject</key>
+            <array>
+                <array>
+                    <array>
+                        <string>Test Sung</string>
+                    </array>
+                </array>
+            </array>
+            <key>SubjectAltName</key>
+            <dict>
+                <key>rfc822Name</key>
+                <string>TEST</string>
+            </dict>
+            <key>URL</key>
+            <string>https://server</string>
+        </dict>
+        <key>PayloadDescription</key>
+        <string>Configures SCEP settings</string>
+        <key>PayloadDisplayName</key>
+        <string>SCEP</string>
+        <key>PayloadIdentifier</key>
+        <string>com.apple.security.scep.3B61BAE9-B049-4B89-8373-545A2DAD5136</string>
+        <key>PayloadType</key>
+        <string>com.apple.security.scep</string>
+        <key>PayloadUUID</key>
+        <string>3B61BAE9-B049-4B89-8373-545A2DAD5136</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+    </dict>
+</plist>

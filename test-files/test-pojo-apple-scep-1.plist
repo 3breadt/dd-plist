@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>PayloadContent</key>
+        <dict>
+            <key>AllowAllAppsAccess</key>
+            <true/>
+            <key>CAFingerprint</key>
+            <data>
+                Fx81WWPp9Cp41rIVFx81WWPp9Cp41rIVFx81WWPp9Cp41rIVFx81WWPp9Cp41rIVAgEAKvQAAg==
+            </data>
+            <key>Challenge</key>
+            <string>Challenge123</string>
+            <key>Key Type</key>
+            <string>RSA</string>
+            <key>Key Usage</key>
+            <integer>4</integer>
+            <key>Keysize</key>
+            <integer>0</integer>
+            <key>Retries</key>
+            <integer>10</integer>
+            <key>Subject</key>
+            <array>
+                <array>
+                    <array>
+                        <string>C</string>
+                        <string>US</string>
+                    </array>
+                </array>
+                <array>
+                    <array>
+                        <string>O</string>
+                        <string>DEV</string>
+                    </array>
+                </array>
+            </array>
+        </dict>
+        <key>PayloadType</key>
+        <string>com.apple.security.scep</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>PayloadIdentifier</key>
+        <string>com.apple.scep.test</string>
+        <key>PayloadUUID</key>
+        <string>test123</string>
+        <key>PayloadDisplayName</key>
+        <string>Apple SCEP</string>
+        <key>PayloadDescription</key>
+        <string>This is description</string>
+    </dict>
+</plist>

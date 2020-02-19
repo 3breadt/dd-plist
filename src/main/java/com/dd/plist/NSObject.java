@@ -341,6 +341,7 @@ public abstract class NSObject implements Cloneable {
 
         Map<String, Method> getters = new HashMap<String, Method>();
         Map<String, Method> setters = new HashMap<String, Method>();
+
         for (Method method : clazz.getMethods()) {
             String name = method.getName();
             if (name.startsWith("get")) {
@@ -349,6 +350,32 @@ public abstract class NSObject implements Cloneable {
                 setters.put(makeFirstCharLowercase(name.substring(3)), method);
             } else if (name.startsWith("is")) {
                 getters.put(makeFirstCharLowercase(name.substring(2)), method);
+            }
+        }
+
+        if (clazz.isAnnotationPresent(PlistOptions.class)) {
+            for (Field field : ReflectionUtils.getAllFields(clazz)) {
+                int modifiers = field.getModifiers();
+
+                if (!Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers)
+                        && !field.isAnnotationPresent(PlistIgnore.class)) {
+
+                    if (field.isAnnotationPresent(PlistAlias.class)) {
+                        PlistAlias alias = field.getAnnotation(PlistAlias.class);
+                        String aliasName = makeFirstCharLowercase(alias.value());
+                        String fieldName = field.getName();
+
+                        Method method = getters.get(fieldName);
+                        if (method != null) {
+                            getters.put(aliasName, method);
+                        }
+
+                        method = setters.get(fieldName);
+                        if (method != null) {
+                            setters.put(aliasName, method);
+                        }
+                    }
+                }
             }
         }
 
