@@ -64,10 +64,19 @@ When you directly want to save your property list to a file, you can also use th
 
 For converting a file into another format there exist convenience methods in the `PropertyListParser` class: `convertToXML`, `convertToBinary`,  `convertToASCII` and `convertToGnuStepASCII`.
 
+### Annotations
+
+You may customize how Plain Old Java Objects (POJO) are serialized using the following annotations.
+
+  * Specify `@PlistOptions` at the top of your POJO class to denote that annotations will be used. Use `@PlistOptions(upperCamelCase = true)` to specify that all fields should be serialized in upper camel case mode, i.e., first letter is always an upper case letter.
+  * Use `@PlistIgnore` on a class field to omit it from serialization. Alternatively you may use the `transient` field modifier.
+  * Use `@PlistAlias` on a class field to specify how a field should be serialized to and deserialized from a XML property list file.
+
 ## Code snippets
 
 ### Reading
 
+```java
     try {
       File file = new File("Info.plist");
       NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(file);
@@ -100,7 +109,7 @@ For converting a file into another format there exist convenience methods in the
     } catch(Exception ex) {
       ex.printStackTrace();
     }
-
+```
 
 #### On Android
 
@@ -108,6 +117,7 @@ Put your property list files into the project folder _res/raw_ to mark them as r
 
 In this example your property list file is called _properties.plist_.
 
+```java
     try {
       InputStream is = getResources().openRawResource(R.raw.properties);
       NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(is);
@@ -115,9 +125,11 @@ In this example your property list file is called _properties.plist_.
     } catch(Exception ex) {
       //Handle exceptions...
     }
+```
 
 ### Writing
 
+```java
     //Creating the root object
     NSDictionary root = new NSDictionary();
 
@@ -151,3 +163,24 @@ In this example your property list file is called _properties.plist_.
 
     //Save the propery list
     PropertyListParser.saveAsXML(root, new File("people.plist"));
+```
+
+### Annotations
+
+```java
+    @PlistOptions(upperCamelCase = true)
+    public static class PayloadContent {
+        
+        private boolean allowAllAppsAccess = false; // serialized as '<key>AllowAllAppsAccess</key>'
+    
+        @PlistAlias("CAFingerprint")
+        private byte[] caFingerprint = new byte[]{};  // serialized as '<key>CAFingerprint</key>'
+        
+        @PlistAlias("Key Type")
+        private String keyType = "RSA";  // serialized as '<key>Key Type</key>'
+        
+        @PlistIgnore
+        private String ignored = "ignored";  // will not be serialized  
+        
+        private transient String ignored2 = "ignored2";  // will not be serialized
+```
