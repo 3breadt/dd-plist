@@ -30,7 +30,7 @@ import java.util.List;
 public final class ReflectionUtils {
 
     public static List<Field> getAllFields(Class<?> type) {
-        List<Field> fields = new ArrayList<>();
+        List<Field> fields = new ArrayList<Field>();
         for (Class<?> c = type; c != null; c = c.getSuperclass()) {
             fields.addAll(Arrays.asList(c.getDeclaredFields()));
         }
