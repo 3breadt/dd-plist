@@ -20,26 +20,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.dd.plist.utils;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+package com.dd.plist.annotations;
 
-public final class ReflectionUtils {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    public static List<Field> getAllFields(Class<?> type) {
-        List<Field> fields = new ArrayList<Field>();
-        for (Class<?> c = type; c != null; c = c.getSuperclass()) {
-            fields.addAll(Arrays.asList(c.getDeclaredFields()));
-        }
-        return fields;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.TYPE})
+public @interface PlistInclude {
 
-    public static Object getPrivateFieldValue(Field field, Object parent) throws IllegalAccessException {
-        field.setAccessible(true);
-        return field.get(parent);
+    /**
+     * Inclusion rule to use for instances (values) of annotated properties. Defaults to {@link Include#DEFAULT}.
+     */
+    Include value() default Include.DEFAULT;
+
+    enum Include {
+        /**
+         * Default behavior.
+         */
+        DEFAULT,
+        /**
+         * Only non-null values are to be included.
+         */
+        NON_NULL,
+        /**
+         * Only non-null values, non-empty strings and non-empty arrays are to be included.
+         */
+        NON_EMPTY
     }
 }

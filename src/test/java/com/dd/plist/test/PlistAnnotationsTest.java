@@ -3,25 +3,19 @@ package com.dd.plist.test;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 import com.dd.plist.PropertyListParser;
+import com.dd.plist.test.model.TestAnnotationsClass1;
+import com.dd.plist.test.model.TestAnnotationsClass2;
 import com.dd.plist.test.model.TestAppleSCEP;
-import com.sun.tools.javac.util.List;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PlistAnnotationsTest {
-
-    public static InputStream getResource(String filename) throws IOException {
-        final String fullname = "/" + filename;
-        final InputStream input = PlistAnnotationsTest.class.getResourceAsStream(fullname);
-        if (input == null)
-            throw new IOException(fullname + " cannot be loaded!");
-        return input;
-    }
 
     public TestAppleSCEP getTestSCEP1() {
         TestAppleSCEP testAppleSCEP = new TestAppleSCEP();
@@ -36,7 +30,7 @@ public class PlistAnnotationsTest {
         content.setKeyType("RSA");
         content.setKeyUsage(4);
         content.setRetries(10);
-        content.setSubject(List.of(List.of(List.of("C", "US")), List.of(List.of("O", "DEV"))));
+        content.setSubject(Collections.singletonList(Collections.singletonList(Collections.singletonList("Test Sung"))));
         content.setCaFingerprint(new byte[]{23, 31, 53, 89, 99, -23, -12, 42, 120, -42, -78, 21, 23, 31, 53, 89, 99, -23, -12, 42, 120, -42, -78, 21, 23, 31, 53, 89, 99, -23, -12, 42, 120, -42, -78, 21, 23, 31, 53, 89, 99, -23, -12, 42, 120, -42, -78, 21, 2, 1, 0, 42, -12, 0, 2});
         return testAppleSCEP;
     }
@@ -53,21 +47,59 @@ public class PlistAnnotationsTest {
         content.setKeyType("RSA");
         content.setKeySize(2048);
         content.setRetries(3);
-        content.setSubject(List.of(List.of(List.of("Test Sung"))));
+        List<String> part1 = new ArrayList<String>();
+        part1.add("C");
+        part1.add("US");
+        List<String> part2 = new ArrayList<String>();
+        part2.add("O");
+        part2.add("DEV");
+        List<List<String>> root1 = new ArrayList<>();
+        root1.add(part1);
+        List<List<String>> root2 = new ArrayList<>();
+        root2.add(part2);
+        List<List<List<String>>> root3 = new ArrayList<>();
+        root3.add(root1);
+        root3.add(root2);
+        content.setSubject(root3);
         return testAppleSCEP;
+    }
+
+    @Test
+    public void testSerializeIncludeAnnotatedPojo() {
+        String xml = NSObject.fromJavaObject(new TestAnnotationsClass1()).toXMLPropertyList();
+
+        assertTrue(xml.contains("<key>textIncluded</key>"), "Must be present - 'textIncluded'");
+        assertTrue(xml.contains("<key>arrayIncluded</key>"), "Must be present - 'arrayIncluded'");
+        assertFalse(xml.contains("<key>emptyText</key>"), "Must NOT BE present - 'emptyText'");
+        assertFalse(xml.contains("<key>emptyArray</key>"), "Must NOT BE present - 'emptyArray'");
+        assertFalse(xml.contains("<key>nullInt</key>"), "Must NOT BE present - 'nullInt'");
+
+        xml = NSObject.fromJavaObject(new TestAnnotationsClass2()).toXMLPropertyList();
+
+        assertFalse(xml.contains("<key>nullText</key>"), "Must NOT BE present - 'nullText'");
+        assertTrue(xml.contains("<key>emptyText</key>"), "Must be present - 'emptyText'");
+        assertTrue(xml.contains("<key>textIncluded</key>"), "Must be present - 'textIncluded'");
+        assertTrue(xml.contains("<key>emptyArray</key>"), "Must be present - 'emptyArray'");
+        assertTrue(xml.contains("<key>arrayIncluded</key>"), "Must be present - 'arrayIncluded'");
+        assertFalse(xml.contains("<key>nullArray</key>"), "Must NOT BE present - 'nullArray'");
     }
 
     @Test
     public void testSerializePojo() {
         String xml = NSObject.fromJavaObject(getTestSCEP1()).toXMLPropertyList();
 
-        assertTrue(xml.contains("<key>PayloadContent</key>"), "UpperCamelCase Test - 'PayloadContent'");
-        assertTrue(xml.contains("<key>AllowAllAppsAccess</key>"), "UpperCamelCase Test Subclass - 'AllowAllAppsAccess'");
-        assertTrue(xml.contains("<key>CAFingerprint</key>"), "Alias Test Subclass - 'CAFingerprint'");
-        assertTrue(xml.contains("<key>PayloadDisplayName</key>"), "Alias + Subclass Test - 'PayloadDisplayName'");
-        assertFalse(xml.contains("<key>Ignored</key>"), "No annotated 'Ignored'");
-        assertFalse(xml.contains("<key>IgnoredTransient</key>"), "No transient - 'IgnoredTransient'");
-        assertFalse(xml.contains("<key>IgnoredStatic</key>"), "No static - 'IgnoredStatic'");
+        assertTrue(xml.contains("<key>PayloadContent</key>"), "Must be present - 'PayloadContent'");
+        assertTrue(xml.contains("<key>AllowAllAppsAccess</key>"), "Must be present - 'AllowAllAppsAccess'");
+        assertTrue(xml.contains("<key>CAFingerprint</key>"), "Must be present - 'CAFingerprint'");
+        assertTrue(xml.contains("<key>PayloadDisplayName</key>"), "Must be present - 'PayloadDisplayName'");
+        assertFalse(xml.contains("<key>Ignored</key>"), "Must NOT BE present - 'Ignored'");
+        assertFalse(xml.contains("<key>IgnoredTransient</key>"), "Must NOT BE present  - 'IgnoredTransient'");
+        assertFalse(xml.contains("<key>IgnoredStatic</key>"), "Must NOT BE present - 'IgnoredStatic'");
+        assertTrue(xml.contains("<key>EmptyTextIncluded</key>"), "Must be present - 'EmptyTextIncluded'");
+        assertFalse(xml.contains("<key>EmptyText</key>"), "Must NOT BE present - 'EmptyText'");
+        assertFalse(xml.contains("<key>EmptyArray</key>"), "Must NOT BE present - 'EmptyArray'");
+        assertTrue(xml.contains("<key>EmptyArrayIncluded</key>"), "Must be present - 'EmptyArrayIncluded'");
+        assertFalse(xml.contains("<key>NullInt</key>"), "Must NOT BE present - 'NullInt'");
     }
 
     @Test
@@ -80,9 +112,9 @@ public class PlistAnnotationsTest {
         NSDictionary dict2 = (NSDictionary) dict1.objectForKey("PayloadContent");
         assertEquals(8, dict2.count());
 
-        assertTrue(dict2.containsKey("AllowAllAppsAccess"), "contains 'AllowAllAppsAccess'");
-        assertTrue(dict2.containsKey("CAFingerprint"), "contains 'CAFingerprint'");
-        assertTrue(dict2.containsKey("Subject"), "contains 'Subject'");
+        assertTrue(dict2.containsKey("AllowAllAppsAccess"), "Must be present - 'AllowAllAppsAccess'");
+        assertTrue(dict2.containsKey("CAFingerprint"), "Must be present - 'CAFingerprint'");
+        assertTrue(dict2.containsKey("Subject"), "Must be present - 'Subject'");
 
         TestAppleSCEP deserialized = root.toJavaObject(TestAppleSCEP.class);
         assertEquals(getTestSCEP1(), deserialized, "deserialized plist file");
@@ -99,9 +131,9 @@ public class PlistAnnotationsTest {
         NSDictionary dict2 = (NSDictionary) dict1.objectForKey("PayloadContent");
         assertEquals(9, dict2.count());
 
-        assertTrue(dict2.containsKey("URL"), "contains 'URL'");
-        assertTrue(dict2.containsKey("SubjectAltName"), "contains 'SubjectAltName'");
-        assertTrue(dict2.containsKey("Subject"), "contains 'Subject'");
+        assertTrue(dict2.containsKey("URL"), "Must be present - 'URL'");
+        assertTrue(dict2.containsKey("SubjectAltName"), "Must be present - 'SubjectAltName'");
+        assertTrue(dict2.containsKey("Subject"), "Must be present - 'Subject'");
 
         TestAppleSCEP deserialized = root.toJavaObject(TestAppleSCEP.class);
         assertEquals(getTestSCEP2(), deserialized, "deserialized plist file");

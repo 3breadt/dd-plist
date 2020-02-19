@@ -24,6 +24,7 @@ package com.dd.plist;
 
 import com.dd.plist.annotations.PlistAlias;
 import com.dd.plist.annotations.PlistIgnore;
+import com.dd.plist.annotations.PlistInclude;
 import com.dd.plist.annotations.PlistOptions;
 import com.dd.plist.utils.ReflectionUtils;
 import com.dd.plist.utils.TextUtils;
@@ -695,6 +696,11 @@ public abstract class NSObject implements Cloneable {
         if (objClass.isAnnotationPresent(PlistOptions.class)) {
             PlistOptions options = objClass.getAnnotation(PlistOptions.class);
 
+            PlistInclude classInclude = null;
+            if (objClass.isAnnotationPresent(PlistInclude.class)) {
+                classInclude = objClass.getAnnotation(PlistInclude.class);
+            }
+
             for (Field field : ReflectionUtils.getAllFields(objClass)) {
                 int modifiers = field.getModifiers();
                 if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)
@@ -702,21 +708,54 @@ public abstract class NSObject implements Cloneable {
                     continue;
                 }
 
-                String name;
-
-                if (field.isAnnotationPresent(PlistAlias.class)) {
-                    PlistAlias alias = field.getAnnotation(PlistAlias.class);
-                    name = alias.value();
-                } else {
-                    name = field.getName();
-                    if (options.upperCamelCase() && name.length() > 1) {
-                        name = TextUtils.makeFirstCharUpperCase(name);
-                    }
-                }
+                Object value = null;
 
                 try {
-                    field.setAccessible(true);
-                    result.put(name, fromJavaObject(field.get(object)));
+                    if (classInclude != null || field.isAnnotationPresent(PlistInclude.class)) {
+                        PlistInclude.Include includeValue = classInclude != null ? classInclude.value() :
+                                field.getAnnotation(PlistInclude.class).value();
+
+                        value = ReflectionUtils.getPrivateFieldValue(field, object);
+
+                        switch (includeValue) {
+                            case NON_NULL:
+                                if (value == null) {
+                                    continue;
+                                }
+                                break;
+                            case NON_EMPTY:
+                                if (value == null) {
+                                    continue;
+                                }
+                                if (value instanceof String && ((String) value).isEmpty()) {
+                                    continue;
+                                }
+                                Class<?> valueClass = value.getClass();
+                                if (valueClass.isArray() && Array.getLength(value) == 0) {
+                                    continue;
+                                }
+                                break;
+                            case DEFAULT:
+                            default:
+                                // do nothing
+                                break;
+                        }
+                    }
+
+                    String name;
+
+                    if (field.isAnnotationPresent(PlistAlias.class)) {
+                        PlistAlias alias = field.getAnnotation(PlistAlias.class);
+                        name = alias.value();
+                    } else {
+                        name = field.getName();
+                        if (options.upperCamelCase() && name.length() > 1) {
+                            name = TextUtils.makeFirstCharUpperCase(name);
+                        }
+                    }
+
+                    result.put(name, fromJavaObject(value == null ?
+                            ReflectionUtils.getPrivateFieldValue(field, object) : value));
                 } catch (IllegalAccessException e) {
                     throw new IllegalArgumentException("Could not access field " + field.getName());
                 }

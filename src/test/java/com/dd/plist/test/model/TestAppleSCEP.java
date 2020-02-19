@@ -2,6 +2,7 @@ package com.dd.plist.test.model;
 
 import com.dd.plist.annotations.PlistAlias;
 import com.dd.plist.annotations.PlistIgnore;
+import com.dd.plist.annotations.PlistInclude;
 import com.dd.plist.annotations.PlistOptions;
 
 import java.util.ArrayList;
@@ -18,6 +19,19 @@ public class TestAppleSCEP extends TestAppleAbstract {
 
     @PlistIgnore
     private String ignored = "ignored";
+
+    private String emptyTextIncluded = "";
+
+    @PlistInclude(PlistInclude.Include.NON_EMPTY)
+    private String emptyText = "";
+
+    @PlistInclude(PlistInclude.Include.NON_EMPTY)
+    private byte[] emptyArray = new byte[]{};
+
+    private byte[] emptyArrayIncluded = new byte[]{};
+
+    @PlistInclude(PlistInclude.Include.NON_NULL)
+    private Integer nullInt = null;
 
     private TestAppleSCEPContent payloadContent = new TestAppleSCEPContent();
 
@@ -139,11 +153,19 @@ public class TestAppleSCEP extends TestAppleAbstract {
         if (!super.equals(o)) return false;
         TestAppleSCEP that = (TestAppleSCEP) o;
         return Objects.equals(this.ignoredTransient, that.ignoredTransient) &&
-                Objects.equals(this.payloadContent, that.payloadContent) &&
-                Objects.equals(this.ignored, that.ignored);
+                Objects.equals(this.ignored, that.ignored) &&
+                Objects.equals(this.emptyTextIncluded, that.emptyTextIncluded) &&
+                Objects.equals(this.emptyText, that.emptyText) &&
+                Arrays.equals(this.emptyArray, that.emptyArray) &&
+                Arrays.equals(this.emptyArrayIncluded, that.emptyArrayIncluded) &&
+                Objects.equals(this.nullInt, that.nullInt) &&
+                Objects.equals(this.payloadContent, that.payloadContent);
     }
 
     @Override public int hashCode() {
-        return Objects.hash(super.hashCode(), this.ignoredTransient, this.payloadContent, this.ignored);
+        int result = Objects.hash(super.hashCode(), this.ignoredTransient, this.ignored, this.emptyTextIncluded, this.emptyText, this.nullInt, this.payloadContent);
+        result = 31 * result + Arrays.hashCode(this.emptyArray);
+        result = 31 * result + Arrays.hashCode(this.emptyArrayIncluded);
+        return result;
     }
 }

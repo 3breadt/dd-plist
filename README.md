@@ -68,9 +68,10 @@ For converting a file into another format there exist convenience methods in the
 
 You may customize how Plain Old Java Objects (POJO) are serialized using the following annotations.
 
-  * Specify `@PlistOptions` at the top of your POJO class to denote that annotations will be used. Use `@PlistOptions(upperCamelCase = true)` to specify that all fields should be serialized in upper camel case mode, i.e., first letter is always an upper case letter.
+  * Specify `@PlistOptions` at the top of a class to denote that annotations will be used. Use `@PlistOptions(upperCamelCase = true)` to specify that all fields should be serialized in upper camel-case mode, i.e., first letter is always an upper case letter.
   * Use `@PlistIgnore` on a class field to omit it from serialization. Alternatively you may use the `transient` field modifier.
-  * Use `@PlistAlias` on a class field to specify how a field should be serialized to and deserialized from a XML property list file.
+  * Use `@PlistAlias` on a class field to specify the serialized name of a field.
+  * Use `@PlistInclude` on a class or field to specify how empty or `null` field values should be serialized.
 
 ## Code snippets
 
@@ -183,4 +184,16 @@ In this example your property list file is called _properties.plist_.
         private String ignored = "ignored";  // will not be serialized  
         
         private transient String ignored2 = "ignored2";  // will not be serialized
+
+        @PlistInclude(PlistInclude.Include.NON_EMPTY)
+        private String emptyText = "";  // will not be serialized  
+    
+        @PlistInclude(PlistInclude.Include.NON_EMPTY)
+        private byte[] emptyArray = new byte[]{};   // will not be serialized
+    
+        private byte[] emptyArrayIncluded = new byte[]{};   // serialized as '<key>EmptyArrayIncluded</key>'
+    
+        @PlistInclude(PlistInclude.Include.NON_NULL)
+        private Integer nullInt = null; // will not be serialized
+
 ```
