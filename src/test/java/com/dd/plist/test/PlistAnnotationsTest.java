@@ -73,6 +73,10 @@ public class PlistAnnotationsTest {
         assertFalse(xml.contains("<key>emptyText</key>"), "Must NOT BE present - 'emptyText'");
         assertFalse(xml.contains("<key>emptyArray</key>"), "Must NOT BE present - 'emptyArray'");
         assertFalse(xml.contains("<key>nullInt</key>"), "Must NOT BE present - 'nullInt'");
+        assertFalse(xml.contains("<key>emptyList</key>"), "Must NOT BE present - 'emptyList'");
+        assertFalse(xml.contains("<key>emptySet</key>"), "Must NOT BE present - 'emptySet'");
+        assertFalse(xml.contains("<key>emptyMap</key>"), "Must NOT BE present - 'emptyMap'");
+        assertTrue(xml.contains("<key>col</key>"), "Must be present - 'col'");
 
         xml = NSObject.fromJavaObject(new TestAnnotationsClass2()).toXMLPropertyList();
 

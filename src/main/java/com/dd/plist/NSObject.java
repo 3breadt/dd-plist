@@ -731,7 +731,13 @@ public abstract class NSObject implements Cloneable {
                                     continue;
                                 }
                                 Class<?> valueClass = value.getClass();
+                                if (Collection.class.isAssignableFrom(valueClass) && ((Collection<?>) value).isEmpty()) {
+                                    continue;
+                                }
                                 if (valueClass.isArray() && Array.getLength(value) == 0) {
+                                    continue;
+                                }
+                                if (Map.class.isAssignableFrom(valueClass) && ((Map<?, ?>) value).isEmpty()) {
                                     continue;
                                 }
                                 break;
