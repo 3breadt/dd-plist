@@ -29,8 +29,12 @@ public final class TextUtils {
      */
     private static final char CASE_MASK = 0x20;
 
-    public static char toUpperCase(char c) {
-        return isLowerCase(c) ? (char) (c ^ CASE_MASK) : c;
+    private static char toUpperCase(char c) {
+        return (char) (c ^ CASE_MASK);
+    }
+
+    private static char toLowerCase(char c) {
+        return (char) (c ^ CASE_MASK);
     }
 
     public static boolean isUpperCase(char c) {
@@ -39,5 +43,23 @@ public final class TextUtils {
 
     public static boolean isLowerCase(char c) {
         return (c >= 'a') && (c <= 'z');
+    }
+
+    public static String makeFirstCharLowerCase(String input) {
+        if (!isLowerCase(input.charAt(0))) {
+            char[] chars = input.toCharArray();
+            chars[0] = toLowerCase(chars[0]);
+            return new String(chars);
+        }
+        return input;
+    }
+
+    public static String makeFirstCharUpperCase(String input) {
+        if (!isUpperCase(input.charAt(0))) {
+            char[] chars = input.toCharArray();
+            chars[0] = toUpperCase(chars[0]);
+            return new String(chars);
+        }
+        return input;
     }
 }

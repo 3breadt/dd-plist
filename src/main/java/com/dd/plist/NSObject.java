@@ -29,7 +29,6 @@ import com.dd.plist.utils.ReflectionUtils;
 import com.dd.plist.utils.TextUtils;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -295,12 +294,6 @@ public abstract class NSObject implements Cloneable {
         }
     }
 
-    private static String makeFirstCharLowercase(String input) {
-        char[] chars = input.toCharArray();
-        chars[0] = Character.toLowerCase(chars[0]);
-        return new String(chars);
-    }
-
     private Object toJavaObject(NSObject payload, Class<?> clazz, Type[] types) {
         if (clazz.isArray()) {
             //generics and arrays do not mix
@@ -345,11 +338,11 @@ public abstract class NSObject implements Cloneable {
         for (Method method : clazz.getMethods()) {
             String name = method.getName();
             if (name.startsWith("get")) {
-                getters.put(makeFirstCharLowercase(name.substring(3)), method);
+                getters.put(TextUtils.makeFirstCharLowerCase(name.substring(3)), method);
             } else if (name.startsWith("set")) {
-                setters.put(makeFirstCharLowercase(name.substring(3)), method);
+                setters.put(TextUtils.makeFirstCharLowerCase(name.substring(3)), method);
             } else if (name.startsWith("is")) {
-                getters.put(makeFirstCharLowercase(name.substring(2)), method);
+                getters.put(TextUtils.makeFirstCharLowerCase(name.substring(2)), method);
             }
         }
 
@@ -362,7 +355,7 @@ public abstract class NSObject implements Cloneable {
 
                     if (field.isAnnotationPresent(PlistAlias.class)) {
                         PlistAlias alias = field.getAnnotation(PlistAlias.class);
-                        String aliasName = makeFirstCharLowercase(alias.value());
+                        String aliasName = TextUtils.makeFirstCharLowerCase(alias.value());
                         String fieldName = field.getName();
 
                         Method method = getters.get(fieldName);
@@ -380,8 +373,8 @@ public abstract class NSObject implements Cloneable {
         }
 
         for (Map.Entry<String, NSObject> entry : map.entrySet()) {
-            Method setter = setters.get(makeFirstCharLowercase(entry.getKey()));
-            Method getter = getters.get(makeFirstCharLowercase(entry.getKey()));
+            Method setter = setters.get(TextUtils.makeFirstCharLowerCase(entry.getKey()));
+            Method getter = getters.get(TextUtils.makeFirstCharLowerCase(entry.getKey()));
             if (setter != null && getter != null) {
                 Class<?> elemClass = getter.getReturnType();
                 Type[] elemTypes = null;
@@ -696,15 +689,13 @@ public abstract class NSObject implements Cloneable {
         throw new IllegalArgumentException("Cannot map " + objClass.getSimpleName() + " as a simple type.");
     }
 
-
     private static NSDictionary fromPojo(Object object, Class<?> objClass) {
         NSDictionary result = new NSDictionary();
 
         if (objClass.isAnnotationPresent(PlistOptions.class)) {
             PlistOptions options = objClass.getAnnotation(PlistOptions.class);
-            List<Field> fields = ReflectionUtils.getAllFields(objClass);
 
-            for (Field field : fields) {
+            for (Field field : ReflectionUtils.getAllFields(objClass)) {
                 int modifiers = field.getModifiers();
 
                 if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)
@@ -720,7 +711,7 @@ public abstract class NSObject implements Cloneable {
                 } else {
                     name = field.getName();
                     if (options.upperCamelCase() && name.length() > 1) {
-                        name = TextUtils.toUpperCase(name.charAt(0)) + name.substring(1);
+                        name = TextUtils.makeFirstCharUpperCase(name);
                     }
                 }
 
@@ -743,9 +734,9 @@ public abstract class NSObject implements Cloneable {
 
                 String name = method.getName();
                 if (name.startsWith("get")) {
-                    name = makeFirstCharLowercase(name.substring(3));
+                    name = TextUtils.makeFirstCharLowerCase(name.substring(3));
                 } else if (name.startsWith("is")) {
-                    name = makeFirstCharLowercase(name.substring(2));
+                    name = TextUtils.makeFirstCharLowerCase(name.substring(2));
                 } else {
                     ///not a getter
                     continue;
