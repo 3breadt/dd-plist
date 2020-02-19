@@ -62,10 +62,12 @@ public class PlistAnnotationsTest {
         String xml = NSObject.fromJavaObject(getTestSCEP1()).toXMLPropertyList();
 
         assertTrue(xml.contains("<key>PayloadContent</key>"), "UpperCamelCase Test - 'PayloadContent'");
-        assertFalse(xml.contains("<key>Ignored</key>"), "Ignored Test 'Ignored'");
         assertTrue(xml.contains("<key>AllowAllAppsAccess</key>"), "UpperCamelCase Test Subclass - 'AllowAllAppsAccess'");
         assertTrue(xml.contains("<key>CAFingerprint</key>"), "Alias Test Subclass - 'CAFingerprint'");
         assertTrue(xml.contains("<key>PayloadDisplayName</key>"), "Alias + Subclass Test - 'PayloadDisplayName'");
+        assertFalse(xml.contains("<key>Ignored</key>"), "No annotated 'Ignored'");
+        assertFalse(xml.contains("<key>IgnoredTransient</key>"), "No transient - 'IgnoredTransient'");
+        assertFalse(xml.contains("<key>IgnoredStatic</key>"), "No static - 'IgnoredStatic'");
     }
 
     @Test

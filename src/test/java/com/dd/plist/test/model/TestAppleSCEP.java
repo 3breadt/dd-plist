@@ -12,10 +12,14 @@ import java.util.Objects;
 @PlistOptions(upperCamelCase = true)
 public class TestAppleSCEP extends TestAppleAbstract {
 
-    private TestAppleSCEPContent payloadContent = new TestAppleSCEPContent();
+    private static String ignoredStatic = "ignoredStatic";
+
+    private transient String ignoredTransient = "ignoredTransient";
 
     @PlistIgnore
     private String ignored = "ignored";
+
+    private TestAppleSCEPContent payloadContent = new TestAppleSCEPContent();
 
     public TestAppleSCEP() {
         super("com.apple.security.scep");
@@ -134,11 +138,12 @@ public class TestAppleSCEP extends TestAppleAbstract {
         if (o == null || this.getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         TestAppleSCEP that = (TestAppleSCEP) o;
-        return Objects.equals(this.payloadContent, that.payloadContent) &&
+        return Objects.equals(this.ignoredTransient, that.ignoredTransient) &&
+                Objects.equals(this.payloadContent, that.payloadContent) &&
                 Objects.equals(this.ignored, that.ignored);
     }
 
     @Override public int hashCode() {
-        return Objects.hash(super.hashCode(), this.payloadContent, this.ignored);
+        return Objects.hash(super.hashCode(), this.ignoredTransient, this.payloadContent, this.ignored);
     }
 }

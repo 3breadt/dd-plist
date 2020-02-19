@@ -349,24 +349,24 @@ public abstract class NSObject implements Cloneable {
         if (clazz.isAnnotationPresent(PlistOptions.class)) {
             for (Field field : ReflectionUtils.getAllFields(clazz)) {
                 int modifiers = field.getModifiers();
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)
+                        || field.isAnnotationPresent(PlistIgnore.class)) {
+                    continue;
+                }
 
-                if (!Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers)
-                        && !field.isAnnotationPresent(PlistIgnore.class)) {
+                if (field.isAnnotationPresent(PlistAlias.class)) {
+                    PlistAlias alias = field.getAnnotation(PlistAlias.class);
+                    String aliasName = TextUtils.makeFirstCharLowerCase(alias.value());
+                    String fieldName = field.getName();
 
-                    if (field.isAnnotationPresent(PlistAlias.class)) {
-                        PlistAlias alias = field.getAnnotation(PlistAlias.class);
-                        String aliasName = TextUtils.makeFirstCharLowerCase(alias.value());
-                        String fieldName = field.getName();
+                    Method method = getters.get(fieldName);
+                    if (method != null) {
+                        getters.put(aliasName, method);
+                    }
 
-                        Method method = getters.get(fieldName);
-                        if (method != null) {
-                            getters.put(aliasName, method);
-                        }
-
-                        method = setters.get(fieldName);
-                        if (method != null) {
-                            setters.put(aliasName, method);
-                        }
+                    method = setters.get(fieldName);
+                    if (method != null) {
+                        setters.put(aliasName, method);
                     }
                 }
             }
@@ -697,7 +697,6 @@ public abstract class NSObject implements Cloneable {
 
             for (Field field : ReflectionUtils.getAllFields(objClass)) {
                 int modifiers = field.getModifiers();
-
                 if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)
                         || field.isAnnotationPresent(PlistIgnore.class)) {
                     continue;
