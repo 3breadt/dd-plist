@@ -24,6 +24,7 @@ public class PlistAnnotationsTest {
         testAppleSCEP.setIdentifier("com.apple.scep.test");
         testAppleSCEP.setUuid("test123");
         testAppleSCEP.setVersion(1);
+        testAppleSCEP.setPresent(true);
         TestAppleSCEP.TestAppleSCEPContent content = testAppleSCEP.getPayloadContent();
         content.setAllowAllAppsAccess(true);
         content.setChallenge("Challenge123");
@@ -104,6 +105,8 @@ public class PlistAnnotationsTest {
         assertFalse(xml.contains("<key>EmptyArray</key>"), "Must NOT BE present - 'EmptyArray'");
         assertTrue(xml.contains("<key>EmptyArrayIncluded</key>"), "Must be present - 'EmptyArrayIncluded'");
         assertFalse(xml.contains("<key>NullInt</key>"), "Must NOT BE present - 'NullInt'");
+        assertTrue(xml.contains("<key>IsPresent</key>"), "Must be present - 'IsPresent'");
+        assertTrue(xml.contains("<key>PresentIs</key>"), "Must be present - 'PresentIs'");
     }
 
     @Test
@@ -111,7 +114,7 @@ public class PlistAnnotationsTest {
         NSObject root = PropertyListParser.parse(new File("test-files/test-pojo-apple-scep-1.plist"));
 
         NSDictionary dict1 = (NSDictionary) root;
-        assertEquals(7, dict1.count());
+        assertEquals(9, dict1.count());
 
         NSDictionary dict2 = (NSDictionary) dict1.objectForKey("PayloadContent");
         assertEquals(8, dict2.count());

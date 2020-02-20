@@ -29,6 +29,10 @@
                 </array>
             </array>
         </dict>
+        <key>IsPresent</key>
+        <true/>
+        <key>PresentIs</key>
+        <false/>
         <key>PayloadType</key>
         <string>com.apple.security.scep</string>
         <key>PayloadVersion</key>

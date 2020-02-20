@@ -33,10 +33,31 @@ public class TestAppleSCEP extends TestAppleAbstract {
     @PlistInclude(PlistInclude.Include.NON_NULL)
     private Integer nullInt = null;
 
+    @PlistAlias("IsPresent")
+    private Boolean isPresent = null;
+
+    private boolean presentIs = false;
+
     private TestAppleSCEPContent payloadContent = new TestAppleSCEPContent();
 
     public TestAppleSCEP() {
         super("com.apple.security.scep");
+    }
+
+    public Boolean getPresent() {
+        return this.isPresent;
+    }
+
+    public void setPresent(Boolean present) {
+        this.isPresent = present;
+    }
+
+    public boolean isPresentIs() {
+        return this.presentIs;
+    }
+
+    public void setPresentIs(boolean presentIs) {
+        this.presentIs = presentIs;
     }
 
     public TestAppleSCEPContent getPayloadContent() {
@@ -152,18 +173,20 @@ public class TestAppleSCEP extends TestAppleAbstract {
         if (o == null || this.getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         TestAppleSCEP that = (TestAppleSCEP) o;
-        return Objects.equals(this.ignoredTransient, that.ignoredTransient) &&
+        return this.presentIs == that.presentIs &&
+                Objects.equals(this.ignoredTransient, that.ignoredTransient) &&
                 Objects.equals(this.ignored, that.ignored) &&
                 Objects.equals(this.emptyTextIncluded, that.emptyTextIncluded) &&
                 Objects.equals(this.emptyText, that.emptyText) &&
                 Arrays.equals(this.emptyArray, that.emptyArray) &&
                 Arrays.equals(this.emptyArrayIncluded, that.emptyArrayIncluded) &&
                 Objects.equals(this.nullInt, that.nullInt) &&
+                Objects.equals(this.isPresent, that.isPresent) &&
                 Objects.equals(this.payloadContent, that.payloadContent);
     }
 
     @Override public int hashCode() {
-        int result = Objects.hash(super.hashCode(), this.ignoredTransient, this.ignored, this.emptyTextIncluded, this.emptyText, this.nullInt, this.payloadContent);
+        int result = Objects.hash(super.hashCode(), this.ignoredTransient, this.ignored, this.emptyTextIncluded, this.emptyText, this.nullInt, this.isPresent, this.presentIs, this.payloadContent);
         result = 31 * result + Arrays.hashCode(this.emptyArray);
         result = 31 * result + Arrays.hashCode(this.emptyArrayIncluded);
         return result;

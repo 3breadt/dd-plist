@@ -360,6 +360,10 @@ public abstract class NSObject implements Cloneable {
                     String aliasName = TextUtils.makeFirstCharLowerCase(alias.value());
                     String fieldName = field.getName();
 
+                    if (fieldName.startsWith("is")) {
+                        fieldName = TextUtils.makeFirstCharLowerCase(fieldName.substring(2));
+                    }
+
                     Method method = getters.get(fieldName);
                     if (method != null) {
                         getters.put(aliasName, method);
