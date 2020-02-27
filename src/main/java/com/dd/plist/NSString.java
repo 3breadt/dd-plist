@@ -38,10 +38,9 @@ import java.util.Scanner;
  * @see <a href="https://developer.apple.com/reference/foundation/nsstring" target="_blank">Foundation NSString documentation</a>
  */
 public class NSString extends NSObject implements Comparable<Object> {
+    private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     private String content;
-
-    private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     /**
      * Creates a new NSString instance from its binary representation.
@@ -264,14 +263,16 @@ public class NSString extends NSObject implements Comparable<Object> {
             }
         }
 
+        String cleanedContent = escapeStringForXml(this.content);
+
         //According to http://www.w3.org/TR/REC-xml/#syntax node values must not
         //contain the characters < or &. Also the > character should be escaped.
-        if (this.content.contains("&") || this.content.contains("<") || this.content.contains(">")) {
+        if (cleanedContent.contains("&") || cleanedContent.contains("<") || cleanedContent.contains(">")) {
             xml.append("<![CDATA[");
-            xml.append(this.content.replaceAll("]]>", "]]]]><![CDATA[>"));
+            xml.append(cleanedContent.replaceAll("]]>", "]]]]><![CDATA[>"));
             xml.append("]]>");
         } else {
-            xml.append(this.content);
+            xml.append(cleanedContent);
         }
         xml.append("</string>");
     }
@@ -370,5 +371,24 @@ public class NSString extends NSObject implements Comparable<Object> {
             }
         }
         return out.toString();
+    }
+
+    static String escapeStringForXml(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            int codePoint = s.codePointAt(i);
+            if (codePoint > 0xFFFF) {
+                i++;
+            }
+
+            if ((codePoint == 0x9) || (codePoint == 0xA) || (codePoint == 0xD)
+                    || ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
+                    || ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
+                    || ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
+                sb.appendCodePoint(codePoint);
+            }
+        }
+
+        return sb.toString();
     }
 }

@@ -228,4 +228,16 @@ public class NSStringTest {
         assertTrue(new NSString("-80000").boolValue());
         assertTrue(new NSString("9FALSE").boolValue());
     }
+
+    @Test
+    public void testToXmlWithInvalidChars() {
+        String xml = new NSString("\2Hello\0World\3\r\n\tHow are you?\uFFFF\uFFFEI am a \ud83d\udc3b.").toXMLPropertyList();
+        assertEquals("HelloWorld\r\n\tHow are you?I am a \ud83d\udc3b.", getStringFromXml(xml));
+    }
+
+    private static String getStringFromXml(String xml) {
+        int index = xml.indexOf("<string>");
+        int endIndex = xml.indexOf("</string>", index);
+        return xml.substring(index + 8, endIndex);
+    }
 }
