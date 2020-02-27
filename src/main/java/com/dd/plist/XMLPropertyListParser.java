@@ -131,8 +131,17 @@ public class XMLPropertyListParser {
      */
     public static NSObject parse(final byte[] bytes)
                 throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
-
-        return parse(new ByteArrayInputStream(bytes));
+        InputStream inputStream = new ByteArrayInputStream(bytes);
+        try {
+            return parse(getDocBuilder().parse(inputStream));
+        }
+        finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     /**
@@ -151,7 +160,10 @@ public class XMLPropertyListParser {
      */
     public static NSObject parse(InputStream is)
                 throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-        return parse(getDocBuilder().parse(is));
+        InputStream filteredInputStream = new FilterInputStream(is) {
+            @Override public void close() {}
+        };
+        return parse(getDocBuilder().parse(filteredInputStream));
     }
 
     /**
