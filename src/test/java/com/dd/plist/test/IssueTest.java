@@ -8,8 +8,7 @@ import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Regression tests for various issues and bugs that have been encountered
@@ -85,6 +84,17 @@ public class IssueTest  {
                 "<lolz>&lol9;</lolz>";
         InputStream is = new ByteArrayInputStream(plist.getBytes());
 
-        assertThrows(SAXParseException.class, () -> XMLPropertyListParser.parse(is));
+        try {
+            XMLPropertyListParser.parse(is);
+        }
+        catch (SAXParseException ex) {
+            // Expected exception for older runtimes
+        }
+        catch (UnsupportedOperationException ex) {
+            // Expected exception for newer runtimes, then the parser will complain about the invalid DOCTYPE
+        }
+        catch (Exception ex) {
+            fail("Unexpected exception of type " + ex.getClass().getName() + " was thrown, with the message: " + ex.getMessage());
+        }
     }
 }
