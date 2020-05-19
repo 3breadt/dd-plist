@@ -4,17 +4,17 @@ import com.dd.plist.*;
 import com.dd.plist.test.model.*;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DeSerializationTest {
     private static final Date date = new Date();
 
     @Test
-    public void testSimpleMap() throws Exception {
+    public void testToJavaObjectNSDictionaryToMap() throws Exception {
         Map<String, String> map = new HashMap<String, String>();
         map.put("key", "value");
         NSDictionary dic = new NSDictionary();
@@ -24,7 +24,7 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testSimpleMapNS() throws Exception {
+    public void testFromJavaObjectMapToNSDictionary() throws Exception {
         Map<String, String> map = new HashMap<String, String>();
         map.put("key", "value");
         NSObject result = NSObject.fromJavaObject(map);
@@ -36,7 +36,7 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testPojoMap() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithMaps() throws Exception {
         TestClassMap test = new TestClassMap();
         test.setStringMap(mapFromArr("key", "value"));
         test.setByteMap(mapFromArr("key", (byte) 123));
@@ -68,12 +68,12 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testDictSet() throws Exception {
+    public void testFromJavaObjectObjectToNSDictionary() throws Exception {
         assertEquals(NSObject.fromJavaObject(genTestSetObject()), genTestSetDict());
     }
 
     @Test
-    public void testPojoSet() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithSets() throws Exception {
         TestClassSet test = genTestSetObject();
         NSDictionary dict = genTestSetDict();
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
@@ -81,7 +81,87 @@ public class DeSerializationTest {
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
     }
 
-    private NSDictionary genTestSetDict() {
+    @Test
+    public void testToJavaObjectNSDictionaryToObjectWithMapOfLists() throws Exception {
+        assertEquals(
+                genTest1Object(),
+                genTest1Dict()
+                        .toJavaObject(TestClass1.class));
+    }
+
+    @Test
+    public void testToJavaObjectNSDictionaryToObjectWithArrays() throws Exception {
+        assertEquals(
+                genTest3Object(),
+                genTest3DictOfArrays()
+                        .toJavaObject(TestClass3.class));
+
+        assertEquals(
+                genTest3Object(),
+                genTest3DictOfSets()
+                        .toJavaObject(TestClass3.class));
+    }
+
+    @Test
+    public void testToJavaObjectNSDictionaryToObjectWithPrimitives() throws Exception {
+        TestClass2 reference = genTest2Object();
+        TestClass2 deserialized = genTest2Dict().toJavaObject(TestClass2.class);
+        assertEquals(reference, deserialized);
+    }
+
+    @Test
+    public void testFromJavaObjectObjectWithPrimitivesToNSDictionary() throws Exception {
+        assertEquals(
+                NSObject.fromJavaObject(genTest2Object()),
+                genTest2Dict());
+    }
+
+    @Test
+    public void testFromJavaObjectObjectWithArraysToNSDictionary() throws Exception {
+        assertEquals(
+                NSObject.fromJavaObject(genTest3Object()),
+                genTest3DictOfArrays());
+    }
+
+    @Test
+    public void testFromJavaObjectObjectWithMapOfListsToNSDictionary() throws Exception {
+        assertEquals(
+                NSObject.fromJavaObject(genTest1Object()),
+                genTest1Dict());
+    }
+
+    @Test
+    public void testToJavaObjectNSDataToByteArray() throws Exception {
+        NSData data = new NSData("wP/urdUR/g==");
+        byte[] array = data.toJavaObject(byte[].class);
+        assertArrayEquals(new byte[] { (byte)0xC0, (byte)0xFF, (byte)0xEE, (byte)0xAD, (byte)0xD5, (byte)0x11, (byte)0xFE }, array);
+    }
+
+    @Test
+    public void testToJavaObjectNSDataToByteList() throws Exception {
+        NSData data = new NSData("wP/urdUR/g==");
+        ArrayList<Byte> list = new ArrayList<Byte>();
+        list = data.toJavaObject((Class<ArrayList<Byte>>)list.getClass());
+
+        byte[] expected = new byte[] { (byte)0xC0, (byte)0xFF, (byte)0xEE, (byte)0xAD, (byte)0xD5, (byte)0x11, (byte)0xFE };
+        assertEquals(expected.length, list.size());
+        for(int i = 0;  i< expected.length; i++) {
+            assertEquals(expected[i], list.get(i));
+        }
+    }
+
+    @Test
+    public void testToJavaObjectNSDictionaryWithNSDataToObject() throws Exception {
+        NSDictionary dictionary = new NSDictionary();
+        dictionary.put("data", new NSData("wP/urdUR/g=="));
+
+        TestClassWithData dataObject = dictionary.toJavaObject(TestClassWithData.class);
+        assertNotNull(dataObject);
+        assertNotNull(dataObject.getData());
+        assertArrayEquals(new byte[] { (byte)0xC0, (byte)0xFF, (byte)0xEE, (byte)0xAD, (byte)0xD5, (byte)0x11, (byte)0xFE }, dataObject.getData());
+    }
+
+    private static NSDictionary genTestSetDict() {
         NSDictionary dict = new NSDictionary();
         dict.put("stringSet", new NSSet(new NSString("value")));
         dict.put("byteSet", new NSSet((new NSNumber(123))));
@@ -96,7 +176,7 @@ public class DeSerializationTest {
         return dict;
     }
 
-    private TestClassSet genTestSetObject() {
+    private static TestClassSet genTestSetObject() {
         TestClassSet test = new TestClassSet();
         test.setStringSet(setFromArr("value"));
         test.setByteSet(setFromArr((byte) 123));
@@ -111,19 +191,20 @@ public class DeSerializationTest {
         return test;
     }
 
-    private NSDictionary genDict(String key, NSObject value) {
+    private static NSDictionary genDict(String key, NSObject value) {
         NSDictionary result = new NSDictionary();
         result.put(key, value);
         return result;
     }
 
-    private <V> Map<String, V> mapFromArr(String key, V value) {
+    private static <V> Map<String, V> mapFromArr(String key, V value) {
         Map<String, V> result = new HashMap<String, V>();
         result.put(key, value);
         return result;
     }
 
-    private <V> Set<V> setFromArr(V... values) {
+    @SafeVarargs
+    private static <V> Set<V> setFromArr(V... values) {
         Set<V> result = new HashSet<V>();
         for (V value : values) {
             result.add(value);
@@ -131,7 +212,7 @@ public class DeSerializationTest {
         return result;
     }
 
-    private TestClass1 genTest1Object() {
+    private static TestClass1 genTest1Object() {
         TestClass1 test = new TestClass1();
         Map<String, List<String>> testMap = new HashMap<String, List<String>>();
 
@@ -144,7 +225,7 @@ public class DeSerializationTest {
         return test;
     }
 
-    private NSDictionary genTest2Dict() {
+    private static NSDictionary genTest2Dict() {
         NSDictionary dict = new NSDictionary();
         dict.put("double", new NSNumber(1.23d));
         dict.put("primitiveDouble", new NSNumber(3.21d));
@@ -167,7 +248,7 @@ public class DeSerializationTest {
         return dict;
     }
 
-    private TestClass2 genTest2Object() {
+    private static TestClass2 genTest2Object() {
         TestClass2 test = new TestClass2();
         test.setDouble(1.23d);
         test.setPrimitiveDouble(3.21d);
@@ -187,7 +268,7 @@ public class DeSerializationTest {
         return test;
     }
 
-    private TestClass3 genTest3Object() {
+    private static TestClass3 genTest3Object() {
         TestClass3 test = new TestClass3();
 
         test.setBooleanArray(new Boolean[]{true, false});
@@ -211,7 +292,7 @@ public class DeSerializationTest {
         return test;
     }
 
-    private NSDictionary genTest3DictOfArrays() {
+    private static NSDictionary genTest3DictOfArrays() {
         NSDictionary dict = new NSDictionary();
         dict.put("doubleArray", new NSArray(new NSNumber(1.23d)));
         dict.put("primitiveDoubleArray", new NSArray(new NSNumber(3.21d)));
@@ -237,7 +318,7 @@ public class DeSerializationTest {
         return dict;
     }
 
-    private NSDictionary genTest3DictOfSets() {
+    private static NSDictionary genTest3DictOfSets() {
         NSDictionary dict = new NSDictionary();
         dict.put("doubleArray", new NSSet(new NSNumber(1.23d)));
         dict.put("primitiveDoubleArray", new NSSet(new NSNumber(3.21d)));
@@ -263,7 +344,7 @@ public class DeSerializationTest {
         return dict;
     }
 
-    private NSDictionary genTest1Dict() {
+    private static NSDictionary genTest1Dict() {
         NSDictionary dic = new NSDictionary();
         NSDictionary map = new NSDictionary();
         NSArray array = new NSArray(3);
@@ -273,80 +354,5 @@ public class DeSerializationTest {
         map.put("key", array);
         dic.put("map", map);
         return dic;
-    }
-
-    public void testPojoMapNested() throws Exception {
-        assertEquals(
-                genTest1Object(),
-                genTest1Dict()
-                        .toJavaObject(TestClass1.class));
-    }
-
-    public void testArrayPojo() throws Exception {
-        assertEquals(
-                genTest3Object(),
-                genTest3DictOfArrays()
-                        .toJavaObject(TestClass3.class));
-
-        assertEquals(
-                genTest3Object(),
-                genTest3DictOfSets()
-                        .toJavaObject(TestClass3.class));
-    }
-
-    public void testSimplePojo() throws Exception {
-        TestClass2 reference = genTest2Object();
-        TestClass2 deserialized = genTest2Dict().toJavaObject(TestClass2.class);
-        assertEquals(reference, deserialized);
-    }
-
-    public void testSimpleNS() throws Exception {
-        assertEquals(
-                NSObject.fromJavaObject(genTest2Object()),
-                genTest2Dict());
-    }
-
-    public void testArrayNS() throws Exception {
-        assertEquals(
-                NSObject.fromJavaObject(genTest3Object()),
-                genTest3DictOfArrays());
-    }
-
-    public void testNSMapNested() throws Exception {
-        assertEquals(
-                NSObject.fromJavaObject(genTest1Object()),
-                genTest1Dict());
-    }
-
-    public void testStringsFile() throws Exception {
-        String stringFileContentStr = "/* Menu item to make the current document plain text */\n" +
-                "\"Make Plain Text\" = \"In reinen Text umwandeln\";\n" +
-                "/* Menu item to make the current document rich text */\n" +
-                "\"Make Rich Text\" = \"In formatierten Text umwandeln\";\n";
-        byte[] stringFileContentRaw = stringFileContentStr.getBytes();
-
-        String stringFileContent = new String(stringFileContentRaw, Charset.forName("UTF-8"));
-        String asciiPropertyList = "{" + stringFileContent + "}";
-        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
-        assertTrue(dict.containsKey("Make Plain Text"));
-        assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
-    }
-
-    public void testParseSpecialCharacters() throws Exception {
-        String asciiPropertyList = "{\n" +
-                "a = \"abc \\n def\";\n" +
-                "b = \"\\r\";\n" +
-                "c = \"xyz\\b\";\n" +
-                "d = \"\\tasdf\";\n" +
-                "e = \"\\\\ \\\"\";\n" +
-                "f = \"a \\' b\";\n" +
-                "}";
-        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
-        assertEquals("abc \n def", dict.get("a").toString());
-        assertEquals("\r", dict.get("b").toString());
-        assertEquals("xyz\b", dict.get("c").toString());
-        assertEquals("\tasdf", dict.get("d").toString());
-        assertEquals("\\ \"", dict.get("e").toString());
-        assertEquals("a ' b", dict.get("f").toString());
     }
 }

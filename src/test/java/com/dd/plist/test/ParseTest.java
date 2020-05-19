@@ -4,9 +4,11 @@ import com.dd.plist.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -77,6 +79,7 @@ public class ParseTest {
         NSObject parsedRoot = PropertyListParser.parse(new File("test-files/out-testSet.plist"));
         assertTrue(parsedRoot.equals(dict));
     }*/
+
     @Test
     public void testASCII() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii.plist"));
@@ -173,5 +176,37 @@ public class ParseTest {
         assertEquals("クオート無し", dict.get("not_quoted").toString());
         assertEquals("\"\\\":\n拡張文字ｷﾀｱｱｱ", dict.get("with_escapes").toString());
         assertEquals("\u0020\u5e78", dict.get("with_u_escapes").toString());
+    }
+
+    public void testAsciiCommentsAreNotIncludedInStrings() throws Exception {
+        String stringFileContentStr = "/* Menu item to make the current document plain text */\n" +
+                "\"Make Plain Text\" = \"In reinen Text umwandeln\";\n" +
+                "/* Menu item to make the current document rich text */\n" +
+                "\"Make Rich Text\" = \"In formatierten Text umwandeln\";\n";
+        byte[] stringFileContentRaw = stringFileContentStr.getBytes();
+
+        String stringFileContent = new String(stringFileContentRaw, Charset.forName("UTF-8"));
+        String asciiPropertyList = "{" + stringFileContent + "}";
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        assertTrue(dict.containsKey("Make Plain Text"));
+        assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
+    }
+
+    public void testAsciiEscapeCharacters() throws Exception {
+        String asciiPropertyList = "{\n" +
+                "a = \"abc \\n def\";\n" +
+                "b = \"\\r\";\n" +
+                "c = \"xyz\\b\";\n" +
+                "d = \"\\tasdf\";\n" +
+                "e = \"\\\\ \\\"\";\n" +
+                "f = \"a \\' b\";\n" +
+                "}";
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        assertEquals("abc \n def", dict.get("a").toString());
+        assertEquals("\r", dict.get("b").toString());
+        assertEquals("xyz\b", dict.get("c").toString());
+        assertEquals("\tasdf", dict.get("d").toString());
+        assertEquals("\\ \"", dict.get("e").toString());
+        assertEquals("a ' b", dict.get("f").toString());
     }
 }

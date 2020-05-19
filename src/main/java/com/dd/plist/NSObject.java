@@ -316,6 +316,10 @@ public abstract class NSObject implements Cloneable {
             return this.deserializeObject((NSDictionary) payload, clazz, types);
         }
 
+        if (payload instanceof NSData && Collection.class.isAssignableFrom(clazz)) {
+            return this.deserializeCollection(payload, clazz, types);
+        }
+
         throw new IllegalArgumentException("Cannot process " + clazz.getSimpleName());
     }
 
@@ -433,17 +437,33 @@ public abstract class NSObject implements Cloneable {
                 elemClass = getClassForName(types[0].toString());
             }
         }
+
         if (payload instanceof NSArray) {
             for (NSObject nsObject : ((NSArray) payload).getArray()) {
                 result.add(this.toJavaObject(nsObject, elemClass, elemTypes));
             }
+
             return result;
         }
 
+        if (payload instanceof NSData) {
+            if (elemClass != null && elemClass.isAssignableFrom(Byte.class)) {
+                for (Byte b : ((NSData) payload).bytes()) {
+                    result.add(b);
+                }
+
+                return result;
+            }
+            else {
+                throw new IllegalArgumentException("NSData cannot be converted to " + clazz.getName());
+            }
+        }
+
         if (payload instanceof NSSet) {
-            for (NSObject nsObject : ((NSSet) payload).getSet()) {
+            for(NSObject nsObject : ((NSSet) payload).getSet()) {
                 result.add(this.toJavaObject(nsObject, elemClass, elemTypes));
             }
+
             return result;
         }
         throw new IllegalArgumentException("Unknown NS* type " + payload.getClass().getSimpleName());
