@@ -231,7 +231,7 @@ public class XMLPropertyListParser {
             List<Node> children = filterElementNodes(n.getChildNodes());
             NSArray array = new NSArray(children.size());
             for (int i = 0; i < children.size(); i++) {
-                array.setValue(i, parseObject(children.get(i)));
+                array.add(parseObject(children.get(i)));
             }
             return array;
         } else if (type.equals("true")) {

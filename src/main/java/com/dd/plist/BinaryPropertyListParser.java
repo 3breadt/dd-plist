@@ -297,7 +297,7 @@ public final class BinaryPropertyListParser {
                 NSArray array = new NSArray(length);
                 for (int i = 0; i < length; i++) {
                     int objRef = (int) parseUnsignedInt(this.bytes, offset + arrayOffset + i * this.objectRefSize, offset + arrayOffset + (i + 1) * this.objectRefSize);
-                    array.setValue(i, this.parseObject(objRef));
+                    array.add(parseObject(objRef));
                 }
                 return array;
             }
