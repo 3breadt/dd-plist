@@ -24,13 +24,14 @@
 package com.dd.plist;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * The NSNumber class wraps a numeric value. The value can be an integer a floating point number or a boolean value.
  * @see <a href="https://developer.apple.com/reference/foundation/nsnumber" target="_blank">Foundation NSNumber documentation</a>
  * @author Daniel Dreibrodt
  */
-public class NSNumber extends NSObject implements Comparable<Object> {
+public class NSNumber extends NSObject implements Comparable<Object>, Serializable {
 
     /**
      * Indicates that the number's value is an integer.

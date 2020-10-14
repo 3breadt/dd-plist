@@ -82,7 +82,7 @@ public final class BinaryPropertyListParser {
      * @throws PropertyListFormatException When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
-    public static NSObject parse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
+    public static NSObject parse(byte[] data) throws PropertyListFormatException, IOException {
         BinaryPropertyListParser parser = new BinaryPropertyListParser();
         return parser.doParse(data);
     }
@@ -95,7 +95,7 @@ public final class BinaryPropertyListParser {
      * @throws PropertyListFormatException When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
-    private NSObject doParse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
+    private NSObject doParse(byte[] data) throws PropertyListFormatException, IOException {
         this.bytes = data;
         String magic = new String(copyOfRange(this.bytes, 0, 8));
         if (!magic.startsWith("bplist")) {
@@ -191,7 +191,7 @@ public final class BinaryPropertyListParser {
      * @throws PropertyListFormatException When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
-    private NSObject parseObject(int obj) throws PropertyListFormatException, UnsupportedEncodingException {
+    private NSObject parseObject(int obj) throws PropertyListFormatException, IOException {
         int offset = this.offsetTable[obj];
         byte type = this.bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits
@@ -286,7 +286,7 @@ public final class BinaryPropertyListParser {
             case 0x8: {
                 //UID (v1.0 and later)
                 int length = objInfo + 1;
-                return new UID(String.valueOf(obj), copyOfRange(this.bytes, offset + 1, offset + 1 + length));
+                return new UID(copyOfRange(this.bytes, offset + 1, offset + 1 + length));
             }
             case 0xA: {
                 //Array

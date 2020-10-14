@@ -20,7 +20,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="dd-plist" target="8" />
+      <module name="dd-plist" target="12" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

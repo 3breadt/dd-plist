@@ -1,17 +1,18 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
+import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.NoSuchElementException;
+import java.util.*;
+
+import com.google.gson.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 
 public class ParseTest {
     /**
@@ -25,6 +26,15 @@ public class ParseTest {
         // check the data in it
         NSDictionary d = (NSDictionary) x;
         assertTrue(d.count() == 5);
+
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(d);
+        System.out.println(json);
+
+        Gson gson2 = new Gson();
+        Type typeOfHashMap = new TypeToken<Map<String, Object>>() { }.getType();
+         gson2.fromJson(json, typeOfHashMap);
+
         assertTrue(d.objectForKey("keyA").toString().equals("valueA"));
         assertTrue(d.objectForKey("key&B").toString().equals("value&B"));
         assertTrue(((NSDate) d.objectForKey("date")).getDate().equals(new Date(1322472090000L)));

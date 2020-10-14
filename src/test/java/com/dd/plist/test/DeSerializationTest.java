@@ -15,7 +15,7 @@ public class DeSerializationTest {
 
     @Test
     public void testToJavaObjectNSDictionaryToMap() throws Exception {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         NSDictionary dic = new NSDictionary();
         dic.put("key", new NSString("value"));
@@ -25,7 +25,7 @@ public class DeSerializationTest {
 
     @Test
     public void testFromJavaObjectMapToNSDictionary() throws Exception {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         NSObject result = NSObject.fromJavaObject(map);
 
@@ -216,7 +216,7 @@ public class DeSerializationTest {
         TestClass1 test = new TestClass1();
         Map<String, List<String>> testMap = new HashMap<String, List<String>>();
 
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add("value1");
         list.add("value2");
         list.add("value3");
@@ -348,9 +348,9 @@ public class DeSerializationTest {
         NSDictionary dic = new NSDictionary();
         NSDictionary map = new NSDictionary();
         NSArray array = new NSArray(3);
-        array.setValue(0, new NSString("value1"));
-        array.setValue(1, new NSString("value2"));
-        array.setValue(2, new NSString("value3"));
+        array.add(new NSString("value1"));
+        array.add(new NSString("value2"));
+        array.add(new NSString("value3"));
         map.put("key", array);
         dic.put("map", map);
         return dic;

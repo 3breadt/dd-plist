@@ -24,12 +24,17 @@ package com.dd.plist;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.constant.Constable;
+import java.lang.constant.ConstantDesc;
+import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 /**
  * The NSString class is a wrapper for a string.
@@ -37,7 +42,7 @@ import java.util.Scanner;
  * @author Daniel Dreibrodt
  * @see <a href="https://developer.apple.com/reference/foundation/nsstring" target="_blank">Foundation NSString documentation</a>
  */
-public class NSString extends NSObject implements Comparable<Object> {
+public class NSString extends NSObject implements Comparable<Object>, CharSequence, ConstantDesc, Constable {
     private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     private String content;
@@ -232,11 +237,35 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     @Override
+    public int length() {
+        return this.content.length();
+    }
+
+    @Override
+    public char charAt(int index) {
+        return this.content.charAt(index);
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return this.content.subSequence(start, end);
+    }
+
+    @Override
     public String toString() {
         return this.content;
     }
 
     @Override
+    public IntStream chars() {
+        return this.content.chars();
+    }
+
+    public IntStream codePoints() {
+        return this.content.codePoints();
+    }
+
+        @Override
     public NSString clone() {
         return new NSString(this.content);
     }
@@ -390,5 +419,19 @@ public class NSString extends NSObject implements Comparable<Object> {
         }
 
         return sb.toString();
+    }
+
+//    @Override
+//    public Optional<NSString> describeConstable() {
+//        return Optional.of(this);
+//    }
+
+    public Object resolveConstantDesc(MethodHandles.Lookup lookup) throws ReflectiveOperationException {
+        return this.content.resolveConstantDesc(lookup);
+    }
+
+    @Override
+    public Optional<? extends ConstantDesc> describeConstable() {
+        return Optional.of(this);
     }
 }

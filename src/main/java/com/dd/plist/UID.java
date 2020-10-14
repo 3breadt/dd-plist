@@ -23,6 +23,9 @@
 package com.dd.plist;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * The UID class holds a unique identifier.
@@ -32,17 +35,44 @@ import java.io.IOException;
  */
 public class UID extends NSObject {
 
-    private final byte[] bytes;
-    private final String name;
+    private long value;
 
     /**
      * Creates a new UID instance.
-     * @param name The UID name.
      * @param bytes The UID value.
      */
-    public UID(String name, byte[] bytes) {
-        this.name = name;
-        this.bytes = bytes;
+    public UID(byte[] bytes) throws UnsupportedEncodingException {
+        if (bytes.length != 1 && bytes.length != 2 && bytes.length != 4 && bytes.length != 8) {
+            throw new UnsupportedEncodingException("Invalid Length of UID");
+        }
+        value = BinaryPropertyListParser.parseLong(bytes);
+    }
+
+    public UID(byte aByte) {
+        value = aByte;
+    }
+
+    public UID(short number)
+    {
+        value = number;
+    }
+
+    public UID(int number)
+    {
+        value = number;
+    }
+
+    public UID(long number)
+    {
+        value = number;
+    }
+
+    public int getByteCount()
+    {
+            if(value <= 0xFF) return 1;
+            if(value <= 0xFFFF) return 2;
+            if(value <= 0xFFFFFFFF) return 4;
+            return 8;
     }
 
     /**
@@ -50,20 +80,29 @@ public class UID extends NSObject {
      * @return The UID's value.
      */
     public byte[] getBytes() {
-        return this.bytes;
-    }
-
-    /**
-     * Gets this instance's name.
-     * @return The UID's name.
-     */
-    public String getName() {
-        return this.name;
+        ByteBuffer buffer = ByteBuffer.allocate(getByteCount());
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        switch (getByteCount()) {
+            case 1:
+                buffer.put((byte)value);
+                break;
+            case 2:
+                buffer.putShort((short)value);
+                break;
+            case 4:
+                buffer.putInt((int)value);
+                break;
+            case 8:
+            case 16:
+                buffer.putLong(value);
+                break;
+        }
+        return buffer.array();
     }
 
     @Override
     public UID clone() {
-        return new UID(this.name, this.bytes.clone());
+        return new UID(this.value);
     }
 
     /**
@@ -76,28 +115,35 @@ public class UID extends NSObject {
     @Override
     void toXML(StringBuilder xml, int level) {
         this.indent(xml, level);
-        xml.append("<string>");
-        for (int i = 0; i < this.bytes.length; i++) {
-            byte b = this.bytes[i];
-            if (b < 16)
-                xml.append('0');
-            xml.append(Integer.toHexString(b));
-        }
-        xml.append("</string>");
+        xml.append("<dict>");
+        xml.append(NSObject.NEWLINE);
+
+        this.indent(xml, level + 1);
+        xml.append("<key>CF$UID</key>");
+        xml.append(NSObject.NEWLINE);
+
+        this.indent(xml, level + 1);
+        xml.append("<integer>" + value +  "</integer>");
+        xml.append(NSObject.NEWLINE);
+
+        this.indent(xml, level);
+        xml.append("</dict>");
+
     }
 
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
-        out.write(0x80 + this.bytes.length - 1);
-        out.write(this.bytes);
+        out.write(0x80 + getByteCount() - 1);
+        out.write(getBytes());
     }
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
         this.indent(ascii, level);
         ascii.append('"');
-        for (int i = 0; i < this.bytes.length; i++) {
-            byte b = this.bytes[i];
+        byte[] bytes = getBytes();
+        for (int i = 0; i < bytes.length; i++) {
+            byte b = bytes[i];
             if (b < 16)
                 ascii.append('0');
             ascii.append(Integer.toHexString(b));
