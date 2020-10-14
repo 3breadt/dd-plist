@@ -45,7 +45,12 @@ public class UID extends NSObject {
         if (bytes.length != 1 && bytes.length != 2 && bytes.length != 4 && bytes.length != 8) {
             throw new UnsupportedEncodingException("Invalid Length of UID");
         }
-        value = BinaryPropertyListParser.parseLong(bytes);
+        long l = 0;
+        for (int i = 0; i < bytes.length; i++) {
+            l <<= 8;
+            l |= bytes[i] & 0xFF;
+        }
+        value = l;
     }
 
     public UID(byte aByte) {
