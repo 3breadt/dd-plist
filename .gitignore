@@ -31,3 +31,6 @@ Thumbs.db
 
 # Local
 local.properties
+.idea
+*.iml
+
