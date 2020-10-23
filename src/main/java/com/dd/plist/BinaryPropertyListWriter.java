@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -57,7 +58,12 @@ public final class BinaryPropertyListWriter {
 
     // map from object to its ID
     private final Map<NSObject, Integer> idMap = new LinkedHashMap<NSObject, Integer>();
+    private final Map<NSObject, Integer> idMap2 = new LinkedHashMap<NSObject, Integer>();
+
     private int idSizeInBytes;
+    protected int  currentId;
+
+    public boolean reuseObjectIds = true;
 
     /**
      * Creates a new binary property list writer
@@ -246,13 +252,24 @@ public final class BinaryPropertyListWriter {
     }
 
     void assignID(NSObject obj) {
-        if (!this.idMap.containsKey(obj)) {
-            this.idMap.put(obj, this.idMap.size());
+        if (reuseObjectIds) {
+            if (!this.idMap.containsKey(obj)) {
+                this.idMap.put(obj, currentId++);
+            }
+        } else {
+            if (!this.idMap2.containsKey(obj)) {
+                this.idMap2.put(obj, currentId);
+            }
+
+            if (!this.idMap.containsKey(obj)) {
+                this.idMap.put(obj, currentId++);
+            }
         }
     }
 
     int getID(NSObject obj) {
-        return this.idMap.get(obj);
+        if(reuseObjectIds) return idMap.get(obj);
+        return this.idMap2.get(obj);
     }
 
     private static int computeIdSizeInBytes(int numberOfIds) {
