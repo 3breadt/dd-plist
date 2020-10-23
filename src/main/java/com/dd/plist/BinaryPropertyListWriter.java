@@ -153,6 +153,10 @@ public final class BinaryPropertyListWriter {
      *                     data that cannot be saved.
      */
     public static void write(OutputStream out, NSObject root) throws IOException {
+        write(out, root, true);
+    }
+
+    public static void write(OutputStream out, NSObject root, Boolean reuseObjectIds) throws IOException {
         int minVersion = getMinimumRequiredVersion(root);
         if (minVersion > VERSION_00) {
             String versionString = minVersion == VERSION_10 ? "v1.0" : (minVersion == VERSION_15 ? "v1.5" : (minVersion == VERSION_20 ? "v2.0" : "v0.0"));
@@ -161,8 +165,10 @@ public final class BinaryPropertyListWriter {
         }
 
         BinaryPropertyListWriter w = new BinaryPropertyListWriter(out, minVersion);
+        w.reuseObjectIds = reuseObjectIds;
         w.write(root);
     }
+
 
     /**
      * Writes a binary plist serialization of the given object as the root
@@ -176,6 +182,12 @@ public final class BinaryPropertyListWriter {
     public static byte[] writeToArray(NSObject root) throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         write(bout, root);
+        return bout.toByteArray();
+    }
+
+    public static byte[] writeToArray(NSObject root, Boolean reuseObjectIds) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        write(bout, root, reuseObjectIds);
         return bout.toByteArray();
     }
 
