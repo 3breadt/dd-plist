@@ -160,4 +160,8 @@ public class UID extends NSObject {
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
         this.toASCII(ascii, level);
     }
+    
+    public long toLongValue() {
+        return this.value;
+    }
 }
