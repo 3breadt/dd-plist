@@ -146,22 +146,27 @@ public class ParseTest {
         assertThrows(ParseException.class, () -> PropertyListParser.parse(new File("test-files/test2-ascii-null-char-in-string.plist")));
     }
 
+    @Test
     public void testAsciiPropertyListEncodedWithUtf8() throws Exception {
         testAsciiUnicode("test-ascii-utf8.plist");
     }
 
+    @Test
     public void testAsciiPropertyListEncodedWithUtf16Be() throws Exception {
         testAsciiUnicode("test-ascii-utf16-be.plist");
     }
 
+    @Test
     public void testAsciiPropertyListEncodedWithUtf16Le() throws Exception {
         testAsciiUnicode("test-ascii-utf16-le.plist");
     }
 
+    @Test
     public void testAsciiPropertyListEncodedWithUtf32Be() throws Exception {
         testAsciiUnicode("test-ascii-utf32-be.plist");
     }
 
+    @Test
     public void testAsciiPropertyListEncodedWithUtf32Le() throws Exception {
         testAsciiUnicode("test-ascii-utf32-le.plist");
     }
