@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
 
 import java.io.*;
+import java.text.ParseException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -54,19 +55,19 @@ public class IssueTest  {
     }
 
     @Test
-    public void testIssue42_OutOfMemoryErrorWhenBinaryPropertyListTrailerIsCorrupt() throws Exception {
+    public void testIssue42_OutOfMemoryErrorWhenBinaryPropertyListTrailerIsCorrupt() {
         File plistFile = new File("test-files/github-issue42.plist");
         assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
     }
 
     @Test
-    public void testIssue49_NSNumberToFloat() throws Exception {
+    public void testIssue49_NSNumberToFloat() {
         NSNumber number = new NSNumber(1);
         assertEquals(1.0, number.toJavaObject(Float.class), 0.0);
     }
 
     @Test
-    public void testIssue51_BillionLaughsAttack() throws Exception {
+    public void testIssue51_BillionLaughsAttack() {
         String plist = "<?xml version=\"1.0\"?>\n" +
                 "<!DOCTYPE lolz [\n" +
                 " <!ENTITY lol \"lol\">\n" +
@@ -96,5 +97,13 @@ public class IssueTest  {
         catch (Exception ex) {
             fail("Unexpected exception of type " + ex.getClass().getName() + " was thrown, with the message: " + ex.getMessage());
         }
+    }
+
+    @Test
+    public void testIssue67_EmptyAsciiPlist() {
+        String plist = "/* Localized versions of Info.plist keys */";
+        InputStream is = new ByteArrayInputStream(plist.getBytes());
+
+        assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(is));
     }
 }

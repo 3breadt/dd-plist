@@ -245,6 +245,10 @@ public final class ASCIIPropertyListParser {
      * @return Whether the given tokens occur at the current parsing position.
      */
     private boolean acceptSequence(char... sequence) {
+        if (this.index + sequence.length > this.data.length) {
+            return false;
+        }
+
         for (int i = 0; i < sequence.length; i++) {
             if (this.data[this.index + i] != sequence[i]) {
                 return false;
@@ -263,9 +267,11 @@ public final class ASCIIPropertyListParser {
      */
     private boolean accept(char... acceptableSymbols) {
         boolean symbolPresent = false;
-        for (char c : acceptableSymbols) {
-            if (this.data[this.index] == c) {
-                symbolPresent = true;
+        if (this.index < this.data.length) {
+            for (char c : acceptableSymbols) {
+                if (this.data[this.index] == c) {
+                    symbolPresent = true;
+                }
             }
         }
 
@@ -280,7 +286,7 @@ public final class ASCIIPropertyListParser {
      * @return Whether the symbol can be accepted or not.
      */
     private boolean accept(char acceptableSymbol) {
-        return this.data[this.index] == acceptableSymbol;
+        return this.index < this.data.length && this.data[this.index] == acceptableSymbol;
     }
 
     /**
@@ -297,7 +303,13 @@ public final class ASCIIPropertyListParser {
                 excString.append(" or '").append(expectedSymbols[i]).append("'");
             }
 
-            excString.append(" but found '").append(this.data[this.index]).append("'");
+            if (this.index < this.data.length) {
+                excString.append(" but found '").append(this.data[this.index]).append("'");
+            }
+            else {
+                excString.append(" but reached end of input");
+            }
+
             throw new ParseException(excString.toString(), this.index);
         }
     }
@@ -306,11 +318,15 @@ public final class ASCIIPropertyListParser {
      * Expects the input to have the given symbol at the current parsing position.
      *
      * @param expectedSymbol The expected symbol.
-     * @throws ParseException If the expected symbol could be found.
+     * @throws ParseException If the expected symbol could not be found.
      */
     private void expect(char expectedSymbol) throws ParseException {
         if (!this.accept(expectedSymbol)) {
-            throw new ParseException("Expected '" + expectedSymbol + "' but found '" + this.data[this.index] + "'", this.index);
+            throw new ParseException(
+                    this.index < this.data.length
+                        ? "Expected '" + expectedSymbol + "' but found '" + this.data[this.index] + "'"
+                        : "Expected '" + expectedSymbol + "' but reached end of input",
+                    this.index);
         }
     }
 
@@ -386,8 +402,8 @@ public final class ASCIIPropertyListParser {
      */
     private String readInputUntil(char... symbols) {
         StringBuilder strBuf = new StringBuilder();
-        while (!this.accept(symbols)) {
-        	  strBuf.append(this.data[this.index]);
+        while (this.index < this.data.length && !this.accept(symbols)) {
+            strBuf.append(this.data[this.index]);
             this.skip();
         }
 
@@ -402,8 +418,8 @@ public final class ASCIIPropertyListParser {
      */
     private String readInputUntil(char symbol) {
         StringBuilder strBuf = new StringBuilder();
-        while (!this.accept(symbol)) {
-        	  strBuf.append(this.data[this.index]);
+        while (this.index < this.data.length && !this.accept(symbol)) {
+            strBuf.append(this.data[this.index]);
             this.skip();
         }
         return strBuf.toString();
