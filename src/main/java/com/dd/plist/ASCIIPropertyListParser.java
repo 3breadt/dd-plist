@@ -659,7 +659,7 @@ public final class ASCIIPropertyListParser {
      * The prerequisite for calling this method is, that a quoted string begin token has been read.
      *
      * @return The quoted string found at the parsing method with all special characters unescaped.
-     * @throws ParseException If an error occured during parsing.
+     * @throws ParseException If an error occurred during parsing.
      */
     private String parseQuotedString() throws ParseException {
         //Skip begin token
