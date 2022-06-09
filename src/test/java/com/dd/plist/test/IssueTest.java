@@ -106,4 +106,11 @@ public class IssueTest  {
 
         assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(is));
     }
+
+    @Test
+    public void testIssue66_XMLFileWithUTF8BOM() throws Exception {
+        File plistFile = new File("test-files/github-issue66.plist");
+        NSDictionary d = (NSDictionary) PropertyListParser.parse(plistFile);
+        assertEquals("Kid\u2019s iPhone", d.objectForKey("Device Name").toString());
+    }
 }
