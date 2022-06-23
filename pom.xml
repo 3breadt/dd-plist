@@ -96,6 +96,7 @@
                 <configuration>
                     <reportOutputDirectory>target</reportOutputDirectory>
                     <destDir>javadoc</destDir>
+                    <source>8</source>
                 </configuration>
                 <executions>
                     <execution>
@@ -199,7 +200,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.5.2</version>
+            <version>5.7.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
