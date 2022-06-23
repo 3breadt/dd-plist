@@ -1,6 +1,6 @@
 /*
  * plist - An open source library to parse and generate property lists
- * Copyright (C) 2011-2014 Daniel Dreibrodt
+ * Copyright (C) 2011 Daniel Dreibrodt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 
 /**
@@ -86,25 +87,6 @@ public class PropertyListParser {
 
     /**
      * Determines the type of a property list by means of the first bytes of its data
-     * @param bytes The very first bytes of data of the property list (minus any whitespace)
-     * @return The type of the property list
-     */
-    private static int determineType(byte[] bytes) {
-        //Skip any possible whitespace at the beginning of the file
-        int offset = 0;
-        if(bytes.length >= 3 && (bytes[0] & 0xFF) == 0xEF && (bytes[1] & 0xFF) == 0xBB && (bytes[2] & 0xFF) == 0xBF) {
-            //Skip Unicode byte order mark (BOM)
-            offset += 3;
-        }
-        while(offset < bytes.length &&
-              (bytes[offset] == ' ' || bytes[offset] == '\t' || bytes[offset] == '\r' || bytes[offset] == '\n' || bytes[offset] == '\f')) {
-            offset++;
-        }
-        return determineType(new String(bytes, offset, Math.min(8, bytes.length - offset)));
-    }
-
-    /**
-     * Determines the type of a property list by means of the first bytes of its data
      * @param is An input stream pointing to the beginning of the property list data.
      *           If the stream supports marking it will be reset to the beginning of the property
      *           list data after the type has been determined.
@@ -119,7 +101,8 @@ public class PropertyListParser {
         }
         is.skip(offset);
         int b;
-        boolean bom = false;
+        ByteOrderMarkReader bomReader = new ByteOrderMarkReader();
+        boolean bom = true;
         //Skip any possible whitespace at the beginning of the file
         do {
             if (++index > readLimit) {
@@ -128,20 +111,26 @@ public class PropertyListParser {
             }
             b = is.read();
             //Check if we are reading the Unicode byte order mark (BOM) and skip it
-            bom = index < 3 && ((index == 0 && b == 0xEF) || (bom && ((index == 1 && b == 0xBB) || (index == 2 && b == 0xBF))));
+            bom &= bomReader.readByte(b);
         } while (b != -1 && (b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f' || bom));
 
         if (b == -1) {
             return TYPE_ERROR_BLANK;
         }
 
+        String charset = bomReader.getDetectedCharset();
+        if (charset == null) {
+            charset = "UTF-8";
+        }
+
         byte[] magicBytes = new byte[8];
         magicBytes[0] = (byte)b;
         int read = is.read(magicBytes, 1, 7);
-        int type = determineType(new String(magicBytes, 0, read));
+        int type = determineType(new String(magicBytes, 0, read, Charset.forName(charset)));
         if (is.markSupported()) {
             is.reset();
         }
+
         return type;
     }
 

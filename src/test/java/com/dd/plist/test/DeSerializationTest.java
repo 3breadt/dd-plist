@@ -4,8 +4,6 @@ import com.dd.plist.*;
 import com.dd.plist.test.model.*;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Array;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;

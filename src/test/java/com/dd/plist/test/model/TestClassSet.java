@@ -1,7 +1,6 @@
 package com.dd.plist.test.model;
 
 import java.util.Set;
-import java.util.Set;
 
 public class TestClassSet {
     private Set<String> stringSet;

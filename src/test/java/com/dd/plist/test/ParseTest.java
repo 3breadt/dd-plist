@@ -2,16 +2,15 @@ package com.dd.plist.test;
 
 import com.dd.plist.*;
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXParseException;
 
 import java.io.File;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 
 public class ParseTest {
     /**
@@ -24,23 +23,88 @@ public class ParseTest {
 
         // check the data in it
         NSDictionary d = (NSDictionary) x;
-        assertTrue(d.count() == 5);
-        assertTrue(d.objectForKey("keyA").toString().equals("valueA"));
-        assertTrue(d.objectForKey("key&B").toString().equals("value&B"));
-        assertTrue(((NSDate) d.objectForKey("date")).getDate().equals(new Date(1322472090000L)));
-        assertTrue(Arrays.equals(((NSData) d.objectForKey("data")).bytes(),
-                new byte[] {0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82}));
+        assertEquals(5, d.count());
+        assertEquals("valueA", d.objectForKey("keyA").toString());
+        assertEquals("value&B", d.objectForKey("key&B").toString());
+        assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
+        assertArrayEquals(((NSData) d.objectForKey("data")).bytes(), new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
         NSArray a = (NSArray) d.objectForKey("array");
-        assertTrue(a.count() == 4);
-        assertTrue(a.objectAtIndex(0).equals(new NSNumber(true)));
-        assertTrue(a.objectAtIndex(1).equals(new NSNumber(false)));
-        assertTrue(a.objectAtIndex(2).equals(new NSNumber(87)));
-        assertTrue(a.objectAtIndex(3).equals(new NSNumber(3.14159)));
+        assertEquals(4, a.count());
+        assertEquals(a.objectAtIndex(0), new NSNumber(true));
+        assertEquals(a.objectAtIndex(1), new NSNumber(false));
+        assertEquals(a.objectAtIndex(2), new NSNumber(87));
+        assertEquals(a.objectAtIndex(3), new NSNumber(3.14159));
 
         // read/write it, make sure we get the same thing
         PropertyListParser.saveAsXML(x, new File("test-files/out-testXml.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testXml.plist"));
-        assertTrue(x.equals(y));
+        assertEquals(x, y);
+    }
+
+    /** Test parsing of an XML property list in UTF-16BE. */
+    @Test
+    public void testXmlUtf16BeWithBom() throws Exception {
+        this.testXmlEncoding("UTF-16BE-BOM");
+    }
+
+    /** Test parsing of an XML property list in UTF-16BE, but without the BOM. */
+    @Test
+    public void testXmlUtf16BeWithoutBom() throws Exception {
+        this.testXmlEncoding("UTF-16BE");
+    }
+
+    /** Test parsing of an XML property list in UTF-16LE. */
+    @Test
+    public void testXmlUtf16LeWithBom() throws Exception {
+        this.testXmlEncoding("UTF-16LE-BOM");
+    }
+
+    /** Test parsing of an XML property list in UTF-16LE, but without the BOM. */
+    @Test
+    public void testXmlUtf16LeWithoutBom() throws Exception {
+        this.testXmlEncoding("UTF-16LE");
+    }
+
+    /** Test parsing of an XML property list in UTF-32BE. */
+    @Test
+    public void testXmlUtf32BeWithBom() throws Exception {
+        this.testXmlEncoding("UTF-32BE-BOM");
+    }
+
+    /** Test parsing of an XML property list in UTF-32BE, but without the BOM. */
+    @Test
+    public void testXmlUtf32BeWithoutBom() throws Exception {
+        this.testXmlEncoding("UTF-32BE");
+    }
+
+    /** Test parsing of an XML property list in UTF-32LE. */
+    @Test
+    public void testXmlUtf32LeWithBom() throws Exception {
+        this.testXmlEncoding("UTF-32LE-BOM");
+    }
+
+    /** Test parsing of an XML property list in UTF-32LE, but without the BOM. */
+    @Test
+    public void testXmlUtf32LeWithoutBom() throws Exception {
+        this.testXmlEncoding("UTF-32LE");
+    }
+
+    private void testXmlEncoding(String encoding) throws Exception {
+        NSObject x = PropertyListParser.parse(new File("test-files/test-xml-" + encoding.toLowerCase() + ".plist"));
+
+        // check the data in it
+        NSDictionary d = (NSDictionary) x;
+        assertEquals(5, d.count());
+        assertEquals("valueA", d.objectForKey("keyA").toString());
+        assertEquals("value&B \u2705", d.objectForKey("key&B").toString());
+        assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
+        assertArrayEquals(((NSData) d.objectForKey("data")).bytes(), new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
+        NSArray a = (NSArray) d.objectForKey("array");
+        assertEquals(4, a.count());
+        assertEquals(a.objectAtIndex(0), new NSNumber(true));
+        assertEquals(a.objectAtIndex(1), new NSNumber(false));
+        assertEquals(a.objectAtIndex(2), new NSNumber(87));
+        assertEquals(a.objectAtIndex(3), new NSNumber(3.14159));
     }
 
     /**
@@ -53,7 +117,7 @@ public class ParseTest {
         // save and load as binary
         PropertyListParser.saveAsBinary(x, new File("test-files/out-testBinary.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testBinary.plist"));
-        assertTrue(x.equals(y));
+        assertEquals(x, y);
     }
 
     /**
@@ -84,36 +148,34 @@ public class ParseTest {
     public void testASCII() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii.plist"));
         NSDictionary d = (NSDictionary) x;
-        assertTrue(d.count() == 5);
-        assertTrue(d.objectForKey("keyA").toString().equals("valueA"));
-        assertTrue(d.objectForKey("key&B").toString().equals("value&B"));
-        assertTrue(((NSDate) d.objectForKey("date")).getDate().equals(new Date(1322472090000L)));
-        assertTrue(Arrays.equals(((NSData) d.objectForKey("data")).bytes(),
-                new byte[] {0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82}));
+        assertEquals(5, d.count());
+        assertEquals("valueA", d.objectForKey("keyA").toString());
+        assertEquals("value&B", d.objectForKey("key&B").toString());
+        assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
+        assertArrayEquals(((NSData) d.objectForKey("data")).bytes(), new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
         NSArray a = (NSArray) d.objectForKey("array");
-        assertTrue(a.count() == 4);
-        assertTrue(a.objectAtIndex(0).equals(new NSString("YES")));
-        assertTrue(a.objectAtIndex(1).equals(new NSString("NO")));
-        assertTrue(a.objectAtIndex(2).equals(new NSString("87")));
-        assertTrue(a.objectAtIndex(3).equals(new NSString("3.14159")));
+        assertEquals(4, a.count());
+        assertEquals(a.objectAtIndex(0), new NSString("YES"));
+        assertEquals(a.objectAtIndex(1), new NSString("NO"));
+        assertEquals(a.objectAtIndex(2), new NSString("87"));
+        assertEquals(a.objectAtIndex(3), new NSString("3.14159"));
     }
 
     @Test
     public void testGnuStepASCII() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii-gnustep.plist"));
         NSDictionary d = (NSDictionary) x;
-        assertTrue(d.count() == 5);
-        assertTrue(d.objectForKey("keyA").toString().equals("valueA"));
-        assertTrue(d.objectForKey("key&B").toString().equals("value&B"));
-        assertTrue(((NSDate) d.objectForKey("date")).getDate().equals(new Date(1322472090000L)));
-        assertTrue(Arrays.equals(((NSData) d.objectForKey("data")).bytes(),
-                new byte[] {0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82}));
+        assertEquals(5, d.count());
+        assertEquals("valueA", d.objectForKey("keyA").toString());
+        assertEquals("value&B", d.objectForKey("key&B").toString());
+        assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
+        assertArrayEquals(((NSData) d.objectForKey("data")).bytes(), new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
         NSArray a = (NSArray) d.objectForKey("array");
-        assertTrue(a.count() == 4);
-        assertTrue(a.objectAtIndex(0).equals(new NSNumber(true)));
-        assertTrue(a.objectAtIndex(1).equals(new NSNumber(false)));
-        assertTrue(a.objectAtIndex(2).equals(new NSNumber(87)));
-        assertTrue(a.objectAtIndex(3).equals(new NSNumber(3.14159)));
+        assertEquals(4, a.count());
+        assertEquals(a.objectAtIndex(0), new NSNumber(true));
+        assertEquals(a.objectAtIndex(1), new NSNumber(false));
+        assertEquals(a.objectAtIndex(2), new NSNumber(87));
+        assertEquals(a.objectAtIndex(3), new NSNumber(3.14159));
     }
 
     @Test
@@ -128,7 +190,7 @@ public class ParseTest {
 
         NSDictionary y = (NSDictionary) PropertyListParser.parse(out);
         NSDictionary z = (NSDictionary) PropertyListParser.parse(in2);
-        assertTrue(y.equals(z));
+        assertEquals(y, z);
     }
 
     @Test
@@ -138,7 +200,7 @@ public class ParseTest {
         NSDictionary x = (NSDictionary) PropertyListParser.parse(in);
         PropertyListParser.saveAsGnuStepASCII(x, out);
         NSObject y = PropertyListParser.parse(out);
-        assertTrue(x.equals(y));
+        assertEquals(x, y);
     }
 
     @Test
@@ -148,27 +210,27 @@ public class ParseTest {
 
     @Test
     public void testAsciiPropertyListEncodedWithUtf8() throws Exception {
-        testAsciiUnicode("test-ascii-utf8.plist");
+        this.testAsciiUnicode("test-ascii-utf-8.plist");
     }
 
     @Test
     public void testAsciiPropertyListEncodedWithUtf16Be() throws Exception {
-        testAsciiUnicode("test-ascii-utf16-be.plist");
+        this.testAsciiUnicode("test-ascii-utf-16be.plist");
     }
 
     @Test
     public void testAsciiPropertyListEncodedWithUtf16Le() throws Exception {
-        testAsciiUnicode("test-ascii-utf16-le.plist");
+        this.testAsciiUnicode("test-ascii-utf-16le.plist");
     }
 
     @Test
     public void testAsciiPropertyListEncodedWithUtf32Be() throws Exception {
-        testAsciiUnicode("test-ascii-utf32-be.plist");
+        this.testAsciiUnicode("test-ascii-utf-32be.plist");
     }
 
     @Test
     public void testAsciiPropertyListEncodedWithUtf32Le() throws Exception {
-        testAsciiUnicode("test-ascii-utf32-le.plist");
+        this.testAsciiUnicode("test-ascii-utf-32le.plist");
     }
 
     private void testAsciiUnicode(String filename) throws Exception {
@@ -183,6 +245,7 @@ public class ParseTest {
         assertEquals("\u0020\u5e78", dict.get("with_u_escapes").toString());
     }
 
+    @Test
     public void testAsciiCommentsAreNotIncludedInStrings() throws Exception {
         String stringFileContentStr = "/* Menu item to make the current document plain text */\n" +
                 "\"Make Plain Text\" = \"In reinen Text umwandeln\";\n" +
@@ -190,13 +253,14 @@ public class ParseTest {
                 "\"Make Rich Text\" = \"In formatierten Text umwandeln\";\n";
         byte[] stringFileContentRaw = stringFileContentStr.getBytes();
 
-        String stringFileContent = new String(stringFileContentRaw, Charset.forName("UTF-8"));
+        String stringFileContent = new String(stringFileContentRaw, StandardCharsets.UTF_8);
         String asciiPropertyList = "{" + stringFileContent + "}";
-        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
         assertTrue(dict.containsKey("Make Plain Text"));
         assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
     }
 
+    @Test
     public void testAsciiEscapeCharacters() throws Exception {
         String asciiPropertyList = "{\n" +
                 "a = \"abc \\n def\";\n" +
@@ -206,7 +270,7 @@ public class ParseTest {
                 "e = \"\\\\ \\\"\";\n" +
                 "f = \"a \\' b\";\n" +
                 "}";
-        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(Charset.forName("UTF-8")));
+        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
         assertEquals("abc \n def", dict.get("a").toString());
         assertEquals("\r", dict.get("b").toString());
         assertEquals("xyz\b", dict.get("c").toString());

@@ -1,6 +1,5 @@
 package com.dd.plist.test.model;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 public class TestClass2 {

@@ -32,8 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Parses XML property lists.
@@ -106,7 +105,7 @@ public class XMLPropertyListParser {
             throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
         InputStream fileInputStream = new FileInputStream(f);
         try {
-            return parse(getDocBuilder().parse(fileInputStream));
+            return parse(fileInputStream);
         }
         finally {
             try {
@@ -133,7 +132,7 @@ public class XMLPropertyListParser {
                 throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
         InputStream inputStream = new ByteArrayInputStream(bytes);
         try {
-            return parse(getDocBuilder().parse(inputStream));
+            return parse(inputStream);
         }
         finally {
             try {
@@ -160,9 +159,8 @@ public class XMLPropertyListParser {
      */
     public static NSObject parse(InputStream is)
                 throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-        InputStream filteredInputStream = new FilterInputStream(is) {
-            @Override public void close() {}
-        };
+        // Do not pass BOM to XML parser because it can't handle it
+        InputStream filteredInputStream = new ByteOrderMarkFilterInputStream(is, false);
         return parse(getDocBuilder().parse(filteredInputStream));
     }
 

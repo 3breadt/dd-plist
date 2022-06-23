@@ -195,32 +195,16 @@ public final class ASCIIPropertyListParser {
      * @throws ParseException If an error occurs during parsing.
      */
     public static NSObject parse(byte[] bytes) throws ParseException {
-        try {
-            // Check for byte order marks
-            if (bytes.length > 2) {
-                if (bytes[0] == (byte)0xFE && bytes[1] == (byte)0xFF) {
-                    return parse(bytes, "UTF-16");
-                }
-                else if (bytes[0] == (byte)0xFF && bytes[1] == (byte)0xFE) {
-                    if (bytes.length > 4 && bytes[2] == (byte)0x00 && bytes[3] == (byte)0x00) {
-                        return parse(bytes, "UTF-32");
-                    }
-                    return parse(bytes, "UTF-16");
-                }
-                else if (bytes.length > 3) {
-                    if (bytes[0] == (byte)0xEF && bytes[1] == (byte)0xBB && bytes[2] == (byte)0xBF) {
-                        return parse(bytes, "UTF-8");
-                    }
-                    else if (bytes.length > 4 && bytes[0] == (byte)0x00 && bytes[1] == (byte)0x00 && bytes[2] == (byte)0xFE && bytes[3] == (byte)0xFF) {
-                        return parse(bytes, "UTF-32");
-                    }
-                }
-            }
+        String charset = ByteOrderMarkReader.detect(bytes);
+        if (charset == null) {
+            charset = "UTF-8";
+        }
 
-            return parse(bytes, "UTF-8");
+        try {
+            return parse(bytes, charset);
         } catch(UnsupportedEncodingException e) {
-            // Very unlikely to happen
-            throw new RuntimeException("Unsupported property list encoding: " + e.getMessage());
+            // Unlikely to happen as only standard codepages are requested
+            throw new RuntimeException("Unsupported property list encoding (" + charset + "): " + e.getMessage());
         }
     }
 
