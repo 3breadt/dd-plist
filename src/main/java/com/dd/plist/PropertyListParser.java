@@ -122,13 +122,14 @@ public class PropertyListParser {
         boolean bom = false;
         //Skip any possible whitespace at the beginning of the file
         do {
-            if (++index > readLimit) {
+            if (index >= readLimit) {
                 is.reset();
                 return determineType(is, readLimit);
             }
             b = is.read();
             //Check if we are reading the Unicode byte order mark (BOM) and skip it
             bom = index < 3 && ((index == 0 && b == 0xEF) || (bom && ((index == 1 && b == 0xBB) || (index == 2 && b == 0xBF))));
+            index++;
         } while (b != -1 && (b == ' ' || b == '\t' || b == '\r' || b == '\n' || b == '\f' || bom));
 
         if (b == -1) {
