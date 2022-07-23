@@ -186,7 +186,7 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.8</version>
+                <version>1.6.7</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
@@ -200,7 +200,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.7.2</version>
+            <version>5.8.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
