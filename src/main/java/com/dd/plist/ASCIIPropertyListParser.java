@@ -24,15 +24,17 @@ package com.dd.plist;
 
 import java.io.CharArrayWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.StringCharacterIterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -119,9 +121,8 @@ public final class ASCIIPropertyListParser {
      * Creates a new parser for the given property list content.
      *
      * @param propertyListContent The content of the property list that is to be parsed.
-     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
-    private ASCIIPropertyListParser(char[] propertyListContent) throws UnsupportedEncodingException {
+    private ASCIIPropertyListParser(char[] propertyListContent) {
         this.data = propertyListContent;
     }
 
@@ -134,17 +135,7 @@ public final class ASCIIPropertyListParser {
      * @throws java.io.IOException If an error occurs while reading from the input stream.
      */
     public static NSObject parse(File f) throws IOException, ParseException {
-        InputStream fileInputStream = new FileInputStream(f);
-        try {
-            return parse(fileInputStream);
-        }
-        finally {
-            try {
-                fileInputStream.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
+        return parse(f.toPath());
     }
 
     /**
@@ -158,16 +149,36 @@ public final class ASCIIPropertyListParser {
      * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
     public static NSObject parse(File f, String encoding) throws IOException, ParseException {
-        InputStream fileInputStream = new FileInputStream(f);
-        try {
+        return parse(f.toPath(), encoding);
+    }
+
+    /**
+     * Parses an ASCII property list file.
+     *
+     * @param path The path to the ASCII property list file.
+     * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the property list.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException If an error occurs while reading from the input stream.
+     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
+     */
+    public static NSObject parse(Path path, String encoding) throws IOException, ParseException {
+        try (InputStream fileInputStream = Files.newInputStream(path)) {
             return parse(fileInputStream, encoding);
         }
-        finally {
-            try {
-                fileInputStream.close();
-            } catch (IOException e) {
-                // ignore
-            }
+    }
+
+    /**
+     * Parses an ASCII property list file.
+     *
+     * @param path The path to the ASCII property list file.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException If an error occurs while reading from the input stream.
+     */
+    public static NSObject parse(Path path) throws IOException, ParseException {
+        try (InputStream fileInputStream = Files.newInputStream(path)) {
+            return parse(fileInputStream);
         }
     }
 
@@ -175,46 +186,13 @@ public final class ASCIIPropertyListParser {
      * Parses an ASCII property list from an input stream.
      * This method does not close the specified input stream.
      *
-     * @param in The input stream that points to the property list's data.
+     * @param in The input stream that provides the property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @throws java.text.ParseException If an error occurs during parsing.
      * @throws java.io.IOException If an error occurs while reading from the input stream.
      */
     public static NSObject parse(InputStream in) throws ParseException, IOException {
         return parse(PropertyListParser.readAll(in));
-    }
-
-    /**
-     * Parses an ASCII property list from an input reader.
-     * This method does not close the specified input reader.
-     *
-     * @param reader The input reader that points to the property list's data.
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws java.text.ParseException If an error occurs during parsing.
-     * @throws java.io.IOException      If an error occurs while reading from the input reader.
-     */
-    public static NSObject parse(Reader reader) throws ParseException, IOException {
-        CharArrayWriter charArrayWriter = new CharArrayWriter();
-        char[] buf = new char[4096];
-        int read;
-        while ((read = reader.read(buf)) >= 0) {
-            charArrayWriter.write(buf, 0, read);
-        }
-        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(charArrayWriter.toCharArray());
-        return parser.parse();
-    }
-
-    /**
-     * Parses an ASCII property list from an {@link String}
-     *
-     * @param plistData A String containing property list's data.
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws java.text.ParseException If an error occurs during parsing.
-     * @throws java.io.IOException      If an error occurs while reading from the input reader.
-     */
-    public static NSObject parse(String plistData) throws ParseException, IOException {
-        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(plistData.toCharArray());
-        return parser.parse();
     }
 
     /**
@@ -230,6 +208,41 @@ public final class ASCIIPropertyListParser {
      */
     public static NSObject parse(InputStream in, String encoding) throws ParseException, IOException {
         return parse(PropertyListParser.readAll(in), encoding);
+    }
+
+    /**
+     * Parses an ASCII property list from a {@link Reader}.
+     * This method does not close the specified reader.
+     *
+     * @param reader The reader that provides the property list's data.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException      If an error occurs while reading from the input reader.
+     */
+    public static NSObject parse(Reader reader) throws ParseException, IOException {
+        Objects.requireNonNull(reader, "The specified reader is null");
+
+        CharArrayWriter charArrayWriter = new CharArrayWriter();
+        char[] buf = new char[4096];
+        int read;
+        while ((read = reader.read(buf)) >= 0) {
+            charArrayWriter.write(buf, 0, read);
+        }
+
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(charArrayWriter.toCharArray());
+        return parser.parse();
+    }
+
+    /**
+     * Parses an ASCII property list from a {@link String}
+     *
+     * @param plistData A string containing the property list's data.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     */
+    public static NSObject parse(String plistData) throws ParseException {
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(plistData.toCharArray());
+        return parser.parse();
     }
 
     /**
@@ -300,6 +313,7 @@ public final class ASCIIPropertyListParser {
             for (char c : acceptableSymbols) {
                 if (this.data[this.index] == c) {
                     symbolPresent = true;
+                    break;
                 }
             }
         }
@@ -536,7 +550,7 @@ public final class ASCIIPropertyListParser {
         //Skip begin token
         this.skip();
         this.skipWhitespacesAndComments();
-        List<NSObject> objects = new LinkedList<NSObject>();
+        List<NSObject> objects = new LinkedList<>();
         while (!this.accept(ARRAY_END_TOKEN)) {
             objects.add(this.parseObject());
             this.skipWhitespacesAndComments();
@@ -657,7 +671,7 @@ public final class ASCIIPropertyListParser {
     /**
      * Attempts to parse a plain string as a date if possible.
      *
-     * @return A NSDate if the string represents such an object. Otherwise a NSString is returned.
+     * @return An NSDate if the string represents such an object. Otherwise, an NSString is returned.
      */
     private NSObject parseDateString() {
         String numericalString = this.parseString();
@@ -737,16 +751,14 @@ public final class ASCIIPropertyListParser {
         char c = iterator.current();
 
         while (iterator.getIndex() < iterator.getEndIndex()) {
-            switch (c) {
-                case '\\': { //An escaped sequence is following
-                    result.append(parseEscapedSequence(iterator));
-                    break;
-                }
-                default: { //a normal UTF-8 char
-                    result.append(c);
-                    break;
-                }
+            if (c == '\\') {
+                //An escaped sequence is following
+                result.append(parseEscapedSequence(iterator));
+            } else {
+                //a normal UTF-8 char
+                result.append(c);
             }
+
             c = iterator.next();
         }
 
