@@ -5,7 +5,7 @@ package com.dd.plist.test;
  */
 public final class HexConverter {
 
-    final protected static char[] hexArray = "0123456789abcdef".toCharArray();
+    final private static char[] hexArray = "0123456789abcdef".toCharArray();
 
     public static String toHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];

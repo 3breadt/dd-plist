@@ -37,13 +37,13 @@ public class NSNumberTest {
     @Test
     public void testNanIntValue() {
         NSNumber nan = new NSNumber(Double.NaN);
-        assertThrows(IllegalStateException.class, () -> nan.intValue());
+        assertThrows(IllegalStateException.class, nan::intValue);
     }
 
     @Test
     public void testNanLongValue() {
         NSNumber nan = new NSNumber(Double.NaN);
-        assertThrows(IllegalStateException.class, () -> nan.longValue());
+        assertThrows(IllegalStateException.class, nan::longValue);
     }
 
     @Test

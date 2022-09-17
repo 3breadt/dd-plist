@@ -77,8 +77,7 @@ public class UID extends NSObject {
     void toXML(StringBuilder xml, int level) {
         this.indent(xml, level);
         xml.append("<string>");
-        for (int i = 0; i < this.bytes.length; i++) {
-            byte b = this.bytes[i];
+        for (byte b : this.bytes) {
             if (b < 16)
                 xml.append('0');
             xml.append(Integer.toHexString(b));
@@ -96,8 +95,7 @@ public class UID extends NSObject {
     protected void toASCII(StringBuilder ascii, int level) {
         this.indent(ascii, level);
         ascii.append('"');
-        for (int i = 0; i < this.bytes.length; i++) {
-            byte b = this.bytes[i];
+        for (byte b : this.bytes) {
             if (b < 16)
                 ascii.append('0');
             ascii.append(Integer.toHexString(b));

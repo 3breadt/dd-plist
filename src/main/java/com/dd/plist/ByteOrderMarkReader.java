@@ -36,7 +36,7 @@ class ByteOrderMarkReader {
         { 0xFF, 0xFE, 0x00, 0x00 },
     };
 
-    private static final String Charsets[] = {
+    private static final String[] Charsets = {
         "UTF-8",
         "UTF-16BE",
         "UTF-16LE",
@@ -44,7 +44,7 @@ class ByteOrderMarkReader {
         "UTF-32LE"
     };
 
-    private boolean[] charsetPossible = { true, true, true, true, true};
+    private final boolean[] charsetPossible = { true, true, true, true, true};
     private int offset;
     private String charset;
 

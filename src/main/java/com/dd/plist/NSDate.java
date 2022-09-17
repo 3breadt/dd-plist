@@ -36,7 +36,7 @@ import java.util.TimeZone;
  */
 public class NSDate extends NSObject {
 
-    private Date date;
+    private final Date date;
 
     // EPOCH = new SimpleDateFormat("yyyy MM dd zzz").parse("2001 01 01 GMT").getTime();
     // ...but that's annoying in a static initializer because it can throw exceptions, ick.

@@ -36,7 +36,7 @@ import java.util.*;
  */
 public class NSSet extends NSObject {
 
-    private Set<NSObject> set;
+    private final Set<NSObject> set;
 
     private boolean ordered = false;
 
@@ -46,7 +46,7 @@ public class NSSet extends NSObject {
      * @see java.util.LinkedHashSet
      */
     public NSSet() {
-        this.set = new LinkedHashSet<NSObject>();
+        this.set = new LinkedHashSet<>();
     }
 
     /**
@@ -59,9 +59,9 @@ public class NSSet extends NSObject {
     public NSSet(boolean ordered) {
         this.ordered = ordered;
         if (!ordered)
-            this.set = new LinkedHashSet<NSObject>();
+            this.set = new LinkedHashSet<>();
         else
-            this.set = new TreeSet<NSObject>();
+            this.set = new TreeSet<>();
     }
 
     /**
@@ -71,7 +71,7 @@ public class NSSet extends NSObject {
      * @see java.util.LinkedHashSet
      */
     public NSSet(NSObject... objects) {
-        this.set = new LinkedHashSet<NSObject>();
+        this.set = new LinkedHashSet<>();
         this.set.addAll(Arrays.asList(objects));
     }
 
@@ -86,9 +86,9 @@ public class NSSet extends NSObject {
     public NSSet(boolean ordered, NSObject... objects) {
         this.ordered = ordered;
         if (!ordered)
-            this.set = new LinkedHashSet<NSObject>();
+            this.set = new LinkedHashSet<>();
         else
-            this.set = new TreeSet<NSObject>();
+            this.set = new TreeSet<>();
         this.set.addAll(Arrays.asList(objects));
     }
 
@@ -220,7 +220,7 @@ public class NSSet extends NSObject {
             return false;
         }
         final NSSet other = (NSSet) obj;
-        return !(this.set != other.set && (this.set == null || !this.set.equals(other.set)));
+        return Objects.equals(this.set, other.set);
     }
 
     /**

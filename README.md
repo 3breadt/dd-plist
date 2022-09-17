@@ -54,7 +54,7 @@ You can also directly convert the contained `NSObject` objects into native Java 
 
 You can create your own property list using the various constructors of the different `NSObject` classes. Or you can wrap existing native Java structures with the method `NSObject.wrap(Object o)`. Just make sure that the root object of the property list is either a `NSDictionary` (can be created from objects of the type `Map<String, Object>`) or a `NSArray` (can be created from object arrays).
 
-For building a XML property list you can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
+For building an XML property list you can then call the `toXMLPropertyList` method on the root object of your property list. It will give you a UTF-8 `String` containing the property list in XML format.
 
 If you want to have the property list in binary format use the `BinaryPropertyListWriter` class. It can write the binary property list directly to a file or to an `OutputStream`.
 
@@ -150,4 +150,4 @@ In this example your property list file is called _properties.plist_.
     root.put("People", people);
 
     //Save the propery list
-    PropertyListParser.saveAsXML(root, new File("people.plist"));
+    XMLPropertyListWriter.write(root, new File("people.plist"));

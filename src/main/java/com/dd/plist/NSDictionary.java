@@ -52,7 +52,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * Creates a new NSDictionary instance.
      */
     public NSDictionary() {
-        this.dict = new LinkedHashMap<String, NSObject>();
+        this.dict = new LinkedHashMap<>();
     }
 
     /**

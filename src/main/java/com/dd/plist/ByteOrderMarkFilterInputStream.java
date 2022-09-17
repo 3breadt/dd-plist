@@ -33,7 +33,7 @@ import java.util.Queue;
  * An input stream that filters the Byte Order Mark from the input.
  */
 class ByteOrderMarkFilterInputStream extends FilterInputStream {
-    private boolean closeStream;
+    private final boolean closeStream;
     private boolean readingBom = true;
     private final Queue<Integer> consumedBytes = new LinkedList<>();
 

@@ -2,12 +2,10 @@ package com.dd.plist.test;
 
 import com.dd.plist.*;
 import org.junit.jupiter.api.Test;
-import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;

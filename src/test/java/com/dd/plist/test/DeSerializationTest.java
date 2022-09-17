@@ -13,7 +13,7 @@ public class DeSerializationTest {
 
     @Test
     public void testToJavaObjectNSDictionaryToMap() throws Exception {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         NSDictionary dic = new NSDictionary();
         dic.put("key", new NSString("value"));
@@ -23,7 +23,7 @@ public class DeSerializationTest {
 
     @Test
     public void testFromJavaObjectMapToNSDictionary() throws Exception {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         NSObject result = NSObject.fromJavaObject(map);
 
@@ -136,9 +136,10 @@ public class DeSerializationTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testToJavaObjectNSDataToByteList() throws Exception {
         NSData data = new NSData("wP/urdUR/g==");
-        ArrayList<Byte> list = new ArrayList<Byte>();
+        ArrayList<Byte> list = new ArrayList<>();
         list = data.toJavaObject((Class<ArrayList<Byte>>)list.getClass());
 
         byte[] expected = new byte[] { (byte)0xC0, (byte)0xFF, (byte)0xEE, (byte)0xAD, (byte)0xD5, (byte)0x11, (byte)0xFE };
@@ -196,14 +197,14 @@ public class DeSerializationTest {
     }
 
     private static <V> Map<String, V> mapFromArr(String key, V value) {
-        Map<String, V> result = new HashMap<String, V>();
+        Map<String, V> result = new HashMap<>();
         result.put(key, value);
         return result;
     }
 
     @SafeVarargs
     private static <V> Set<V> setFromArr(V... values) {
-        Set<V> result = new HashSet<V>();
+        Set<V> result = new HashSet<>();
         for (V value : values) {
             result.add(value);
         }
@@ -212,9 +213,9 @@ public class DeSerializationTest {
 
     private static TestClass1 genTest1Object() {
         TestClass1 test = new TestClass1();
-        Map<String, List<String>> testMap = new HashMap<String, List<String>>();
+        Map<String, List<String>> testMap = new HashMap<>();
 
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add("value1");
         list.add("value2");
         list.add("value3");

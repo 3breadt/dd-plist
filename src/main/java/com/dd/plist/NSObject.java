@@ -242,9 +242,7 @@ public abstract class NSObject implements Cloneable {
     private static Object getInstance(Class<?> clazz) {
         try {
             return clazz.newInstance();
-        } catch (InstantiationException e) {
-            throw new IllegalArgumentException("Could not instantiate class " + clazz.getSimpleName());
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalArgumentException("Could not instantiate class " + clazz.getSimpleName());
         }
     }
@@ -332,8 +330,8 @@ public abstract class NSObject implements Cloneable {
 
         Object result = getInstance(clazz);
 
-        Map<String, Method> getters = new HashMap<String, Method>();
-        Map<String, Method> setters = new HashMap<String, Method>();
+        Map<String, Method> getters = new HashMap<>();
+        Map<String, Method> setters = new HashMap<>();
         for (Method method : clazz.getMethods()) {
             String name = method.getName();
             if (name.startsWith("get")) {
@@ -371,7 +369,7 @@ public abstract class NSObject implements Cloneable {
 
     private HashMap<String, Object> deserializeMap() {
         HashMap<String, NSObject> originalMap = ((NSDictionary)this).getHashMap();
-        HashMap<String, Object> clonedMap = new HashMap<String, Object>(originalMap.size());
+        HashMap<String, Object> clonedMap = new HashMap<>(originalMap.size());
         for(String key:originalMap.keySet()) {
             clonedMap.put(key, originalMap.get(key).toJavaObject());
         }
@@ -384,7 +382,7 @@ public abstract class NSObject implements Cloneable {
 
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
             //fallback
-            result = new HashMap<String, Object>();
+            result = new HashMap<>();
         } else {
             @SuppressWarnings("unchecked")
             Map<String, Object> temp = (Map<String, Object>) getInstance(clazz);
@@ -414,9 +412,9 @@ public abstract class NSObject implements Cloneable {
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
             //try fallback
             if (List.class.isAssignableFrom(clazz)) {
-                result = new ArrayList<Object>();
+                result = new ArrayList<>();
             } else if (Set.class.isAssignableFrom(clazz)) {
-                result = new HashSet<Object>();
+                result = new HashSet<>();
             } else {
                 //we fail
                 throw new IllegalArgumentException("Could not find a proper implementation for " + clazz.getSimpleName());
@@ -513,9 +511,9 @@ public abstract class NSObject implements Cloneable {
         Set<NSObject> originalSet = ((NSSet)this).getSet();
         Set<Object> clonedSet;
         if(originalSet instanceof LinkedHashSet) {
-            clonedSet = new LinkedHashSet<Object>(originalSet.size());
+            clonedSet = new LinkedHashSet<>(originalSet.size());
         } else {
-            clonedSet = new TreeSet<Object>();
+            clonedSet = new TreeSet<>();
         }
         for(NSObject o : originalSet) {
             clonedSet.add(o.toJavaObject());
@@ -723,7 +721,7 @@ public abstract class NSObject implements Cloneable {
 
     private static NSDictionary fromMap(Map<?, ?> map) {
         NSDictionary result = new NSDictionary();
-        for (Map.Entry entry : map.entrySet()) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
             if (!(entry.getKey() instanceof String)) {
                 throw new IllegalArgumentException("Maps need a String key for mapping to NSDictionary.");
             }
@@ -759,7 +757,7 @@ public abstract class NSObject implements Cloneable {
     }
 
     private static NSArray fromCollection(Collection<?> collection) {
-        List<NSObject> payload = new ArrayList<NSObject>(collection.size());
+        List<NSObject> payload = new ArrayList<>(collection.size());
         for (Object elem : collection) {
             payload.add(fromJavaObject(elem));
         }

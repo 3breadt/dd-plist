@@ -444,7 +444,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         if (this.isBoolean()) {
             ascii.append(this.boolValue ? "YES" : "NO");
         } else {
-            ascii.append(this.toString());
+            ascii.append(this);
         }
     }
 
@@ -454,13 +454,13 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         switch (this.type()) {
             case INTEGER: {
                 ascii.append("<*I");
-                ascii.append(this.toString());
+                ascii.append(this);
                 ascii.append('>');
                 break;
             }
             case REAL: {
                 ascii.append("<*R");
-                ascii.append(this.toString());
+                ascii.append(this);
                 ascii.append('>');
                 break;
             }
@@ -484,10 +484,10 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         if (o instanceof NSNumber) {
             NSNumber num = (NSNumber) o;
             y = num.doubleValue();
-            return (x < y) ? -1 : ((x == y) ? 0 : 1);
+            return Double.compare(x, y);
         } else if (o instanceof Number) {
             y = ((Number) o).doubleValue();
-            return (x < y) ? -1 : ((x == y) ? 0 : 1);
+            return Double.compare(x, y);
         } else {
             return -1;
         }
