@@ -40,6 +40,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +87,7 @@ public class XMLPropertyListParser {
     }
 
     /**
-     * Gets a {@link DocumentBuilder} to parse a XML property list.
+     * Gets a {@link DocumentBuilder} to parse an XML property list.
      * As {@link DocumentBuilder} instance are not thread-safe a new {@link DocumentBuilder} is generated for each request.
      *
      * @return A new {@link DocumentBuilder} that can parse property lists without an internet connection.
@@ -99,93 +101,96 @@ public class XMLPropertyListParser {
     }
 
     /**
-     * Parses a XML property list file.
+     * Parses an XML property list file.
      *
      * @param f The XML property list file.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any I/O error occurs while reading the file.
-     * @throws org.xml.sax.SAXException If any parse error occurs.
-     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
-     * @throws java.text.ParseException If a date string could not be parsed.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
      */
     public static NSObject parse(File f)
             throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
-        InputStream fileInputStream = new FileInputStream(f);
-        try {
+        return parse(f.toPath());
+    }
+
+    /**
+     * Parses an XML property list file.
+     *
+     * @param path The XML property list file path.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
+     */
+    public static NSObject parse(Path path)
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
+        try (InputStream fileInputStream = Files.newInputStream(path)) {
             return parse(fileInputStream);
-        }
-        finally {
-            try {
-                fileInputStream.close();
-            } catch (IOException e) {
-                // ignore
-            }
         }
     }
 
     /**
-     * Parses a XML property list from a byte array.
+     * Parses an XML property list from a byte array.
      *
      * @param bytes The byte array containing the property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any I/O error occurs while reading the file.
-     * @throws org.xml.sax.SAXException If any parse error occurs.
-     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
-     * @throws java.text.ParseException If a date string could not be parsed.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @throws java.text.ParseException                       If a date string could not be parsed.
      */
     public static NSObject parse(final byte[] bytes)
-                throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
-        InputStream inputStream = new ByteArrayInputStream(bytes);
-        try {
+            throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
+        try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
             return parse(inputStream);
-        }
-        finally {
-            try {
-                inputStream.close();
-            } catch (IOException e) {
-                // ignore
-            }
         }
     }
 
     /**
-     * Parses a XML property list from an input stream.
+     * Parses an XML property list from an input stream.
      * This method does not close the specified input stream.
      *
      * @param is The input stream pointing to the property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any I/O error occurs while reading the file.
-     * @throws org.xml.sax.SAXException If any parse error occurs.
-     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
-     * @throws java.text.ParseException If a date string could not be parsed.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      */
     public static NSObject parse(InputStream is)
-                throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
         // Do not pass BOM to XML parser because it can't handle it
         InputStream filteredInputStream = new ByteOrderMarkFilterInputStream(is, false);
         return parse(getDocBuilder().parse(filteredInputStream));
     }
+
     /**
-     * Parses a XML property list from an input stream.
-     * This method does not close the specified input stream.
+     * Parses an XML property list from a {@link Reader}.
+     * This method does not close the specified reader.
      *
-     * @param reader The input reader pointing to the property list's data.
+     * @param reader The reader providing the property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
-     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
      *                                                        could not be created. This should not occur.
-     * @throws java.io.IOException If any I/O error occurs while reading the file.
-     * @throws org.xml.sax.SAXException If any parse error occurs.
-     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
-     * @throws java.text.ParseException If a date string could not be parsed.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      */
     public static NSObject parse(Reader reader)
             throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
@@ -197,9 +202,9 @@ public class XMLPropertyListParser {
      *
      * @param doc The XML document.
      * @return The root NSObject of the property list contained in the XML document.
-     * @throws java.io.IOException If any I/O error occurs while reading the file.
+     * @throws java.io.IOException                      If any I/O error occurs while reading the file.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
-     * @throws java.text.ParseException If a date string could not be parsed.
+     * @throws java.text.ParseException                 If a date string could not be parsed.
      */
     public static NSObject parse(Document doc) throws PropertyListFormatException, IOException, ParseException {
         DocumentType docType = doc.getDoctype();
@@ -236,44 +241,47 @@ public class XMLPropertyListParser {
      *
      * @param n The XML node.
      * @return The corresponding NSObject.
-     * @throws java.io.IOException If any I/O error occurs while parsing a Base64 encoded NSData object.
+     * @throws java.io.IOException      If any I/O error occurs while parsing a Base64 encoded NSData object.
      * @throws java.text.ParseException If a date string could not be parsed.
      */
     private static NSObject parseObject(Node n) throws ParseException, IOException {
         String type = n.getNodeName();
-        if (type.equals("dict")) {
-            NSDictionary dict = new NSDictionary();
-            List<Node> children = filterElementNodes(n.getChildNodes());
-            for (int i = 0; i < children.size(); i += 2) {
-                Node key = children.get(i);
-                Node val = children.get(i + 1);
+        switch (type) {
+            case "dict": {
+                NSDictionary dict = new NSDictionary();
+                List<Node> children = filterElementNodes(n.getChildNodes());
+                for (int i = 0; i < children.size(); i += 2) {
+                    Node key = children.get(i);
+                    Node val = children.get(i + 1);
 
-                String keyString = getNodeTextContents(key);
+                    String keyString = getNodeTextContents(key);
 
-                dict.put(keyString, parseObject(val));
+                    dict.put(keyString, parseObject(val));
+                }
+                return dict;
             }
-            return dict;
-        } else if (type.equals("array")) {
-            List<Node> children = filterElementNodes(n.getChildNodes());
-            NSArray array = new NSArray(children.size());
-            for (int i = 0; i < children.size(); i++) {
-                array.setValue(i, parseObject(children.get(i)));
+            case "array": {
+                List<Node> children = filterElementNodes(n.getChildNodes());
+                NSArray array = new NSArray(children.size());
+                for (int i = 0; i < children.size(); i++) {
+                    array.setValue(i, parseObject(children.get(i)));
+                }
+                return array;
             }
-            return array;
-        } else if (type.equals("true")) {
-            return new NSNumber(true);
-        } else if (type.equals("false")) {
-            return new NSNumber(false);
-        } else if (type.equals("integer")) {
-            return new NSNumber(getNodeTextContents(n));
-        } else if (type.equals("real")) {
-            return new NSNumber(getNodeTextContents(n));
-        } else if (type.equals("string")) {
-            return new NSString(getNodeTextContents(n));
-        } else if (type.equals("data")) {
-            return new NSData(getNodeTextContents(n));
-        } else if (type.equals("date")) {
-            return new NSDate(getNodeTextContents(n));
+            case "true":
+                return new NSNumber(true);
+            case "false":
+                return new NSNumber(false);
+            case "integer":
+                return new NSNumber(getNodeTextContents(n));
+            case "real":
+                return new NSNumber(getNodeTextContents(n));
+            case "string":
+                return new NSString(getNodeTextContents(n));
+            case "data":
+                return new NSData(getNodeTextContents(n));
+            case "date":
+                return new NSDate(getNodeTextContents(n));
         }
         return null;
     }
@@ -285,7 +293,7 @@ public class XMLPropertyListParser {
      * @return The sub-list containing only nodes representing actual elements.
      */
     private static List<Node> filterElementNodes(NodeList list) {
-        List<Node> result = new ArrayList<Node>(list.getLength());
+        List<Node> result = new ArrayList<>(list.getLength());
         for (int i = 0; i < list.getLength(); i++) {
             if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
                 result.add(list.item(i));
@@ -348,6 +356,7 @@ public class XMLPropertyListParser {
          * Allow the application to resolve external entities.
          * This specific implementation returns an empty definition for Apple's PLIST DTDs
          * so that parsing can happen offline.
+         *
          * @param publicId The public identifier of the external entity being referenced, or null if none was supplied.
          * @param systemId The system identifier of the external entity being referenced.
          * @return An empty input source for the PLIST DTDs. For all other DTDs null is returned.
