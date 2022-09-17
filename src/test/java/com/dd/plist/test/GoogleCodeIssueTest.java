@@ -17,7 +17,7 @@ public class GoogleCodeIssueTest {
     @Test
     public void testIssue4() throws Exception {
         NSDictionary d = (NSDictionary)PropertyListParser.parse(new File("test-files/issue4.plist"));
-        assertTrue(((NSString)d.objectForKey("Device Name")).toString().equals("Kid\u2019s iPhone"));
+        assertEquals("Kid\u2019s iPhone", ((NSString) d.objectForKey("Device Name")).toString());
     }
 
     @Test
@@ -25,51 +25,51 @@ public class GoogleCodeIssueTest {
         // also a test for issue 12
         // the issue4 test has a UTF-16-BE string in its binary representation
         NSObject x = PropertyListParser.parse(new File("test-files/issue4.plist"));
-        PropertyListParser.saveAsBinary(x, new File("test-files/out-testIssue7.plist"));
+        BinaryPropertyListWriter.write(x, new File("test-files/out-testIssue7.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testIssue7.plist"));
-        assertTrue(x.equals(y));
+        assertEquals(x, y);
     }
 
     @Test
     public void testIssue16() throws Exception {
         float x = ((NSNumber)PropertyListParser.parse(new File("test-files/issue16.plist"))).floatValue();
-        assertTrue(x == (float)2.71828);
+        assertEquals(x, (float) 2.71828);
     }
 
     @Test
     public void testIssue18() throws Exception {
         NSNumber x = new NSNumber(-999);
-        PropertyListParser.saveAsBinary(x, new File("test-files/out-testIssue18.plist"));
+        BinaryPropertyListWriter.write(x, new File("test-files/out-testIssue18.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testIssue18.plist"));
-        assertTrue(x.equals(y));
+        assertEquals(x, y);
     }
 
     @Test
     public void testIssue21() throws Exception {
         String x = ((NSString)PropertyListParser.parse(new File("test-files/issue21.plist"))).toString();
-        assertTrue(x.equals("Lot&s of &persand&s and other escapable \"\'<>€ characters"));
+        assertEquals("Lot&s of &persand&s and other escapable \"\'<>€ characters", x);
     }
 
     @Test
     public void testIssue22() throws Exception {
         NSDictionary x1 = ((NSDictionary)PropertyListParser.parse(new File("test-files/issue22-emoji.plist")));
         NSDictionary x2 = ((NSDictionary)PropertyListParser.parse(new File("test-files/issue22-emoji-xml.plist")));
-        PropertyListParser.saveAsBinary(x1, new File("test-files/out-testIssue22.plist"));
+        BinaryPropertyListWriter.write(x1, new File("test-files/out-testIssue22.plist"));
         NSDictionary y1 = ((NSDictionary)PropertyListParser.parse(new File("test-files/out-testIssue22.plist")));
-        PropertyListParser.saveAsXML(x2, new File("test-files/out-testIssue22-xml.plist"));
+        XMLPropertyListWriter.write(x2, new File("test-files/out-testIssue22-xml.plist"));
         NSDictionary y2 = ((NSDictionary)PropertyListParser.parse(new File("test-files/out-testIssue22-xml.plist")));
-        assertTrue(x1.equals(x2));
-        assertTrue(x1.equals(y1));
-        assertTrue(x1.equals(y2));
-        assertTrue(x2.equals(y1));
-        assertTrue(x2.equals(y2));
+        assertEquals(x1, x2);
+        assertEquals(x1, y1);
+        assertEquals(x1, y2);
+        assertEquals(x2, y1);
+        assertEquals(x2, y2);
 
         String emojiString = "Test Test, \uD83D\uDE30\u2754\uD83D\uDC4D\uD83D\uDC4E\uD83D\uDD25";
 
-        assertTrue(emojiString.equals(x1.objectForKey("emojiString").toString()));
-        assertTrue(emojiString.equals(x2.objectForKey("emojiString").toString()));
-        assertTrue(emojiString.equals(y1.objectForKey("emojiString").toString()));
-        assertTrue(emojiString.equals(y2.objectForKey("emojiString").toString()));
+        assertEquals(emojiString, x1.objectForKey("emojiString").toString());
+        assertEquals(emojiString, x2.objectForKey("emojiString").toString());
+        assertEquals(emojiString, y1.objectForKey("emojiString").toString());
+        assertEquals(emojiString, y2.objectForKey("emojiString").toString());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class GoogleCodeIssueTest {
     public void testIssue38() throws Exception {
         NSDictionary dict = (NSDictionary)PropertyListParser.parse(new File("test-files/issue33.pbxproj"));
         NSObject fileRef = ((NSDictionary) ((NSDictionary)dict.get("objects")).get("65541A9C16D13B8C00A968D5")).get("fileRef");
-        assertTrue(fileRef.equals(new NSString("65541A9B16D13B8C00A968D5")));
+        assertEquals(fileRef, new NSString("65541A9B16D13B8C00A968D5"));
     }
 
     /**
@@ -95,9 +95,10 @@ public class GoogleCodeIssueTest {
     @Test
     public void testIssue41() {
         //Dictionary
-        Map<String, Object> nullMap = new HashMap<String, Object>();
+        Map<String, Object> nullMap = new HashMap<>();
         nullMap.put("key", null);
         assertFalse(nullMap.isEmpty());
+
         NSDictionary nullDict = (NSDictionary)NSObject.fromJavaObject(nullMap);
         assertTrue(nullDict.isEmpty());
 
@@ -120,8 +121,8 @@ public class GoogleCodeIssueTest {
         strArr[2] = null;
         NSArray nsArr = (NSArray)NSObject.fromJavaObject(strArr);
         assertTrue(nsArr.containsObject(null));
-        assertEquals(nsArr.objectAtIndex(1), null);
-        assertEquals(nsArr.objectAtIndex(2), null);
+        assertNull(nsArr.objectAtIndex(1));
+        assertNull(nsArr.objectAtIndex(2));
 
         try {
             nsArr.toXMLPropertyList();

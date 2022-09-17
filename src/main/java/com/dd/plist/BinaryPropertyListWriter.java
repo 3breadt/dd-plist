@@ -26,17 +26,16 @@ package com.dd.plist;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * A BinaryPropertyListWriter is a helper class for writing out
- * binary property list files.  It contains an output stream and
- * various structures for keeping track of which NSObjects have
- * already been serialized, and where they were put in the file.
+ * Writes property lists in the binary format.
  *
  * @author Keith Randall
  */
@@ -56,21 +55,16 @@ public final class BinaryPropertyListWriter {
     private long count;
 
     // map from object to its ID
-    private final Map<NSObject, Integer> idMap = new LinkedHashMap<NSObject, Integer>();
+    private final Map<NSObject, Integer> idMap = new LinkedHashMap<>();
     private int idSizeInBytes;
 
     /**
      * Creates a new binary property list writer
      *
      * @param outStr The output stream into which the binary property list will be written
-     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
-     *                     data that cannot be saved.
+     * @param version The binary property list format version.
      */
-    BinaryPropertyListWriter(OutputStream outStr) throws IOException {
-        this.out = new BufferedOutputStream(outStr);
-    }
-
-    BinaryPropertyListWriter(OutputStream outStr, int version) throws IOException {
+    BinaryPropertyListWriter(OutputStream outStr, int version) {
         this.version = version;
         this.out = new BufferedOutputStream(outStr);
     }
@@ -117,23 +111,62 @@ public final class BinaryPropertyListWriter {
     /**
      * Writes a binary plist file with the given object as the root.
      *
-     * @param file the file to write to
-     * @param root the source of the data to write to the file
+     * @param file The file to write to.
+     * @param root The source of the data to write to the file.
+     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
+     *                     data that cannot be saved.
+     * @deprecated Use the overload that takes the root as first argument and the file as second.
+     */
+    @Deprecated
+    public static void write(File file, NSObject root) throws IOException {
+        write(root, file.toPath());
+    }
+
+    /**
+     * Writes a binary plist file with the given object as the root.
+     *
+     * @param root The source of the data to write to the file.
+     * @param file The file to write to.
      * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
      *                     data that cannot be saved.
      */
-    public static void write(File file, NSObject root) throws IOException {
-        OutputStream fileOutputStream = new FileOutputStream(file);
-        try {
-            write(fileOutputStream, root);
+    public static void write(NSObject root, File file) throws IOException {
+        write(root, file.toPath());
+    }
+
+    /**
+     * Writes a binary plist file with the given object as the root.
+     *
+     * @param root The source of the data to write to the file.
+     * @param file The file to write to.
+     * @param createParentDirectories If set to true, the file's parent directories will be created.
+     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
+     *                     data that cannot be saved.
+     */
+    public static void write(NSObject root, File file, boolean createParentDirectories) throws IOException {
+        if (createParentDirectories) {
+            File parent = file.getParentFile();
+            if (!parent.exists() && !parent.mkdirs()) {
+                throw new IOException("The output directory does not exist and could not be created.");
+            }
         }
-        finally {
-            try {
-                fileOutputStream.close();
-            }
-            catch (IOException ex) {
-                // ignore
-            }
+
+        write(root, file.toPath());
+    }
+
+    /**
+     * Writes a binary plist file with the given object as the root.
+     *
+     * @param root The source of the data to write to the file.
+     * @param path The path of the file to write to.
+     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
+     *                     data that cannot be saved.
+     */
+    public static void write(NSObject root, Path path) throws IOException {
+        Objects.requireNonNull(root, "The root object is null.");
+
+        try (OutputStream fileOutputStream = Files.newOutputStream(path)) {
+            write(fileOutputStream, root);
         }
     }
 
@@ -141,12 +174,30 @@ public final class BinaryPropertyListWriter {
      * Writes a binary plist serialization of the given object as the root.
      * This method does not close the output stream.
      *
-     * @param out  the stream to write to
-     * @param root the source of the data to write to the stream
+     * @param out  The stream to write to.
+     * @param root The source of the data to write to the stream.
+     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
+     *                     data that cannot be saved.
+     * @deprecated Use the overload that takes the root as first argument and the stream as second.
+     */
+    @Deprecated
+    public static void write(OutputStream out, NSObject root) throws IOException {
+        write(root, out);
+    }
+
+    /**
+     * Writes a binary plist serialization of the given object as the root.
+     * This method does not close the output stream.
+     *
+     * @param root The source of the data to write to the stream.
+     * @param out  The stream to write to.
      * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
      *                     data that cannot be saved.
      */
-    public static void write(OutputStream out, NSObject root) throws IOException {
+    public static void write(NSObject root, OutputStream out) throws IOException {
+        Objects.requireNonNull(root, "The root object is null.");
+        Objects.requireNonNull(out, "The output stream is null.");
+
         int minVersion = getMinimumRequiredVersion(root);
         if (minVersion > VERSION_00) {
             String versionString = minVersion == VERSION_10 ? "v1.0" : (minVersion == VERSION_15 ? "v1.5" : (minVersion == VERSION_20 ? "v2.0" : "v0.0"));

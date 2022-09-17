@@ -25,11 +25,14 @@ package com.dd.plist;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Parses property lists that are in Apple's binary format.
  * Use this class when you are sure about the format of the property list.
- * Otherwise use the PropertyListParser class.
+ * Otherwise, use the PropertyListParser class.
  *
  * Parsing is done by calling the static <code>parse</code> methods.
  *
@@ -75,6 +78,45 @@ public final class BinaryPropertyListParser {
     }
 
     /**
+     * Parses a binary property list file.
+     *
+     * @param f The binary property list file
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
+     */
+    public static NSObject parse(File f) throws IOException, PropertyListFormatException {
+        return parse(f.toPath());
+    }
+
+    /**
+     * Parses a binary property list file.
+     *
+     * @param path The path to the binary property list file
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
+     */
+    public static NSObject parse(Path path) throws IOException, PropertyListFormatException {
+        try (InputStream fileInputStream = Files.newInputStream(path)) {
+            return parse(fileInputStream);
+        }
+    }
+
+    /**
+     * Parses a binary property list from an input stream.
+     * This method does not close the specified input stream.
+     *
+     * @param is The input stream that points to the property list's data.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
+     */
+    public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
+        return parse(PropertyListParser.readAll(is));
+    }
+
+    /**
      * Parses a binary property list from a byte array.
      *
      * @param data The binary property list's data.
@@ -96,6 +138,8 @@ public final class BinaryPropertyListParser {
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
     private NSObject doParse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
+        Objects.requireNonNull(data);
+
         this.bytes = data;
         String magic = new String(copyOfRange(this.bytes, 0, 8));
         if (!magic.startsWith("bplist")) {
@@ -143,41 +187,6 @@ public final class BinaryPropertyListParser {
         }
 
         return this.parseObject(topObject);
-    }
-
-    /**
-     * Parses a binary property list from an input stream.
-     * This method does not close the specified input stream.
-     *
-     * @param is The input stream that points to the property list's data.
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
-     */
-    public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
-        return parse(PropertyListParser.readAll(is));
-    }
-
-    /**
-     * Parses a binary property list file.
-     *
-     * @param f The binary property list file
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
-     */
-    public static NSObject parse(File f) throws IOException, PropertyListFormatException {
-        InputStream fileInputStream = new FileInputStream(f);
-        try {
-            return parse(fileInputStream);
-        }
-        finally {
-            try {
-                fileInputStream.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
     }
 
     /**
