@@ -22,7 +22,11 @@
  */
 package com.dd.plist;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -30,9 +34,15 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Parses XML property lists.
@@ -162,6 +172,24 @@ public class XMLPropertyListParser {
         // Do not pass BOM to XML parser because it can't handle it
         InputStream filteredInputStream = new ByteOrderMarkFilterInputStream(is, false);
         return parse(getDocBuilder().parse(filteredInputStream));
+    }
+    /**
+     * Parses a XML property list from an input stream.
+     * This method does not close the specified input stream.
+     *
+     * @param reader The input reader pointing to the property list's data.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing a XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException If any parse error occurs.
+     * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
+     * @throws java.text.ParseException If a date string could not be parsed.
+     */
+    public static NSObject parse(Reader reader)
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException, ParseException {
+        return parse(getDocBuilder().parse(new InputSource(reader)));
     }
 
     /**

@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 
 /**
@@ -54,7 +55,7 @@ public class PropertyListParser {
     private static final int TYPE_ERROR_BLANK = 10;
     private static final int TYPE_ERROR_UNKNOWN = 11;
 
-    private static final int READ_BUFFER_LENGTH = 2048;
+    private static final int READ_BUFFER_LENGTH = 4096;
 
     /**
      * Prevent instantiation.
@@ -272,7 +273,7 @@ public class PropertyListParser {
      * @throws IOException If an error occurs during the writing process.
      */
     public static void saveAsXML(NSObject root, OutputStream out) throws IOException {
-        OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
+        OutputStreamWriter w = new OutputStreamWriter(out, StandardCharsets.UTF_8);
         w.write(root.toXMLPropertyList());
         w.flush();
     }
@@ -353,7 +354,7 @@ public class PropertyListParser {
             throw new IOException("The output directory does not exist and could not be created.");
         }
 
-        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), StandardCharsets.US_ASCII);
         try {
             w.write(root.toASCIIPropertyList());
         }
@@ -380,7 +381,7 @@ public class PropertyListParser {
             throw new IOException("The output directory does not exist and could not be created.");
         }
 
-        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), StandardCharsets.US_ASCII);
         try {
             w.write(root.toASCIIPropertyList());
         }
@@ -433,7 +434,7 @@ public class PropertyListParser {
             throw new IOException("The output directory does not exist and could not be created.");
         }
 
-        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), "ASCII");
+        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(out), StandardCharsets.US_ASCII);
         try {
             w.write(root.toGnuStepASCIIPropertyList());
         }

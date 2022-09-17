@@ -22,10 +22,12 @@
  */
 package com.dd.plist;
 
+import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.StringCharacterIterator;
@@ -110,7 +112,17 @@ public final class ASCIIPropertyListParser {
      * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
      */
     private ASCIIPropertyListParser(byte[] propertyListContent, String encoding) throws UnsupportedEncodingException {
-        this.data = new String(propertyListContent, encoding).toCharArray();
+        this(new String(propertyListContent, encoding).toCharArray());
+    }
+
+    /**
+     * Creates a new parser for the given property list content.
+     *
+     * @param propertyListContent The content of the property list that is to be parsed.
+     * @throws java.io.UnsupportedEncodingException If no support for the named charset is available in this instance of the Java virtual machine.
+     */
+    private ASCIIPropertyListParser(char[] propertyListContent) throws UnsupportedEncodingException {
+        this.data = propertyListContent;
     }
 
     /**
@@ -170,6 +182,39 @@ public final class ASCIIPropertyListParser {
      */
     public static NSObject parse(InputStream in) throws ParseException, IOException {
         return parse(PropertyListParser.readAll(in));
+    }
+
+    /**
+     * Parses an ASCII property list from an input reader.
+     * This method does not close the specified input reader.
+     *
+     * @param reader The input reader that points to the property list's data.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException      If an error occurs while reading from the input reader.
+     */
+    public static NSObject parse(Reader reader) throws ParseException, IOException {
+        CharArrayWriter charArrayWriter = new CharArrayWriter();
+        char[] buf = new char[4096];
+        int read;
+        while ((read = reader.read(buf)) >= 0) {
+            charArrayWriter.write(buf, 0, read);
+        }
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(charArrayWriter.toCharArray());
+        return parser.parse();
+    }
+
+    /**
+     * Parses an ASCII property list from an {@link String}
+     *
+     * @param plistData A String containing property list's data.
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws java.text.ParseException If an error occurs during parsing.
+     * @throws java.io.IOException      If an error occurs while reading from the input reader.
+     */
+    public static NSObject parse(String plistData) throws ParseException, IOException {
+        ASCIIPropertyListParser parser = new ASCIIPropertyListParser(plistData.toCharArray());
+        return parser.parse();
     }
 
     /**
