@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -20,7 +21,7 @@ public class IssueTest  {
         File plistFile = new File("test-files/test-gzipinputstream-issue.plist");
 
         //Get the file input stream
-        InputStream fileInputStream = new FileInputStream(plistFile);
+        InputStream fileInputStream = Files.newInputStream(plistFile.toPath());
 
         //GZIP that file
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -105,5 +106,11 @@ public class IssueTest  {
         InputStream is = new ByteArrayInputStream(plist.getBytes());
 
         assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(is));
+    }
+
+    @Test
+    public void testIssue72_OutOfMemory_BinaryPlist() {
+        File plistFile = new File("test-files/github-issue72.plist");
+        assertDoesNotThrow(() -> BinaryPropertyListParser.parse(plistFile));
     }
 }

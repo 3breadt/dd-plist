@@ -27,13 +27,14 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.Objects;
 
 /**
  * Parses property lists that are in Apple's binary format.
  * Use this class when you are sure about the format of the property list.
  * Otherwise, use the PropertyListParser class.
- *
+ * <p>
  * Parsing is done by calling the static <code>parse</code> methods.
  *
  * @author Daniel Dreibrodt
@@ -61,11 +62,9 @@ public final class BinaryPropertyListParser {
      * Length of an object reference in bytes
      */
     private int objectRefSize;
-
-    /**
-     * The table holding the information at which offset each object is found
-     */
-    private int[] offsetTable;
+    private int offsetSize;
+    private int numObjects;
+    private int offsetTableOffset;
 
     /**
      * Protected constructor so that instantiation is fully controlled by the
@@ -83,7 +82,7 @@ public final class BinaryPropertyListParser {
      * @param f The binary property list file
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
+     * @throws java.io.IOException         If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
      */
     public static NSObject parse(File f) throws IOException, PropertyListFormatException {
         return parse(f.toPath());
@@ -95,7 +94,7 @@ public final class BinaryPropertyListParser {
      * @param path The path to the binary property list file
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
+     * @throws java.io.IOException         If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
      */
     public static NSObject parse(Path path) throws IOException, PropertyListFormatException {
         try (InputStream fileInputStream = Files.newInputStream(path)) {
@@ -110,7 +109,7 @@ public final class BinaryPropertyListParser {
      * @param is The input stream that points to the property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
      * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
+     * @throws java.io.IOException         If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
      */
     public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
         return parse(PropertyListParser.readAll(is));
@@ -121,7 +120,7 @@ public final class BinaryPropertyListParser {
      *
      * @param data The binary property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws PropertyListFormatException          When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
     public static NSObject parse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
@@ -134,7 +133,7 @@ public final class BinaryPropertyListParser {
      *
      * @param data The binary property list's data.
      * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws PropertyListFormatException          When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
     private NSObject doParse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
@@ -169,21 +168,15 @@ public final class BinaryPropertyListParser {
         byte[] trailer = copyOfRange(this.bytes, this.bytes.length - 32, this.bytes.length);
 
         // Trailer starts with 6 null bytes (index 0 to 5)
-        int offsetSize = (int) parseUnsignedInt(trailer, 6, 7);
+        this.offsetSize = (int) parseUnsignedInt(trailer, 6, 7);
         this.objectRefSize = (int) parseUnsignedInt(trailer, 7, 8);
-        int numObjects = (int) parseUnsignedInt(trailer, 8, 16);
+        this.numObjects = (int) parseUnsignedInt(trailer, 8, 16);
         int topObject = (int) parseUnsignedInt(trailer, 16, 24);
-        int offsetTableOffset = (int) parseUnsignedInt(trailer, 24, 32);
+        this.offsetTableOffset = (int) parseUnsignedInt(trailer, 24, 32);
 
         // Validate consistency of the trailer
-        if (offsetTableOffset + (numObjects + 1) * offsetSize > this.bytes.length || topObject >= this.bytes.length - 32) {
+        if (this.offsetTableOffset + (this.numObjects + 1) * this.offsetSize > this.bytes.length || topObject >= this.bytes.length - 32) {
             throw new PropertyListFormatException("The binary property list contains a corrupted object offset table.");
-        }
-
-        // Calculate offset table
-        this.offsetTable = new int[numObjects];
-        for (int i = 0; i < numObjects; i++) {
-            this.offsetTable[i] = (int) parseUnsignedInt(this.bytes, offsetTableOffset + i * offsetSize, offsetTableOffset + (i + 1) * offsetSize);
         }
 
         return this.parseObject(topObject);
@@ -197,11 +190,11 @@ public final class BinaryPropertyListParser {
      *
      * @param obj The object ID.
      * @return The parsed object.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
+     * @throws PropertyListFormatException          When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
     private NSObject parseObject(int obj) throws PropertyListFormatException, UnsupportedEncodingException {
-        int offset = this.offsetTable[obj];
+        int offset = this.getObjectOffset(obj);
         byte type = this.bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits
         int objInfo = type & 0x0F;      //Second 4 bits
@@ -254,7 +247,7 @@ public final class BinaryPropertyListParser {
             case 0x3: {
                 //Date
                 if (objInfo != 0x3) {
-                    throw new PropertyListFormatException("The given binary property list contains a date object of an unknown type ("+objInfo+")");
+                    throw new PropertyListFormatException("The given binary property list contains a date object of an unknown type (" + objInfo + ")");
                 }
                 return new NSDate(this.bytes, offset + 1, offset + 9);
             }
@@ -389,36 +382,33 @@ public final class BinaryPropertyListParser {
 
     private int calculateUtf8StringLength(byte[] bytes, int offset, int numCharacters) {
         int length = 0;
-        for(int i = 0; i < numCharacters; i++) {
+        for (int i = 0; i < numCharacters; i++) {
             int tempOffset = offset + length;
-            if(bytes.length <= tempOffset) {
+            if (bytes.length <= tempOffset) {
                 //WARNING: Invalid UTF-8 string, fall back to length = number of characters
                 return numCharacters;
             }
-            if(bytes[tempOffset] < 0x80) {
+            if (Byte.toUnsignedInt(bytes[tempOffset]) < 0x80) {
                 length++;
             }
-            if(bytes[tempOffset] < 0xC2) {
+            if (Byte.toUnsignedInt(bytes[tempOffset]) < 0xC2) {
                 //Invalid value (marks continuation byte), fall back to length = number of characters
                 return numCharacters;
-            }
-            else if(bytes[tempOffset] < 0xE0) {
-                if((bytes[tempOffset + 1] & 0xC0) != 0x80) {
+            } else if (Byte.toUnsignedInt(bytes[tempOffset]) < 0xE0) {
+                if ((bytes[tempOffset + 1] & 0xC0) != 0x80) {
                     //Invalid continuation byte, fall back to length = number of characters
                     return numCharacters;
                 }
                 length += 2;
-            }
-            else if(bytes[tempOffset] < 0xF0) {
-                if((bytes[tempOffset + 1] & 0xC0) != 0x80
+            } else if (Byte.toUnsignedInt(bytes[tempOffset]) < 0xF0) {
+                if ((bytes[tempOffset + 1] & 0xC0) != 0x80
                         || (bytes[tempOffset + 2] & 0xC0) != 0x80) {
                     //Invalid continuation byte, fall back to length = number of characters
                     return numCharacters;
                 }
                 length += 3;
-            }
-            else if(bytes[tempOffset] < 0xF5) {
-                if((bytes[tempOffset + 1] & 0xC0) != 0x80
+            } else if (Byte.toUnsignedInt(bytes[tempOffset]) < 0xF5) {
+                if ((bytes[tempOffset + 1] & 0xC0) != 0x80
                         || (bytes[tempOffset + 2] & 0xC0) != 0x80
                         || (bytes[tempOffset + 3] & 0xC0) != 0x80) {
                     //Invalid continuation byte, fall back to length = number of characters
@@ -444,9 +434,9 @@ public final class BinaryPropertyListParser {
     /**
      * Parses an unsigned integer from a byte array.
      *
-     * @param bytes The byte array containing the unsigned integer.
+     * @param bytes      The byte array containing the unsigned integer.
      * @param startIndex Beginning of the unsigned int in the byte array.
-     * @param endIndex End of the unsigned int in the byte array.
+     * @param endIndex   End of the unsigned int in the byte array.
      * @return The unsigned integer represented by the given bytes.
      */
     public static long parseUnsignedInt(byte[] bytes, int startIndex, int endIndex) {
@@ -473,9 +463,9 @@ public final class BinaryPropertyListParser {
     /**
      * Parses a long from a (big-endian) byte array.
      *
-     * @param bytes The bytes representing the long integer.
+     * @param bytes      The bytes representing the long integer.
      * @param startIndex Beginning of the long in the byte array.
-     * @param endIndex End of the long in the byte array.
+     * @param endIndex   End of the long in the byte array.
      * @return The long integer represented by the given bytes.
      */
     public static long parseLong(byte[] bytes, int startIndex, int endIndex) {
@@ -501,18 +491,18 @@ public final class BinaryPropertyListParser {
     /**
      * Parses a double from a (big-endian) byte array.
      *
-     * @param bytes The bytes representing the double.
+     * @param bytes      The bytes representing the double.
      * @param startIndex Beginning of the double in the byte array.
-     * @param endIndex End of the double in the byte array.
+     * @param endIndex   End of the double in the byte array.
      * @return The double represented by the given bytes.
      */
     public static double parseDouble(byte[] bytes, int startIndex, int endIndex) {
         if (endIndex - startIndex == 8) {
             return Double.longBitsToDouble(parseLong(bytes, startIndex, endIndex));
         } else if (endIndex - startIndex == 4) {
-            return Float.intBitsToFloat((int)parseLong(bytes, startIndex, endIndex));
+            return Float.intBitsToFloat((int) parseLong(bytes, startIndex, endIndex));
         } else {
-            throw new IllegalArgumentException("endIndex ("+endIndex+") - startIndex ("+startIndex+") != 4 or 8");
+            throw new IllegalArgumentException("endIndex (" + endIndex + ") - startIndex (" + startIndex + ") != 4 or 8");
         }
     }
 
@@ -532,6 +522,14 @@ public final class BinaryPropertyListParser {
         byte[] dest = new byte[length];
         System.arraycopy(src, startIndex, dest, 0, length);
         return dest;
+    }
+
+    private int getObjectOffset(int obj) throws PropertyListFormatException {
+        if (obj > this.numObjects) {
+            throw new PropertyListFormatException("The given binary property list contains an invalid object identifier.");
+        }
+
+        return (int) parseUnsignedInt(this.bytes, this.offsetTableOffset + obj * this.offsetSize, this.offsetTableOffset + (obj + 1) * this.offsetSize);
     }
 }
 
