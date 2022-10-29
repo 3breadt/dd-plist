@@ -12,7 +12,7 @@ public class DeSerializationTest {
     private static final Date date = new Date();
 
     @Test
-    public void testToJavaObjectNSDictionaryToMap() throws Exception {
+    public void testToJavaObjectNSDictionaryToMap() {
         Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         NSDictionary dic = new NSDictionary();
@@ -22,7 +22,7 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testFromJavaObjectMapToNSDictionary() throws Exception {
+    public void testFromJavaObjectMapToNSDictionary() {
         Map<String, String> map = new HashMap<>();
         map.put("key", "value");
         NSObject result = NSObject.fromJavaObject(map);
@@ -34,7 +34,7 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testToJavaObjectNSDictionaryToObjectWithMaps() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithMaps() {
         TestClassMap test = new TestClassMap();
         test.setStringMap(mapFromArr("key", "value"));
         test.setByteMap(mapFromArr("key", (byte) 123));
@@ -66,12 +66,12 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testFromJavaObjectObjectToNSDictionary() throws Exception {
+    public void testFromJavaObjectObjectToNSDictionary() {
         assertEquals(NSObject.fromJavaObject(genTestSetObject()), genTestSetDict());
     }
 
     @Test
-    public void testToJavaObjectNSDictionaryToObjectWithSets() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithSets() {
         TestClassSet test = genTestSetObject();
         NSDictionary dict = genTestSetDict();
         assertEquals(test, dict.toJavaObject(TestClassSet.class));
@@ -80,7 +80,7 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testToJavaObjectNSDictionaryToObjectWithMapOfLists() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithMapOfLists() {
         assertEquals(
                 genTest1Object(),
                 genTest1Dict()
@@ -88,7 +88,7 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testToJavaObjectNSDictionaryToObjectWithArrays() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithArrays() {
         assertEquals(
                 genTest3Object(),
                 genTest3DictOfArrays()
@@ -101,28 +101,28 @@ public class DeSerializationTest {
     }
 
     @Test
-    public void testToJavaObjectNSDictionaryToObjectWithPrimitives() throws Exception {
+    public void testToJavaObjectNSDictionaryToObjectWithPrimitives() {
         TestClass2 reference = genTest2Object();
         TestClass2 deserialized = genTest2Dict().toJavaObject(TestClass2.class);
         assertEquals(reference, deserialized);
     }
 
     @Test
-    public void testFromJavaObjectObjectWithPrimitivesToNSDictionary() throws Exception {
+    public void testFromJavaObjectObjectWithPrimitivesToNSDictionary() {
         assertEquals(
                 NSObject.fromJavaObject(genTest2Object()),
                 genTest2Dict());
     }
 
     @Test
-    public void testFromJavaObjectObjectWithArraysToNSDictionary() throws Exception {
+    public void testFromJavaObjectObjectWithArraysToNSDictionary() {
         assertEquals(
                 NSObject.fromJavaObject(genTest3Object()),
                 genTest3DictOfArrays());
     }
 
     @Test
-    public void testFromJavaObjectObjectWithMapOfListsToNSDictionary() throws Exception {
+    public void testFromJavaObjectObjectWithMapOfListsToNSDictionary() {
         assertEquals(
                 NSObject.fromJavaObject(genTest1Object()),
                 genTest1Dict());
@@ -190,12 +190,14 @@ public class DeSerializationTest {
         return test;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static NSDictionary genDict(String key, NSObject value) {
         NSDictionary result = new NSDictionary();
         result.put(key, value);
         return result;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static <V> Map<String, V> mapFromArr(String key, V value) {
         Map<String, V> result = new HashMap<>();
         result.put(key, value);
@@ -204,11 +206,7 @@ public class DeSerializationTest {
 
     @SafeVarargs
     private static <V> Set<V> setFromArr(V... values) {
-        Set<V> result = new HashSet<>();
-        for (V value : values) {
-            result.add(value);
-        }
-        return result;
+        return new HashSet<>(Arrays.asList(values));
     }
 
     private static TestClass1 genTest1Object() {

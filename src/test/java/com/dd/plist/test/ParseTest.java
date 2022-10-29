@@ -34,7 +34,7 @@ public class ParseTest {
         assertEquals(a.objectAtIndex(3), new NSNumber(3.14159));
 
         // read/write it, make sure we get the same thing
-        PropertyListParser.saveAsXML(x, new File("test-files/out-testXml.plist"));
+        XMLPropertyListWriter.write(x, new File("test-files/out-testXml.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testXml.plist"));
         assertEquals(x, y);
     }
@@ -113,7 +113,7 @@ public class ParseTest {
         NSObject x = PropertyListParser.parse(new File("test-files/test1.plist"));
 
         // save and load as binary
-        PropertyListParser.saveAsBinary(x, new File("test-files/out-testBinary.plist"));
+        BinaryPropertyListWriter.write(x, new File("test-files/out-testBinary.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testBinary.plist"));
         assertEquals(x, y);
     }
@@ -182,7 +182,7 @@ public class ParseTest {
         File out = new File("test-files/out-test1-ascii.plist");
         File in2 = new File("test-files/test1-ascii.plist");
         NSDictionary x = (NSDictionary) PropertyListParser.parse(in);
-        PropertyListParser.saveAsASCII(x, out);
+        ASCIIPropertyListWriter.write(x, out);
 
         //Information gets lost when saving into the ASCII format (NSNumbers are converted to NSStrings)
 
@@ -196,13 +196,13 @@ public class ParseTest {
         File in = new File("test-files/test1.plist");
         File out = new File("test-files/out-test1-ascii-gnustep.plist");
         NSDictionary x = (NSDictionary) PropertyListParser.parse(in);
-        PropertyListParser.saveAsGnuStepASCII(x, out);
+        ASCIIPropertyListWriter.writeGnuStep(x, out);
         NSObject y = PropertyListParser.parse(out);
         assertEquals(x, y);
     }
 
     @Test
-    public void testAsciiNullCharactersInString() throws Exception {
+    public void testAsciiNullCharactersInString() {
         assertThrows(ParseException.class, () -> PropertyListParser.parse(new File("test-files/test2-ascii-null-char-in-string.plist")));
     }
 

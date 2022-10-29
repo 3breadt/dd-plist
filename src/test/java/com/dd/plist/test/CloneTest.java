@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Daniel Dreibrodt
@@ -38,6 +37,6 @@ public class CloneTest {
         NSArray clonedArray = ((NSArray)clonedDictionary.get("array"));
 
         originalArray.getArray()[0] = new NSNumber(false);
-        assertEquals(true, ((NSNumber)clonedArray.getArray()[0]).boolValue());
+        assertTrue(((NSNumber) clonedArray.getArray()[0]).boolValue());
     }
 }

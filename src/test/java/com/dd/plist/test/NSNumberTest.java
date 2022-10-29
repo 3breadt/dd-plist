@@ -77,7 +77,7 @@ public class NSNumberTest {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            BinaryPropertyListWriter.write(out, dict);
+            BinaryPropertyListWriter.write(dict, out);
         }
         finally {
             out.close();
