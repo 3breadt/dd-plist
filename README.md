@@ -28,7 +28,7 @@ If you use Maven and want to include the library into your project you can use t
     <dependency>
       <groupId>com.googlecode.plist</groupId>
       <artifactId>dd-plist</artifactId>
-      <version>1.25</version>
+      <version>1.26</version>
     </dependency>
 
 ## Help
