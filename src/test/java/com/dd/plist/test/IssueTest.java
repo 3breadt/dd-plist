@@ -113,4 +113,39 @@ public class IssueTest  {
         File plistFile = new File("test-files/github-issue72.plist");
         assertDoesNotThrow(() -> BinaryPropertyListParser.parse(plistFile));
     }
+    @Test
+    public void testIssue73_AsciiPropertyListWithNonHexadecimalData() {
+        File plistFile = new File("test-files/github-issue73-1.plist");
+        assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue73_BinaryPropertyListHeaderWithTwoByteUnicodeChar() {
+        File plistFile = new File("test-files/github-issue73-2.plist");
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue73_BinaryPropertyListDataTooShort() {
+        File plistFile = new File("test-files/github-issue73-3.plist");
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue73_FileTooShort() {
+        File plistFile = new File("test-files/github-issue73-4.plist");
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue73_AsciiPropertyListWithNullBytesInComment() {
+        File plistFile = new File("test-files/github-issue73-5.plist");
+        assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue73_InvalidBinaryPropertyListHeader() {
+        File plistFile = new File("test-files/github-issue73-6.plist");
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
 }

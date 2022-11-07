@@ -131,6 +131,10 @@ public class PropertyListParser {
         byte[] magicBytes = new byte[8];
         magicBytes[0] = (byte) b;
         int read = is.read(magicBytes, 1, 7);
+        if (read == -1) {
+            return TYPE_ERROR_UNKNOWN;
+        }
+
         int type = determineType(new String(magicBytes, 0, read, Charset.forName(charset)));
         if (is.markSupported()) {
             is.reset();

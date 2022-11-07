@@ -23,11 +23,14 @@
 
 package com.dd.plist;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
 import java.util.Objects;
 
 /**
@@ -138,11 +141,14 @@ public final class BinaryPropertyListParser {
      */
     private NSObject doParse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
         Objects.requireNonNull(data);
+        if (data.length < 8) {
+            throw new PropertyListFormatException("The available binary property list data is too short.");
+        }
 
         this.bytes = data;
-        String magic = new String(copyOfRange(this.bytes, 0, 8));
-        if (!magic.startsWith("bplist")) {
-            throw new IllegalArgumentException("The given data is no binary property list. Wrong magic bytes: " + magic);
+        String magic = new String(copyOfRange(this.bytes, 0, 8), StandardCharsets.US_ASCII);
+        if (!magic.startsWith("bplist") || magic.length() < 8 || !Character.isDigit(magic.charAt(6)) || !Character.isDigit(magic.charAt(7))) {
+            throw new PropertyListFormatException("The binary property list has an invalid file header: " + magic);
         }
 
         this.majorVersion = magic.charAt(6) - 0x30; //ASCII number

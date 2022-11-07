@@ -423,7 +423,7 @@ public final class ASCIIPropertyListParser {
             //Skip multi line comments "/* ... */"
             else if (this.acceptSequence(COMMENT_BEGIN_TOKEN, MULTILINE_COMMENT_SECOND_TOKEN)) {
                 this.skip(2);
-                while (true) {
+                while (this.index < this.data.length) {
                     if (this.acceptSequence(MULTILINE_COMMENT_SECOND_TOKEN, MULTILINE_COMMENT_END_TOKEN)) {
                         this.skip(2);
                         break;
@@ -648,15 +648,22 @@ public final class ASCIIPropertyListParser {
             //parse data end token
             this.read(DATA_END_TOKEN);
         } else {
+            int dataStartIndex = this.index;
             String dataString = this.readInputUntil(DATA_END_TOKEN);
             dataString = dataString.replaceAll("\\s+", "");
 
+
             int numBytes = dataString.length() / 2;
             byte[] bytes = new byte[numBytes];
-            for (int i = 0; i < bytes.length; i++) {
-                String byteString = dataString.substring(i * 2, i * 2 + 2);
-                int byteValue = Integer.parseInt(byteString, 16);
-                bytes[i] = (byte) byteValue;
+            int nibble1, nibble2;
+            for (int bi = 0, ci = 0; bi < bytes.length; bi++, ci += 2) {
+                nibble1 = Character.digit(dataString.charAt(ci), 16);
+                nibble2 = Character.digit(dataString.charAt(ci + 1), 16);
+                if (nibble1 == -1 || nibble2 == -1) {
+                    throw new ParseException("The NSData object contains non-hexadecimal characters.", dataStartIndex);
+                }
+
+                bytes[bi] = (byte)(nibble1 << 4 | nibble2);
             }
 
             obj = new NSData(bytes);
