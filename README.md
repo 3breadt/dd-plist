@@ -1,6 +1,6 @@
 # com.dd.plist - A Java library for working with property lists
 
-[![Build Status](https://travis-ci.org/3breadt/dd-plist.svg?branch=master)](https://travis-ci.org/3breadt/dd-plist)
+[![Build Status](https://app.travis-ci.com/3breadt/dd-plist.svg?branch=master)](https://app.travis-ci.com/3breadt/dd-plist)
 
 This library enables your Java application to handle property lists of various formats. It is licensed under the terms of the MIT license.
 
