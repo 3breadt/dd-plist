@@ -185,7 +185,7 @@ public final class BinaryPropertyListParser {
             throw new PropertyListFormatException("The binary property list contains a corrupted object offset table.");
         }
 
-        return this.parseObject(topObject);
+        return this.parseObject(ParsedObjectStack.empty(), topObject);
     }
 
     /**
@@ -194,12 +194,14 @@ public final class BinaryPropertyListParser {
      * <a href="http://www.opensource.apple.com/source/CF/CF-855.17/CFBinaryPList.c">
      * Apple's binary property list parser implementation</a>.
      *
-     * @param obj The object ID.
+     * @param stack The stack to keep track of parsed objects and detect cyclic references.
+     * @param obj   The object ID.
      * @return The parsed object.
      * @throws PropertyListFormatException          When the property list's format could not be parsed.
      * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
      */
-    private NSObject parseObject(int obj) throws PropertyListFormatException, UnsupportedEncodingException {
+    private NSObject parseObject(ParsedObjectStack stack, int obj) throws PropertyListFormatException, UnsupportedEncodingException {
+        stack = stack.push(obj);
         int offset = this.getObjectOffset(obj);
         byte type = this.bytes[offset];
         int objType = (type & 0xF0) >> 4; //First  4 bits
@@ -222,18 +224,17 @@ public final class BinaryPropertyListParser {
                     }
                     case 0xC: {
                         //URL with no base URL (v1.0 and later)
-                        //TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
-                        throw new UnsupportedOperationException("The given binary property list contains a URL object. Parsing of this object type is not yet implemented.");
+                        //TODO Implement binary URL parsing (not implemented in Core Foundation)
+                        throw new PropertyListFormatException("The given binary property list contains a URL object. Parsing of this object type is not yet implemented.");
                     }
                     case 0xD: {
                         //URL with base URL (v1.0 and later)
-                        //TODO Implement binary URL parsing (not yet even implemented in Core Foundation as of revision 855.17)
-                        throw new UnsupportedOperationException("The given binary property list contains a URL object. Parsing of this object type is not yet implemented.");
+                        //TODO Implement binary URL parsing (not implemented in Core Foundation)
+                        throw new PropertyListFormatException("The given binary property list contains a URL object. Parsing of this object type is not yet implemented.");
                     }
                     case 0xE: {
                         //16-byte UUID (v1.0 and later)
-                        //TODO Implement binary UUID parsing (not yet even implemented in Core Foundation as of revision 855.17)
-                        throw new UnsupportedOperationException("The given binary property list contains a UUID object. Parsing of this object type is not yet implemented.");
+                        return new UID(String.valueOf(obj), copyOfRange(this.bytes, offset + 1, offset + 1 + 16));
                     }
                     default: {
                         throw new PropertyListFormatException("The given binary property list contains an object of unknown type (" + objType + ")");
@@ -305,7 +306,7 @@ public final class BinaryPropertyListParser {
                 NSArray array = new NSArray(length);
                 for (int i = 0; i < length; i++) {
                     int objRef = (int) parseUnsignedInt(this.bytes, offset + arrayOffset + i * this.objectRefSize, offset + arrayOffset + (i + 1) * this.objectRefSize);
-                    array.setValue(i, this.parseObject(objRef));
+                    array.setValue(i, this.parseObject(stack, objRef));
                 }
                 return array;
             }
@@ -318,7 +319,7 @@ public final class BinaryPropertyListParser {
                 NSSet set = new NSSet(true);
                 for (int i = 0; i < length; i++) {
                     int objRef = (int) parseUnsignedInt(this.bytes, offset + contentOffset + i * this.objectRefSize, offset + contentOffset + (i + 1) * this.objectRefSize);
-                    set.addObject(this.parseObject(objRef));
+                    set.addObject(this.parseObject(stack, objRef));
                 }
                 return set;
             }
@@ -331,7 +332,7 @@ public final class BinaryPropertyListParser {
                 NSSet set = new NSSet();
                 for (int i = 0; i < length; i++) {
                     int objRef = (int) parseUnsignedInt(this.bytes, offset + contentOffset + i * this.objectRefSize, offset + contentOffset + (i + 1) * this.objectRefSize);
-                    set.addObject(this.parseObject(objRef));
+                    set.addObject(this.parseObject(stack, objRef));
                 }
                 return set;
             }
@@ -345,8 +346,8 @@ public final class BinaryPropertyListParser {
                 for (int i = 0; i < length; i++) {
                     int keyRef = (int) parseUnsignedInt(this.bytes, offset + contentOffset + i * this.objectRefSize, offset + contentOffset + (i + 1) * this.objectRefSize);
                     int valRef = (int) parseUnsignedInt(this.bytes, offset + contentOffset + (length * this.objectRefSize) + i * this.objectRefSize, offset + contentOffset + (length * this.objectRefSize) + (i + 1) * this.objectRefSize);
-                    NSObject key = this.parseObject(keyRef);
-                    NSObject val = this.parseObject(valRef);
+                    NSObject key = this.parseObject(stack, keyRef);
+                    NSObject val = this.parseObject(stack, valRef);
                     assert key != null; //Encountering a null object at this point would either be a fundamental error in the parser or an error in the property list
                     dict.put(key.toString(), val);
                 }
@@ -372,7 +373,7 @@ public final class BinaryPropertyListParser {
             int int_type = this.bytes[offset + 1];
             int intType = (int_type & 0xF0) >> 4;
             if (intType != 0x1) {
-                System.err.println("BinaryPropertyListParser: Length integer has an unexpected type" + intType + ". Attempting to parse anyway...");
+                System.err.println("BinaryPropertyListParser: Length integer has an unexpected type (" + intType + "). Attempting to parse anyway...");
             }
             int intInfo = int_type & 0x0F;
             int intLength = (int) Math.pow(2, intInfo);

@@ -2,11 +2,17 @@ package com.dd.plist.test;
 
 import com.dd.plist.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.xml.sax.SAXParseException;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -147,5 +153,17 @@ public class IssueTest  {
     public void testIssue73_InvalidBinaryPropertyListHeader() {
         File plistFile = new File("test-files/github-issue73-6.plist");
         assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
+    @ParameterizedTest
+    @MethodSource("provideIssue75ErrorFiles")
+    public void testIssue75(File file) {
+        assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
+    }
+
+
+    private static Stream<Arguments> provideIssue75ErrorFiles() {
+        return Stream.of(Objects.requireNonNull(new File("test-files/github-issue75/").listFiles()))
+                .filter(Objects::nonNull)
+                .map(Arguments::of);
     }
 }
