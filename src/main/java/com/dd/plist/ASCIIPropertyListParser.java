@@ -79,6 +79,9 @@ public final class ASCIIPropertyListParser {
     public static final char DATA_BEGIN_TOKEN = '<';
     public static final char DATA_END_TOKEN = '>';
 
+    public static final char DATA_BASE64_BEGIN_TOKEN = '[';
+    public static final char DATA_BASE64_END_TOKEN = ']';
+
     public static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
     public static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
     public static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
@@ -649,13 +652,31 @@ public final class ASCIIPropertyListParser {
                 }
             }
 
-            //parse data end token
+            // parse data end token
+            this.read(DATA_END_TOKEN);
+        } else if (this.accept(DATA_BASE64_BEGIN_TOKEN)) {
+            // skip DATA_BASE64_BEGIN_TOKEN token
+            this.skip();
+
+            int dataStartIndex = this.index;
+            String dataString = this.readInputUntil(DATA_BASE64_END_TOKEN);
+
+            try {
+                obj = new NSData(dataString);
+            }
+            catch (IOException e) {
+                throw new ParseException("The NSData object could be parsed.", dataStartIndex);
+            }
+
+            // skip DATA_BASE64_END_TOKEN token
+            this.skip();
+
+            // parse data end token
             this.read(DATA_END_TOKEN);
         } else {
             int dataStartIndex = this.index;
             String dataString = this.readInputUntil(DATA_END_TOKEN);
             dataString = dataString.replaceAll("\\s+", "");
-
 
             int numBytes = dataString.length() / 2;
             byte[] bytes = new byte[numBytes];
@@ -672,7 +693,7 @@ public final class ASCIIPropertyListParser {
 
             obj = new NSData(bytes);
 
-            //skip end token
+            // skip DATA_END_TOKEN
             this.skip();
         }
 

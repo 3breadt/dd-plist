@@ -39,49 +39,65 @@ public class ParseTest {
         assertEquals(x, y);
     }
 
-    /** Test parsing of an XML property list in UTF-16BE. */
+    /**
+     * Test parsing of an XML property list in UTF-16BE.
+     */
     @Test
     public void testXmlUtf16BeWithBom() throws Exception {
         this.testXmlEncoding("UTF-16BE-BOM");
     }
 
-    /** Test parsing of an XML property list in UTF-16BE, but without the BOM. */
+    /**
+     * Test parsing of an XML property list in UTF-16BE, but without the BOM.
+     */
     @Test
     public void testXmlUtf16BeWithoutBom() throws Exception {
         this.testXmlEncoding("UTF-16BE");
     }
 
-    /** Test parsing of an XML property list in UTF-16LE. */
+    /**
+     * Test parsing of an XML property list in UTF-16LE.
+     */
     @Test
     public void testXmlUtf16LeWithBom() throws Exception {
         this.testXmlEncoding("UTF-16LE-BOM");
     }
 
-    /** Test parsing of an XML property list in UTF-16LE, but without the BOM. */
+    /**
+     * Test parsing of an XML property list in UTF-16LE, but without the BOM.
+     */
     @Test
     public void testXmlUtf16LeWithoutBom() throws Exception {
         this.testXmlEncoding("UTF-16LE");
     }
 
-    /** Test parsing of an XML property list in UTF-32BE. */
+    /**
+     * Test parsing of an XML property list in UTF-32BE.
+     */
     @Test
     public void testXmlUtf32BeWithBom() throws Exception {
         this.testXmlEncoding("UTF-32BE-BOM");
     }
 
-    /** Test parsing of an XML property list in UTF-32BE, but without the BOM. */
+    /**
+     * Test parsing of an XML property list in UTF-32BE, but without the BOM.
+     */
     @Test
     public void testXmlUtf32BeWithoutBom() throws Exception {
         this.testXmlEncoding("UTF-32BE");
     }
 
-    /** Test parsing of an XML property list in UTF-32LE. */
+    /**
+     * Test parsing of an XML property list in UTF-32LE.
+     */
     @Test
     public void testXmlUtf32LeWithBom() throws Exception {
         this.testXmlEncoding("UTF-32LE-BOM");
     }
 
-    /** Test parsing of an XML property list in UTF-32LE, but without the BOM. */
+    /**
+     * Test parsing of an XML property list in UTF-32LE, but without the BOM.
+     */
     @Test
     public void testXmlUtf32LeWithoutBom() throws Exception {
         this.testXmlEncoding("UTF-32LE");
@@ -141,7 +157,6 @@ public class ParseTest {
         NSObject parsedRoot = PropertyListParser.parse(new File("test-files/out-testSet.plist"));
         assertTrue(parsedRoot.equals(dict));
     }*/
-
     @Test
     public void testASCII() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii.plist"));
@@ -168,6 +183,25 @@ public class ParseTest {
         assertEquals("value&B", d.objectForKey("key&B").toString());
         assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
         assertArrayEquals(((NSData) d.objectForKey("data")).bytes(), new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
+        NSArray a = (NSArray) d.objectForKey("array");
+        assertEquals(4, a.count());
+        assertEquals(a.objectAtIndex(0), new NSNumber(true));
+        assertEquals(a.objectAtIndex(1), new NSNumber(false));
+        assertEquals(a.objectAtIndex(2), new NSNumber(87));
+        assertEquals(a.objectAtIndex(3), new NSNumber(3.14159));
+    }
+
+    @Test
+    public void testGnuStepASCIIWithBase64() throws Exception {
+        byte[] expectedData = new byte[]{(byte) 0xAA, (byte) 0xAA, (byte) 0xBB, (byte) 0xBB, (byte) 0xCC, (byte) 0xCC};
+
+        NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii-gnustep-base64.plist"));
+        NSDictionary d = (NSDictionary) x;
+        assertEquals(5, d.count());
+        assertEquals("valueA", d.objectForKey("keyA").toString());
+        assertEquals("value&B", d.objectForKey("key&B").toString());
+        assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
+        assertArrayEquals(expectedData, ((NSData) d.objectForKey("data")).bytes());
         NSArray a = (NSArray) d.objectForKey("array");
         assertEquals(4, a.count());
         assertEquals(a.objectAtIndex(0), new NSNumber(true));
@@ -253,7 +287,7 @@ public class ParseTest {
 
         String stringFileContent = new String(stringFileContentRaw, StandardCharsets.UTF_8);
         String asciiPropertyList = "{" + stringFileContent + "}";
-        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
+        NSDictionary dict = (NSDictionary) ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
         assertTrue(dict.containsKey("Make Plain Text"));
         assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
     }
@@ -268,7 +302,7 @@ public class ParseTest {
                 "e = \"\\\\ \\\"\";\n" +
                 "f = \"a \\' b\";\n" +
                 "}";
-        NSDictionary dict = (NSDictionary)ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
+        NSDictionary dict = (NSDictionary) ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
         assertEquals("abc \n def", dict.get("a").toString());
         assertEquals("\r", dict.get("b").toString());
         assertEquals("xyz\b", dict.get("c").toString());
