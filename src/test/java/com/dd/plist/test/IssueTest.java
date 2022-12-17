@@ -173,6 +173,12 @@ public class IssueTest  {
         assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
     }
 
+    @Test
+    public void testIssue78_NullReferenceExceptionForInvalidNSDictionaryKey() {
+        File plistFile = new File("test-files/github-issue78.plist");
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
     @ParameterizedTest
     @MethodSource("provideIssue82ErrorFiles")
     public void testIssue82_IndexOutOfBoundsExceptions(File file) {
