@@ -273,7 +273,6 @@ public class XMLPropertyListParser {
             case "false":
                 return new NSNumber(false);
             case "integer":
-                return new NSNumber(getNodeTextContents(n));
             case "real":
                 return new NSNumber(getNodeTextContents(n));
             case "string":

@@ -581,9 +581,6 @@ public abstract class NSObject implements Cloneable {
                     return num.intValue();
                 }
             }
-            case NSNumber.REAL : {
-                return num.doubleValue();
-            }
             case NSNumber.BOOLEAN : {
                 return num.boolValue();
             }
