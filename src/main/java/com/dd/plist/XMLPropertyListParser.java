@@ -210,10 +210,10 @@ public class XMLPropertyListParser {
         DocumentType docType = doc.getDoctype();
         if (docType == null) {
             if (!doc.getDocumentElement().getNodeName().equals("plist")) {
-                throw new UnsupportedOperationException("The given XML document is not a property list.");
+                throw new PropertyListFormatException("The given XML document is not a property list.");
             }
         } else if (!docType.getName().equals("plist")) {
-            throw new UnsupportedOperationException("The given XML document is not a property list.");
+            throw new PropertyListFormatException("The given XML document is not a property list.");
         }
 
         Node rootNode;

@@ -156,6 +156,12 @@ public class IssueTest  {
     }
 
     @ParameterizedTest
+    @MethodSource("provideIssue74ErrorFiles")
+    public void testIssue74_UnsupportedOperationException(File file) {
+        assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
+    }
+
+    @ParameterizedTest
     @MethodSource("provideIssue75ErrorFiles")
     public void testIssue75_CyclicReferencesInBinaryPropertyLists(File file) {
         assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
@@ -175,6 +181,12 @@ public class IssueTest  {
 
     private static Stream<Arguments> provideIssue75ErrorFiles() {
         return Stream.of(Objects.requireNonNull(new File("test-files/github-issue75/").listFiles()))
+                .filter(Objects::nonNull)
+                .map(Arguments::of);
+    }
+
+    private static Stream<Arguments> provideIssue74ErrorFiles() {
+        return Stream.of(Objects.requireNonNull(new File("test-files/github-issue74/").listFiles()))
                 .filter(Objects::nonNull)
                 .map(Arguments::of);
     }
