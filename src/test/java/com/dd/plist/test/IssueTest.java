@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.xml.sax.SAXParseException;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -177,6 +178,12 @@ public class IssueTest  {
     public void testIssue78_NullReferenceExceptionForInvalidNSDictionaryKey() {
         File plistFile = new File("test-files/github-issue78.plist");
         assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue80_ClassCastExceptionForUidAddedToSet() {
+        NSSet set = new NSSet(true);
+        assertDoesNotThrow(() -> set.addObject(new UID(null, BigInteger.valueOf(42))));
     }
 
     @ParameterizedTest
