@@ -37,4 +37,13 @@ public class PropertyListFormatException extends Exception {
     public PropertyListFormatException(String message) {
         super(message);
     }
+
+    /**
+     * Creates a new exception with the given message.
+     * @param message A message containing information about the nature of the exception.
+     * @param cause The original exception that caused this exception.
+     */
+    public PropertyListFormatException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

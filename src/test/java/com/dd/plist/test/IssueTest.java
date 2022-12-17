@@ -154,15 +154,27 @@ public class IssueTest  {
         File plistFile = new File("test-files/github-issue73-6.plist");
         assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
     }
+
     @ParameterizedTest
     @MethodSource("provideIssue75ErrorFiles")
-    public void testIssue75(File file) {
+    public void testIssue75_CyclicReferencesInBinaryPropertyLists(File file) {
         assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
     }
 
+    @ParameterizedTest
+    @MethodSource("provideIssue82ErrorFiles")
+    public void testIssue82_IndexOutOfBoundsExceptions(File file) {
+        assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
+    }
 
     private static Stream<Arguments> provideIssue75ErrorFiles() {
         return Stream.of(Objects.requireNonNull(new File("test-files/github-issue75/").listFiles()))
+                .filter(Objects::nonNull)
+                .map(Arguments::of);
+    }
+
+    private static Stream<Arguments> provideIssue82ErrorFiles() {
+        return Stream.of(Objects.requireNonNull(new File("test-files/github-issue82/").listFiles()))
                 .filter(Objects::nonNull)
                 .map(Arguments::of);
     }
