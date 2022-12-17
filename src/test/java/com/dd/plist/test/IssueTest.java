@@ -161,6 +161,12 @@ public class IssueTest  {
         assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
     }
 
+    @Test
+    public void testIssue76_UnexpectedIllegalArgumentException() {
+        File plistFile = new File("test-files/github-issue76.plist");
+        assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
     @ParameterizedTest
     @MethodSource("provideIssue82ErrorFiles")
     public void testIssue82_IndexOutOfBoundsExceptions(File file) {
