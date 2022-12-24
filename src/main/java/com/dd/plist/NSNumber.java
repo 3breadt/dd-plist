@@ -27,8 +27,9 @@ import java.io.IOException;
 
 /**
  * The NSNumber class wraps a numeric value. The value can be an integer a floating point number or a boolean value.
- * @see <a href="https://developer.apple.com/reference/foundation/nsnumber" target="_blank">Foundation NSNumber documentation</a>
+ *
  * @author Daniel Dreibrodt
+ * @see <a href="https://developer.apple.com/reference/foundation/nsnumber" target="_blank">Foundation NSNumber documentation</a>
  */
 public class NSNumber extends NSObject implements Comparable<Object> {
 
@@ -51,7 +52,17 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      */
     public static final int BOOLEAN = 2;
 
-    /** Holds the current type of this number */
+    private static final String NAN_SYMBOL = "nan";
+    private static final String POSTIIVE_INFINITY_SYMBOL = "+infinity";
+    private static final String NEGATIVE_INFINITY_SYMBOL = "-infinity";
+    private static final String TRUE_SYMBOL = "true";
+    private static final String YES_SYMBOL = "YES";
+    private static final String FALSE_SYMBOL = "false";
+    private static final String NO_SYMOBL = "NO";
+
+    /**
+     * Holds the current type of this number
+     */
     private int type;
 
     private long longValue;
@@ -67,22 +78,22 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * @see #REAL
      * @see #BOOLEAN
      */
-    public NSNumber(byte[] bytes, int type){
+    public NSNumber(byte[] bytes, int type) {
         this(bytes, 0, bytes.length, type);
     }
 
     /**
      * Creates a new NSNumber instance from its binary representation.
      *
-     * @param bytes An array of bytes containing the binary representation of the number.
+     * @param bytes      An array of bytes containing the binary representation of the number.
      * @param startIndex The position in the array at which the number is stored.
-     * @param endIndex The position in the array at which the number's data ends.
-     * @param type The type of number
+     * @param endIndex   The position in the array at which the number's data ends.
+     * @param type       The type of number
      * @see #INTEGER
      * @see #REAL
      * @see #BOOLEAN
      */
-    public NSNumber(byte[] bytes, final int startIndex, final int endIndex, final int type){
+    public NSNumber(byte[] bytes, final int startIndex, final int endIndex, final int type) {
         switch (type) {
             case INTEGER: {
                 this.doubleValue = this.longValue = BinaryPropertyListParser.parseLong(bytes, startIndex, endIndex);
@@ -110,40 +121,46 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * @see Double#parseDouble(java.lang.String)
      */
     public NSNumber(String text) {
-        if (text == null)
+        if (text == null) {
             throw new IllegalArgumentException("The given string is null and cannot be parsed as number.");
-
-        if (text.equalsIgnoreCase("nan")) {
-            this.doubleValue = Double.NaN;
-            this.longValue = 0;
-            this.type = REAL;
         }
-        else if (text.equalsIgnoreCase("true") || text.equalsIgnoreCase("yes")) {
+
+        if (text.equalsIgnoreCase(TRUE_SYMBOL) || text.equalsIgnoreCase(YES_SYMBOL)) {
             this.type = BOOLEAN;
             this.boolValue = true;
             this.doubleValue = this.longValue = 1;
-        }
-        else if (text.equalsIgnoreCase("false") || text.equalsIgnoreCase("no")) {
+        } else if (text.equalsIgnoreCase(FALSE_SYMBOL) || text.equalsIgnoreCase(NO_SYMOBL)) {
             this.type = BOOLEAN;
             this.boolValue = false;
             this.doubleValue = this.longValue = 0;
-        }
-        else {
+        } else if (text.equalsIgnoreCase(NAN_SYMBOL)) {
+            this.doubleValue = Double.NaN;
+            this.longValue = 0;
+            this.type = REAL;
+        } else if (text.equalsIgnoreCase(POSTIIVE_INFINITY_SYMBOL)) {
+            this.doubleValue = Double.POSITIVE_INFINITY;
+            this.longValue = 0;
+            this.type = REAL;
+        } else if (text.equalsIgnoreCase(NEGATIVE_INFINITY_SYMBOL)) {
+            this.doubleValue = Double.NEGATIVE_INFINITY;
+            this.longValue = 0;
+            this.type = REAL;
+        } else {
             try {
                 long l;
-                if(text.startsWith("0x")) {
+                if (text.startsWith("0x")) {
                     l = Long.parseLong(text.substring(2), 16);
                 } else {
                     l = Long.parseLong(text);
                 }
                 this.doubleValue = this.longValue = l;
                 this.type = INTEGER;
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 try {
                     this.doubleValue = Double.parseDouble(text);
                     this.longValue = Math.round(this.doubleValue);
                     this.type = REAL;
-                } catch(Exception ex2) {
+                } catch (Exception ex2) {
                     throw new IllegalArgumentException("The given string neither represents a double, an int nor a boolean value.");
                 }
             }
@@ -236,23 +253,21 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * @return <code>true</code> if the value is true or non-zero and not <code>Double.NaN</code>; otherwise, <code>false</code>.
      */
     public boolean boolValue() {
-        if (this.type == BOOLEAN)
+        if (this.type == BOOLEAN) {
             return this.boolValue;
-        else
+        } else {
             return !Double.isNaN(this.doubleValue) && this.doubleValue != 0;
+        }
     }
 
     /**
      * Gets this instance's long integer value.
      *
      * @return The value of the number as a <code>long</code>.
-     * @throws IllegalStateException The integer value is not available because the value of this NSNumber instance is NaN.
+     * @throws IllegalStateException The integer value is not available because the value of this NSNumber instance is NaN, positive infinity or negative infinity.
      */
     public long longValue() {
-        if (this.type == REAL && Double.isNaN(this.doubleValue)) {
-            throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is NaN.");
-        }
-
+        this.throwIfIntegerValueNotAvailable();
         return this.longValue;
     }
 
@@ -263,13 +278,10 @@ public class NSNumber extends NSObject implements Comparable<Object> {
      * Otherwise the value might be inaccurate.</i>
      *
      * @return The value of the number as an <code>int</code>.
-     * @throws IllegalStateException The integer value is not available because the value of this NSNumber instance is NaN.
+     * @throws IllegalStateException The integer value is not available because the value of this NSNumber instance is NaN, positive infinity or negative infinity.
      */
     public int intValue() {
-        if (this.type == REAL && Double.isNaN(this.doubleValue)) {
-            throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is NaN.");
-        }
-
+        this.throwIfIntegerValueNotAvailable();
         return (int) this.longValue;
     }
 
@@ -294,7 +306,11 @@ public class NSNumber extends NSObject implements Comparable<Object> {
 
     /**
      * Gets this instance's value expressed as a human-readable string.
+     *
      * @return The human-readable string representation of this number.
+     *         "+infinity" is returned for the positive infinity value (1 / 0).
+     *         "-infinity" is returned for the negative infinity value (-1 / 0).
+     *         "nan" is returned if the value is invalid (i.e. not a number).
      */
     public String stringValue() {
         switch (this.type) {
@@ -302,7 +318,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                 return String.valueOf(this.longValue);
             }
             case REAL: {
-                return String.valueOf(this.doubleValue);
+                return this.getRealStringRepresentation();
             }
             case BOOLEAN: {
                 return String.valueOf(this.boolValue);
@@ -361,7 +377,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
                 return String.valueOf(this.longValue);
             }
             case REAL: {
-                return String.valueOf(this.doubleValue);
+                return this.getRealStringRepresentation();
             }
             case BOOLEAN: {
                 return String.valueOf(this.boolValue);
@@ -384,7 +400,7 @@ public class NSNumber extends NSObject implements Comparable<Object> {
             }
             case REAL: {
                 xml.append("<real>");
-                xml.append(Double.isNaN(this.doubleValue) ? "nan" : String.valueOf(this.doubleValue));
+                xml.append(this.getRealStringRepresentation());
                 xml.append("</real>");
                 break;
             }
@@ -442,9 +458,9 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     protected void toASCII(StringBuilder ascii, int level) {
         this.indent(ascii, level);
         if (this.isBoolean()) {
-            ascii.append(this.boolValue ? "YES" : "NO");
+            ascii.append(this.boolValue ? YES_SYMBOL : NO_SYMOBL);
         } else {
-            ascii.append(this);
+            ascii.append(this.stringValue());
         }
     }
 
@@ -454,13 +470,13 @@ public class NSNumber extends NSObject implements Comparable<Object> {
         switch (this.type()) {
             case INTEGER: {
                 ascii.append("<*I");
-                ascii.append(this);
+                ascii.append(this.longValue);
                 ascii.append('>');
                 break;
             }
             case REAL: {
                 ascii.append("<*R");
-                ascii.append(this);
+                ascii.append(this.getRealStringRepresentation());
                 ascii.append('>');
                 break;
             }
@@ -490,6 +506,33 @@ public class NSNumber extends NSObject implements Comparable<Object> {
             return Double.compare(x, y);
         } else {
             return -1;
+        }
+    }
+
+    private void throwIfIntegerValueNotAvailable() {
+        if (this.type == REAL) {
+            if (Double.isNaN(this.doubleValue)) {
+                throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is NaN.");
+            } else if (this.doubleValue == Double.POSITIVE_INFINITY) {
+                throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is positive infinity.");
+            } else if (this.doubleValue == Double.NEGATIVE_INFINITY) {
+                throw new IllegalStateException("The integer value is not available because the value of this NSNumber instance is negative infinity.");
+            }
+        }
+    }
+
+    private String getRealStringRepresentation() {
+        if (Double.isNaN(this.doubleValue)) {
+            return NAN_SYMBOL;
+        }
+        else if (this.doubleValue == Double.POSITIVE_INFINITY) {
+            return POSTIIVE_INFINITY_SYMBOL;
+        }
+        else if (this.doubleValue == Double.NEGATIVE_INFINITY) {
+            return NEGATIVE_INFINITY_SYMBOL;
+        }
+        else {
+            return String.valueOf(this.doubleValue);
         }
     }
 }

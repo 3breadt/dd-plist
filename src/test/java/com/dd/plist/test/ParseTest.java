@@ -121,6 +121,14 @@ public class ParseTest {
         assertEquals(a.objectAtIndex(3), new NSNumber(3.14159));
     }
 
+    @Test
+    public void testXmlWithInfinityValues() throws Exception {
+        // See https://github.com/3breadt/dd-plist/issues/83
+        NSDictionary dictFromXml = (NSDictionary) XMLPropertyListParser.parse(new File("test-files/infinity-xml.plist"));
+        assertEquals(Double.POSITIVE_INFINITY, ((NSNumber)dictFromXml.get("a")).doubleValue());
+        assertEquals(Double.NEGATIVE_INFINITY, ((NSNumber)dictFromXml.get("b")).doubleValue());
+    }
+
     /**
      * Test the binary reader/writer.
      */
@@ -132,6 +140,13 @@ public class ParseTest {
         BinaryPropertyListWriter.write(x, new File("test-files/out-testBinary.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testBinary.plist"));
         assertEquals(x, y);
+    }
+
+    @Test
+    public void testBinaryWithInfinityValues() throws Exception {
+        NSDictionary dictFromXml = (NSDictionary) BinaryPropertyListParser.parse(new File("test-files/infinity-binary.plist"));
+        assertEquals(Double.POSITIVE_INFINITY, ((NSNumber)dictFromXml.get("a")).doubleValue());
+        assertEquals(Double.NEGATIVE_INFINITY, ((NSNumber)dictFromXml.get("b")).doubleValue());
     }
 
     /**
@@ -157,6 +172,7 @@ public class ParseTest {
         NSObject parsedRoot = PropertyListParser.parse(new File("test-files/out-testSet.plist"));
         assertTrue(parsedRoot.equals(dict));
     }*/
+
     @Test
     public void testASCII() throws Exception {
         NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii.plist"));
