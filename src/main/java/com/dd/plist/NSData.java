@@ -124,6 +124,7 @@ public class NSData extends NSObject {
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == null) return false;
         return obj.getClass().equals(this.getClass()) && Arrays.equals(((NSData) obj).bytes, this.bytes);
     }
 
