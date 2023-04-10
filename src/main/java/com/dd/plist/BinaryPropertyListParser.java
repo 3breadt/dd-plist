@@ -31,6 +31,8 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
@@ -82,6 +84,7 @@ public final class BinaryPropertyListParser {
     private int offsetSize;
     private int numObjects;
     private int offsetTableOffset;
+    private HashMap<Integer, NSObject> parsedObjects = new HashMap<>();
 
     /**
      * Protected constructor so that instantiation is fully controlled by the
@@ -320,44 +323,66 @@ public final class BinaryPropertyListParser {
      */
     private NSObject parseObject(ParsedObjectStack stack, int obj) throws PropertyListFormatException, UnsupportedEncodingException {
         stack = stack.push(obj);
+
+        if (this.parsedObjects.containsKey(obj)) {
+            return this.parsedObjects.get(obj);
+        }
+
         int offset = this.getObjectOffset(obj);
         byte type = this.bytes[offset];
         int objType = (type & 0xF0) >> 4;
         int objInfo = type & 0x0F;
+        NSObject result;
         switch (objType) {
             case SIMPLE_TYPE:
-                return this.parseSimpleObject(offset, objInfo, objType, obj);
+                result = this.parseSimpleObject(offset, objInfo, objType, obj);
+                break;
             case INT_TYPE:
-                return this.parseNumber(offset, objInfo, NSNumber.INTEGER);
+                result = this.parseNumber(offset, objInfo, NSNumber.INTEGER);
+                break;
             case REAL_TYPE:
-                return this.parseNumber(offset, objInfo, NSNumber.REAL);
+                result = this.parseNumber(offset, objInfo, NSNumber.REAL);
+                break;
             case DATE_TYPE:
-                return this.parseDate(offset, objInfo);
+                result = this.parseDate(offset, objInfo);
+                break;
             case DATA_TYPE:
-                return this.parseData(offset, objInfo);
+                result = this.parseData(offset, objInfo);
+                break;
             case ASCII_STRING_TYPE:
-                return this.parseString(offset, objInfo, (o, l) -> l, StandardCharsets.US_ASCII.name());
+                result = this.parseString(offset, objInfo, (o, l) -> l, StandardCharsets.US_ASCII.name());
+                break;
             case UTF16_STRING_TYPE:
                 // UTF-16 characters can have variable length, but the Core Foundation reference implementation
                 // assumes 2 byte characters, thus only covering the Basic Multilingual Plane
-                return this.parseString(offset, objInfo, (o, l) -> 2 * l, StandardCharsets.UTF_16BE.name());
+                result = this.parseString(offset, objInfo, (o, l) -> 2 * l, StandardCharsets.UTF_16BE.name());
+                break;
             case UTF8_STRING_TYPE:
                 // UTF-8 characters can have variable length, so we need to calculate the byte length dynamically
                 // by reading the UTF-8 characters one by one
-                return this.parseString(offset, objInfo, this::calculateUtf8StringLength, StandardCharsets.UTF_8.name());
+                result = this.parseString(offset, objInfo, this::calculateUtf8StringLength, StandardCharsets.UTF_8.name());
+                break;
             case UID_TYPE:
-                return this.parseUid(obj, offset, objInfo + 1);
+                result = this.parseUid(obj, offset, objInfo + 1);
+                break;
             case ARRAY_TYPE:
-                return this.parseArray(offset, objInfo, stack);
+                result = this.parseArray(offset, objInfo, stack);
+                break;
             case ORDERED_SET_TYPE:
-                return this.parseSet(offset, objInfo, true, stack);
+                result = this.parseSet(offset, objInfo, true, stack);
+                break;
             case SET_TYPE:
-                return this.parseSet(offset, objInfo, false, stack);
+                result = this.parseSet(offset, objInfo, false, stack);
+                break;
             case DICTIONARY_TYPE:
-                return this.parseDictionary(offset, objInfo, stack);
+                result = this.parseDictionary(offset, objInfo, stack);
+                break;
             default:
                 throw new PropertyListFormatException("The given binary property list contains an object of unknown type (" + objType + ")");
         }
+
+        this.parsedObjects.put(obj, result);
+        return result;
     }
 
     private NSDate parseDate(int offset, int objInfo) throws PropertyListFormatException {
@@ -450,9 +475,12 @@ public final class BinaryPropertyListParser {
         int setOffset = offset + lengthAndOffset[1];
 
         NSSet set = new NSSet(ordered);
+        HashSet<Integer> addedObjectReferences = new HashSet<>();
         for (int i = 0; i < length; i++) {
             int objRef = this.parseObjectReferenceFromList(setOffset, i);
-            set.addObject(this.parseObject(stack, objRef));
+            if (addedObjectReferences.add(objRef)) {
+                set.addObject(this.parseObject(stack, objRef));
+            }
         }
 
         return set;
