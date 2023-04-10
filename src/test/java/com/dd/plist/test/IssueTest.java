@@ -168,8 +168,14 @@ public class IssueTest  {
     }
 
     @Test
-    public void testIssue76_UnexpectedIllegalArgumentException() {
+    public void testIssue76_UnexpectedIllegalArgumentExceptionForInvalidNumberInAsciiPropertyList() {
         File plistFile = new File("test-files/github-issue76.plist");
+        assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
+    }
+
+    @Test
+    public void testIssue76_UnexpectedIllegalArgumentExceptionForInvalidNumberInXmlPropertyList() {
+        File plistFile = new File("test-files/github-issue76-xml.plist");
         assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
     }
 

@@ -36,7 +36,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -110,7 +109,7 @@ public class XMLPropertyListParser {
      * @throws java.io.IOException                            If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException                       If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
-     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @throws java.text.ParseException                       If a number or date string could not be parsed.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
      */
     public static NSObject parse(File f)
@@ -128,7 +127,7 @@ public class XMLPropertyListParser {
      * @throws java.io.IOException                            If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException                       If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
-     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @throws java.text.ParseException                       If a number or date string could not be parsed.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
      */
     public static NSObject parse(Path path)
@@ -148,7 +147,7 @@ public class XMLPropertyListParser {
      * @throws java.io.IOException                            If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException                       If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
-     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @throws java.text.ParseException                       If a number or date string could not be parsed.
      */
     public static NSObject parse(final byte[] bytes)
             throws ParserConfigurationException, ParseException, SAXException, PropertyListFormatException, IOException {
@@ -168,7 +167,7 @@ public class XMLPropertyListParser {
      * @throws java.io.IOException                            If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException                       If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
-     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @throws java.text.ParseException                       If a number or date string could not be parsed.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      */
     public static NSObject parse(InputStream is)
@@ -189,7 +188,7 @@ public class XMLPropertyListParser {
      * @throws java.io.IOException                            If any I/O error occurs while reading the file.
      * @throws org.xml.sax.SAXException                       If any parse error occurs.
      * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
-     * @throws java.text.ParseException                       If a date string could not be parsed.
+     * @throws java.text.ParseException                       If a number or date string could not be parsed.
      * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
      */
     public static NSObject parse(Reader reader)
@@ -204,7 +203,7 @@ public class XMLPropertyListParser {
      * @return The root NSObject of the property list contained in the XML document.
      * @throws java.io.IOException                      If any I/O error occurs while reading the file.
      * @throws com.dd.plist.PropertyListFormatException If the given property list has an invalid format.
-     * @throws java.text.ParseException                 If a date string could not be parsed.
+     * @throws java.text.ParseException                 If a number or date string could not be parsed.
      */
     public static NSObject parse(Document doc) throws PropertyListFormatException, IOException, ParseException {
         DocumentType docType = doc.getDoctype();
@@ -242,7 +241,7 @@ public class XMLPropertyListParser {
      * @param n The XML node.
      * @return The corresponding NSObject.
      * @throws java.io.IOException      If any I/O error occurs while parsing a Base64 encoded NSData object.
-     * @throws java.text.ParseException If a date string could not be parsed.
+     * @throws java.text.ParseException If a number or date string could not be parsed.
      */
     private static NSObject parseObject(Node n) throws ParseException, IOException {
         String type = n.getNodeName();
@@ -274,7 +273,11 @@ public class XMLPropertyListParser {
                 return new NSNumber(false);
             case "integer":
             case "real":
-                return new NSNumber(getNodeTextContents(n));
+                try {
+                    return new NSNumber(getNodeTextContents(n));
+                } catch (IllegalArgumentException ex) {
+                    throw new ParseException("The NSNumber object has an invalid format.", -1);
+                }
             case "string":
                 return new NSString(getNodeTextContents(n));
             case "data":
@@ -334,10 +337,9 @@ public class XMLPropertyListParser {
                     }
                 }
 
-                return "";
-            } else {
-                return "";
             }
+
+            return "";
         }
     }
 
