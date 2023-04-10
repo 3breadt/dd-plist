@@ -303,6 +303,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == null) return false;
         return obj.getClass().equals(this.getClass()) && ((NSDictionary) obj).dict.equals(this.dict);
     }
 
