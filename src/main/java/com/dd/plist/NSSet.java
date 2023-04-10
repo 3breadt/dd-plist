@@ -25,6 +25,7 @@ package com.dd.plist;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The NSSet class is an unordered collection of NSObject instances.
@@ -58,10 +59,7 @@ public class NSSet extends NSObject {
      */
     public NSSet(boolean ordered) {
         this.ordered = ordered;
-        if (!ordered)
-            this.set = new LinkedHashSet<>();
-        else
-            this.set = new TreeSet<>();
+        this.set = ordered ? new TreeSet<>() : new LinkedHashSet<>();
     }
 
     /**
@@ -84,12 +82,8 @@ public class NSSet extends NSObject {
      * @see java.util.TreeSet
      */
     public NSSet(boolean ordered, NSObject... objects) {
-        this.ordered = ordered;
-        if (!ordered)
-            this.set = new LinkedHashSet<>();
-        else
-            this.set = new TreeSet<>();
-        this.set.addAll(Arrays.asList(objects));
+        this(ordered);
+        this.set.addAll(Arrays.stream(objects).map(NSNull::wrap).collect(Collectors.toCollection(ArrayList::new)));
     }
 
     /**
@@ -98,7 +92,7 @@ public class NSSet extends NSObject {
      * @param obj The object to add.
      */
     public synchronized void addObject(NSObject obj) {
-        this.set.add(obj);
+        this.set.add(NSNull.wrap(obj));
     }
 
     /**
@@ -107,7 +101,7 @@ public class NSSet extends NSObject {
      * @param obj The object to remove.
      */
     public synchronized void removeObject(NSObject obj) {
-        this.set.remove(obj);
+        this.set.remove(NSNull.wrap(obj));
     }
 
     /**
@@ -116,7 +110,7 @@ public class NSSet extends NSObject {
      * @return An array of all objects in the set.
      */
     public synchronized NSObject[] allObjects() {
-        return this.set.toArray(new NSObject[this.count()]);
+        return this.set.stream().map(NSNull::unwrap).toArray(NSObject[]::new);
     }
 
     /**
@@ -129,7 +123,7 @@ public class NSSet extends NSObject {
         if (this.set.isEmpty())
             return null;
         else
-            return this.set.iterator().next();
+            return NSNull.unwrap(this.set.iterator().next());
     }
 
     /**
@@ -139,7 +133,7 @@ public class NSSet extends NSObject {
      * @return <code>true</code>, when the object was found, <code>false</code> otherwise.
      */
     public boolean containsObject(NSObject obj) {
-        return this.set.contains(obj);
+        return this.set.contains(NSNull.wrap(obj));
     }
 
     /**
@@ -151,7 +145,7 @@ public class NSSet extends NSObject {
      */
     public synchronized NSObject member(NSObject obj) {
         for (NSObject o : this.set) {
-            if (o.equals(obj))
+            if (o.equals(NSNull.wrap(obj)))
                 return o;
         }
         return null;
@@ -193,15 +187,7 @@ public class NSSet extends NSObject {
      * @return The iterator for the set.
      */
     public synchronized Iterator<NSObject> objectIterator() {
-        return this.set.iterator();
-    }
-
-    /**
-     * Gets the underlying data structure in which this NSSets stores its content.
-     * @return A Set object.
-     */
-    Set<NSObject> getSet() {
-        return this.set;
+        return this.set.stream().map(NSNull::unwrap).iterator();
     }
 
     @Override
@@ -219,8 +205,35 @@ public class NSSet extends NSObject {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        final NSSet other = (NSSet) obj;
-        return Objects.equals(this.set, other.set);
+
+        return this.compareTo((NSObject) obj) == 0;
+    }
+
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSSet) {
+            NSSet other = (NSSet) o;
+            if (other.count() != this.count()) {
+                return Integer.compare(this.count(), other.count());
+            }
+
+            NSObject[] thisObjects = this.allObjects();
+            NSObject[] otherObjects = other.allObjects();
+
+            for (int i = 0; i < this.count(); i++) {
+                int itemDiff = NSNull.wrap(thisObjects[i]).compareTo(NSNull.wrap((otherObjects[i])));
+                if (itemDiff != 0) {
+                    return itemDiff;
+                }
+            }
+
+            return 0;
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
+        }
     }
 
     /**
@@ -237,11 +250,20 @@ public class NSSet extends NSObject {
     public NSSet clone() {
         NSObject[] clonedSet = new NSObject[this.set.size()];
         int i = 0;
-        for(NSObject element : this.set) {
+        for (NSObject element : this.set) {
             clonedSet[i++] = element != null ? element.clone() : null;
         }
 
         return new NSSet(this.ordered, clonedSet);
+    }
+
+    @Override
+    public Object toJavaObject() {
+        Set<Object> clonedSet = this.ordered ? new TreeSet<>() : new LinkedHashSet<>(this.set.size());
+        for (NSObject o : this.set) {
+            clonedSet.add(o.toJavaObject());
+        }
+        return clonedSet;
     }
 
     /**
@@ -254,15 +276,7 @@ public class NSSet extends NSObject {
      */
     @Override
     void toXML(StringBuilder xml, int level) {
-        this.indent(xml, level);
-        xml.append("<array>");
-        xml.append(NSObject.NEWLINE);
-        for (NSObject o : this.set) {
-            o.toXML(xml, level + 1);
-            xml.append(NSObject.NEWLINE);
-        }
-        this.indent(xml, level);
-        xml.append("</array>");
+        new NSArray(this.allObjects()).toXML(xml, level);
     }
 
     @Override
@@ -295,32 +309,7 @@ public class NSSet extends NSObject {
      */
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        this.indent(ascii, level);
-        NSObject[] array = this.allObjects();
-        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
-        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for (int i = 0; i < array.length; i++) {
-            Class<?> objClass = array[i].getClass();
-            if ((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
-                    && indexOfLastNewLine != ascii.length()) {
-                ascii.append(NEWLINE);
-                indexOfLastNewLine = ascii.length();
-                array[i].toASCII(ascii, level + 1);
-            } else {
-                if (i != 0)
-                    ascii.append(' ');
-                array[i].toASCII(ascii, 0);
-            }
-
-            if (i != array.length - 1)
-                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
-
-            if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
-                ascii.append(NEWLINE);
-                indexOfLastNewLine = ascii.length();
-            }
-        }
-        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
+        new NSArray(this.allObjects()).toASCII(ascii, level);
     }
 
     /**
@@ -333,32 +322,6 @@ public class NSSet extends NSObject {
      */
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        this.indent(ascii, level);
-        NSObject[] array = this.allObjects();
-        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
-        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for (int i = 0; i < array.length; i++) {
-            Class<?> objClass = array[i].getClass();
-            if ((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
-                    && indexOfLastNewLine != ascii.length()) {
-                ascii.append(NEWLINE);
-                indexOfLastNewLine = ascii.length();
-                array[i].toASCIIGnuStep(ascii, level + 1);
-            } else {
-                if (i != 0)
-                    ascii.append(' ');
-                array[i].toASCIIGnuStep(ascii, 0);
-            }
-
-            if (i != array.length - 1)
-                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
-
-            if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
-                ascii.append(NEWLINE);
-                indexOfLastNewLine = ascii.length();
-            }
-        }
-        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
+        new NSArray(this.allObjects()).toASCIIGnuStep(ascii, level);
     }
-
 }

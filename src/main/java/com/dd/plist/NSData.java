@@ -28,11 +28,13 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * The NSData class is a wrapper for a byte buffer.
- * @see <a href="https://developer.apple.com/reference/foundation/nsdata" target="_blank">Foundation NSData documentation</a>
+ *
  * @author Daniel Dreibrodt
+ * @see <a href="https://developer.apple.com/reference/foundation/nsdata" target="_blank">Foundation NSData documentation</a>
  */
 public class NSData extends NSObject {
 
@@ -138,6 +140,35 @@ public class NSData extends NSObject {
     @Override
     public NSData clone() {
         return new NSData(this.bytes.clone());
+    }
+
+    @Override
+    public Object toJavaObject() {
+        return this.bytes.clone();
+    }
+
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSData) {
+            NSData other = (NSData) o;
+            if (other.length() != this.length()) {
+                return Integer.compare(this.length(), other.length());
+            }
+
+            for (int i = 0; i < this.bytes.length; i++) {
+                int itemDiff = Byte.compare(this.bytes[i], other.bytes[i]);
+                if (itemDiff != 0) {
+                    return itemDiff;
+                }
+            }
+
+            return 0;
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
+        }
     }
 
     @Override

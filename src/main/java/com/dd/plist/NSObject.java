@@ -22,6 +22,8 @@
  */
 package com.dd.plist;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
@@ -32,7 +34,7 @@ import java.util.*;
  *
  * @author Daniel Dreibrodt
  */
-public abstract class NSObject implements Cloneable {
+public abstract class NSObject implements Cloneable, Comparable<NSObject> {
 
     /**
      * The newline character used for generating the XML output.
@@ -62,6 +64,39 @@ public abstract class NSObject implements Cloneable {
     public abstract NSObject clone();
 
     /**
+     * Converts this NSObject into an equivalent object of the Java Runtime Environment.
+     * <ul>
+     * <li>{@link NSArray} objects are converted to arrays.</li>
+     * <li>{@link NSDictionary} objects are converted to objects extending the {@link java.util.Map} class.</li>
+     * <li>{@link NSSet} objects are converted to objects extending the {@link java.util.Set} class.</li>
+     * <li>{@link NSNumber} objects are converted to primitive number values (int, long, double or boolean).</li>
+     * <li>{@link NSString} objects are converted to {@link String} objects.</li>
+     * <li>{@link NSData} objects are converted to byte arrays.</li>
+     * <li>{@link NSDate} objects are converted to {@link java.util.Date} objects.</li>
+     * <li>{@link UID} objects are converted to byte arrays.</li>
+     * </ul>
+     * @return A native java object representing this NSObject's value.
+     */
+    public abstract Object toJavaObject();
+
+    /**
+     * Generates a valid XML property list including headers using this object as root.
+     *
+     * @return The XML representation of the property list including XML header and doctype information.
+     */
+    public String toXMLPropertyList() {
+        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+                .append(NSObject.NEWLINE)
+                .append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">")
+                .append(NSObject.NEWLINE)
+                .append("<plist version=\"1.0\">")
+                .append(NSObject.NEWLINE);
+        this.toXML(xml, 0);
+        xml.append(NSObject.NEWLINE).append("</plist>");
+        return xml.toString();
+    }
+
+    /**
      * Generates the XML representation of the object (without XML headers or enclosing plist-tags).
      *
      * @param xml   The {@link StringBuilder} onto which the XML representation is appended.
@@ -88,23 +123,6 @@ public abstract class NSObject implements Cloneable {
     abstract void toBinary(BinaryPropertyListWriter out) throws IOException;
 
     /**
-     * Generates a valid XML property list including headers using this object as root.
-     *
-     * @return The XML representation of the property list including XML header and doctype information.
-     */
-    public String toXMLPropertyList() {
-        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-                .append(NSObject.NEWLINE)
-                .append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">")
-                .append(NSObject.NEWLINE)
-                .append("<plist version=\"1.0\">")
-                .append(NSObject.NEWLINE);
-        this.toXML(xml, 0);
-        xml.append(NSObject.NEWLINE).append("</plist>");
-        return xml.toString();
-    }
-
-    /**
      * Generates the ASCII representation of this object.
      * The generated ASCII representation does not end with a newline.
      * Complies with the <a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html" target="_blank">Old-Style ASCII Property Lists definition</a>.
@@ -112,7 +130,7 @@ public abstract class NSObject implements Cloneable {
      * @param ascii The {@link StringBuilder} onto which the ASCII representation is appended.
      * @param level The indentation level of the object.
      */
-    protected abstract void toASCII(StringBuilder ascii, int level);
+    abstract void toASCII(StringBuilder ascii, int level);
 
     /**
      * Generates the ASCII representation of this object in the GnuStep format.
@@ -121,7 +139,7 @@ public abstract class NSObject implements Cloneable {
      * @param ascii The {@link StringBuilder} onto which the ASCII representation is appended.
      * @param level The indentation level of the object.
      */
-    protected abstract void toASCIIGnuStep(StringBuilder ascii, int level);
+    abstract void toASCIIGnuStep(StringBuilder ascii, int level);
 
     /**
      * Helper method that adds correct indentation to the xml output.
@@ -131,45 +149,9 @@ public abstract class NSObject implements Cloneable {
      * @param xml   The {@link StringBuilder} onto which the XML representation is appended.
      * @param level The level of indentation.
      */
-    void indent(StringBuilder xml, int level) {
+    protected void indent(StringBuilder xml, int level) {
         for (int i = 0; i < level; i++)
             xml.append(INDENT);
-    }
-
-    /**
-     * Converts this NSObject into an equivalent object of the Java Runtime Environment.
-     * <ul>
-     * <li>{@link NSArray} objects are converted to arrays.</li>
-     * <li>{@link NSDictionary} objects are converted to objects extending the {@link java.util.Map} class.</li>
-     * <li>{@link NSSet} objects are converted to objects extending the {@link java.util.Set} class.</li>
-     * <li>{@link NSNumber} objects are converted to primitive number values (int, long, double or boolean).</li>
-     * <li>{@link NSString} objects are converted to {@link String} objects.</li>
-     * <li>{@link NSData} objects are converted to byte arrays.</li>
-     * <li>{@link NSDate} objects are converted to {@link java.util.Date} objects.</li>
-     * <li>{@link UID} objects are converted to byte arrays.</li>
-     * </ul>
-     * @return A native java object representing this NSObject's value.
-     */
-    public Object toJavaObject() {
-        if(this instanceof NSArray) {
-            return this.deserializeArray();
-        } else if (this instanceof NSDictionary) {
-            return this.deserializeMap();
-        } else if(this instanceof NSSet) {
-            return this.deserializeSet();
-        } else if(this instanceof NSNumber) {
-            return this.deserializeNumber();
-        } else if(this instanceof NSString) {
-            return ((NSString)this).getContent();
-        } else if(this instanceof NSData) {
-            return ((NSData)this).bytes();
-        } else if(this instanceof NSDate) {
-            return ((NSDate)this).getDate();
-        } else if(this instanceof UID) {
-            return ((UID)this).getBytes();
-        } else {
-            return this;
-        }
     }
 
     /**
@@ -289,6 +271,10 @@ public abstract class NSObject implements Cloneable {
     }
 
     private Object toJavaObject(NSObject payload, Class<?> clazz, Type[] types) {
+        if (payload == null || payload instanceof NSNull) {
+            return null;
+        }
+
         if (clazz.isArray()) {
             //generics and arrays do not mix
             return this.deserializeArray(payload, clazz);
@@ -365,16 +351,6 @@ public abstract class NSObject implements Cloneable {
             }
         }
         return result;
-    }
-
-    private HashMap<String, Object> deserializeMap() {
-        HashMap<String, NSObject> originalMap = ((NSDictionary)this).getHashMap();
-        HashMap<String, Object> clonedMap = new HashMap<>(originalMap.size());
-        for(String key:originalMap.keySet()) {
-            clonedMap.put(key, originalMap.get(key).toJavaObject());
-        }
-
-        return clonedMap;
     }
 
     private Object deserializeMap(Class<?> clazz, Type[] types, Map<String, NSObject> map) {
@@ -458,23 +434,13 @@ public abstract class NSObject implements Cloneable {
         }
 
         if (payload instanceof NSSet) {
-            for(NSObject nsObject : ((NSSet) payload).getSet()) {
+            for(NSObject nsObject : ((NSSet) payload).allObjects()) {
                 result.add(this.toJavaObject(nsObject, elemClass, elemTypes));
             }
 
             return result;
         }
         throw new IllegalArgumentException("Unknown NS* type " + payload.getClass().getSimpleName());
-    }
-
-    private Object[] deserializeArray() {
-        NSObject[] originalArray = ((NSArray)this).getArray();
-        Object[] clonedArray = new Object[originalArray.length];
-        for(int i = 0; i < originalArray.length; i++) {
-            clonedArray[i] = originalArray[i].toJavaObject();
-        }
-
-        return clonedArray;
     }
 
     private Object deserializeArray(NSObject payload, Class<?> clazz) {
@@ -490,11 +456,11 @@ public abstract class NSObject implements Cloneable {
         }
 
         if (payload instanceof NSSet) {
-            Set<NSObject> set = ((NSSet) payload).getSet();
-            Object result = Array.newInstance(elementClass, set.size());
+            NSSet set = (NSSet)payload;
+            Object result = Array.newInstance(elementClass, set.count());
             int i = 0;
-            for (NSObject aSet : set) {
-                Array.set(result, i, this.toJavaObject(aSet, elementClass, null));
+            for (NSObject entry : set.allObjects()) {
+                Array.set(result, i, this.toJavaObject(entry, elementClass, null));
                 i++;
             }
             return result;
@@ -505,20 +471,6 @@ public abstract class NSObject implements Cloneable {
         }
 
         throw new IllegalArgumentException("Unable to map " + payload.getClass().getSimpleName() + " to " + clazz.getName());
-    }
-
-    private Set<Object> deserializeSet() {
-        Set<NSObject> originalSet = ((NSSet)this).getSet();
-        Set<Object> clonedSet;
-        if(originalSet instanceof LinkedHashSet) {
-            clonedSet = new LinkedHashSet<>(originalSet.size());
-        } else {
-            clonedSet = new TreeSet<>();
-        }
-        for(NSObject o : originalSet) {
-            clonedSet.add(o.toJavaObject());
-        }
-        return clonedSet;
     }
 
     private static Object deserializeData(NSData payload, Class<?> elementClass) {
@@ -568,26 +520,6 @@ public abstract class NSObject implements Cloneable {
         Date result = (Date) getInstance(clazz);
         result.setTime(date.getDate().getTime());
         return result;
-    }
-
-    private Object deserializeNumber() {
-        NSNumber num = (NSNumber)this;
-        switch(num.type()) {
-            case NSNumber.INTEGER : {
-                long longVal = num.longValue();
-                if(longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
-                    return longVal;
-                } else {
-                    return num.intValue();
-                }
-            }
-            case NSNumber.BOOLEAN : {
-                return num.boolValue();
-            }
-            default : {
-                return num.doubleValue();
-            }
-        }
     }
 
     private static Object deserializeNumber(final NSNumber number, Class<?> clazz) {
@@ -770,5 +702,4 @@ public abstract class NSObject implements Cloneable {
 
         return result;
     }
-
 }

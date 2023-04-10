@@ -29,6 +29,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -37,7 +38,7 @@ import java.util.Scanner;
  * @author Daniel Dreibrodt
  * @see <a href="https://developer.apple.com/reference/foundation/nsstring" target="_blank">Foundation NSString documentation</a>
  */
-public class NSString extends NSObject implements Comparable<Object> {
+public class NSString extends NSObject {
     private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
 
     private String content;
@@ -57,10 +58,10 @@ public class NSString extends NSObject implements Comparable<Object> {
     /**
      * Creates a new NSString instance from its binary representation.
      *
-     * @param bytes An array containing the binary representation of the string.
+     * @param bytes      An array containing the binary representation of the string.
      * @param startIndex The offset inside the array at which the string data starts.
-     * @param endIndex The offset inside the array at which the string data ends.
-     * @param encoding The string encoding (name of the charset).
+     * @param endIndex   The offset inside the array at which the string data ends.
+     * @param encoding   The string encoding (name of the charset).
      * @throws UnsupportedEncodingException When the given encoding is not supported by the JRE.
      * @see java.lang.String#String(byte[], int, int, String)
      */
@@ -81,10 +82,10 @@ public class NSString extends NSObject implements Comparable<Object> {
      * Gets the integer value of this string.
      *
      * @return The integer value of this string, assuming a decimal representation
-     *         and skipping whitespace at the beginning of the string. If the string
-     *         does not contain a valid decimal representation of a number, 0 is returned.
-     *         If the string contains an integer larger than Integer.MAX_VALUE, Integer.MAX_VALUE is returned.
-     *         If the string contains an integer less than Integer.MIN_VALUE, Integer.MIN_VALUE is returned.
+     * and skipping whitespace at the beginning of the string. If the string
+     * does not contain a valid decimal representation of a number, 0 is returned.
+     * If the string contains an integer larger than Integer.MAX_VALUE, Integer.MAX_VALUE is returned.
+     * If the string contains an integer less than Integer.MIN_VALUE, Integer.MIN_VALUE is returned.
      */
     public int intValue() {
         double d = this.doubleValue();
@@ -97,17 +98,17 @@ public class NSString extends NSObject implements Comparable<Object> {
             return Integer.MIN_VALUE;
         }
 
-        return (int)d;
+        return (int) d;
     }
 
     /**
      * Gets the floating-point value of this string.
      *
      * @return The floating-point value of this string, assuming a decimal representation
-     *         and skipping whitespace at the beginning of the string. If the string
-     *         does not contain a valid decimal representation of a number, 0 is returned.
-     *         If the string contains an integer larger than Float.MAX_VALUE, Float.MAX_VALUE is returned.
-     *         If the string contains an integer less than -Float.MAX_VALUE, -Float.MAX_VALUE is returned.
+     * and skipping whitespace at the beginning of the string. If the string
+     * does not contain a valid decimal representation of a number, 0 is returned.
+     * If the string contains an integer larger than Float.MAX_VALUE, Float.MAX_VALUE is returned.
+     * If the string contains an integer less than -Float.MAX_VALUE, -Float.MAX_VALUE is returned.
      */
     public float floatValue() {
         double d = this.doubleValue();
@@ -120,22 +121,21 @@ public class NSString extends NSObject implements Comparable<Object> {
             return -Float.MAX_VALUE;
         }
 
-        return (float)d;
+        return (float) d;
     }
 
     /**
      * Gets the floating-point value (double precision) of this string.
      *
      * @return The floating-point value of this string, assuming a decimal representation
-     *         and skipping whitespace at the beginning of the string. If the string does not contain
-     *         a valid decimal representation of a floating-point number, 0 is returned.
+     * and skipping whitespace at the beginning of the string. If the string does not contain
+     * a valid decimal representation of a floating-point number, 0 is returned.
      */
     public double doubleValue() {
         Scanner s = new Scanner(this.content.trim()).useLocale(Locale.ROOT).useDelimiter("[^\\d.+-]+");
-        if(s.hasNextDouble()) {
+        if (s.hasNextDouble()) {
             return s.nextDouble();
-        }
-        else {
+        } else {
             return 0d;
         }
     }
@@ -144,23 +144,23 @@ public class NSString extends NSObject implements Comparable<Object> {
      * Gets the boolean value of this string.
      *
      * @return The boolean value of this string. Leading whitespaces are ignored. Any + or - sign and leading zeroes are
-     *         ignored.
-     *         If the remaining string starts with 'Y', 'y', 'T', 't' or a positive digit (1-9), true is returned.
-     *         Otherwise, false is returned.
-     *
-     *         Examples:
-     *         "YES" is true
-     *         "true" is true
-     *         " YES" is true
-     *         "+1" is true
-     *         "-9" is true
-     *         " +01" is true
-     *         "0" is false
-     *         "false" is false
-     *         "no" is false
-     *         "1FALSE" is true
-     *         "0TRUE" is true
-     *         "FALSE1" is false
+     * ignored.
+     * If the remaining string starts with 'Y', 'y', 'T', 't' or a positive digit (1-9), true is returned.
+     * Otherwise, false is returned.
+     * <p>
+     * Examples:
+     * "YES" is true
+     * "true" is true
+     * " YES" is true
+     * "+1" is true
+     * "-9" is true
+     * " +01" is true
+     * "0" is false
+     * "false" is false
+     * "no" is false
+     * "1FALSE" is true
+     * "0TRUE" is true
+     * "FALSE1" is false
      */
     public boolean boolValue() {
         Scanner s = new Scanner(this.content.trim()).useLocale(Locale.ROOT);
@@ -232,13 +232,18 @@ public class NSString extends NSObject implements Comparable<Object> {
     }
 
     @Override
+    public NSString clone() {
+        return new NSString(this.content);
+    }
+
+    @Override
     public String toString() {
         return this.content;
     }
 
     @Override
-    public NSString clone() {
-        return new NSString(this.content);
+    public Object toJavaObject() {
+        return this.content;
     }
 
     @Override
@@ -328,13 +333,15 @@ public class NSString extends NSObject implements Comparable<Object> {
         ascii.append("\"");
     }
 
-    public int compareTo(Object o) {
-        if (o instanceof NSString) {
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSString) {
             return this.getContent().compareTo(((NSString) o).getContent());
-        } else if (o instanceof String) {
-            return this.getContent().compareTo((String) o);
         } else {
-            return -1;
+            return this.getClass().getName().compareTo(o.getClass().getName());
         }
     }
 
@@ -346,25 +353,25 @@ public class NSString extends NSObject implements Comparable<Object> {
      */
     static String escapeStringForASCII(String s) {
         StringBuilder out = new StringBuilder();
-        for(char c : s.toCharArray()) {
-            if(c > 127) {
+        for (char c : s.toCharArray()) {
+            if (c > 127) {
                 //non-ASCII Unicode
                 out.append("\\U");
                 String hex = Integer.toHexString(c);
-                while(hex.length() < 4)
+                while (hex.length() < 4)
                     hex = "0" + hex;
                 out.append(hex);
-            } else if(c == '\\') {
+            } else if (c == '\\') {
                 out.append("\\\\");
-            } else if(c == '\"') {
+            } else if (c == '\"') {
                 out.append("\\\"");
-            } else if(c == '\b') {
+            } else if (c == '\b') {
                 out.append("\\b");
-            } else if(c == '\n') {
+            } else if (c == '\n') {
                 out.append("\\n");
-            } else if(c == '\r') {
+            } else if (c == '\r') {
                 out.append("\\r");
-            } else if(c == '\t') {
+            } else if (c == '\t') {
                 out.append("\\t");
             } else {
                 out.append(c);

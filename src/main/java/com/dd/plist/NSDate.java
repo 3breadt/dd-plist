@@ -27,12 +27,14 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
  * The NSDate class wraps a date.
- * @see <a href="https://developer.apple.com/reference/foundation/nsdate" target="_blank">Foundation NSDate documentation</a>
+ *
  * @author Daniel Dreibrodt
+ * @see <a href="https://developer.apple.com/reference/foundation/nsdate" target="_blank">Foundation NSDate documentation</a>
  */
 public class NSDate extends NSObject {
 
@@ -51,16 +53,16 @@ public class NSDate extends NSObject {
      *
      * @param bytes The binary date representation.
      */
-    public NSDate(byte[] bytes){
+    public NSDate(byte[] bytes) {
         this(bytes, 0, bytes.length);
     }
 
     /**
      * Creates a new NSDate instance from its binary representation.
      *
-     * @param bytes The byte array containing the date data.
+     * @param bytes      The byte array containing the date data.
      * @param startIndex The index within the array at which the date data begins.
-     * @param endIndex The index within the array at which the data date ends.
+     * @param endIndex   The index within the array at which the data date ends.
      */
     public NSDate(byte[] bytes, final int startIndex, final int endIndex) {
         //dates are 8 byte big-endian double, seconds since the epoch
@@ -158,7 +160,7 @@ public class NSDate extends NSObject {
 
     @Override
     public NSDate clone() {
-        return new NSDate((Date)this.getDate().clone());
+        return new NSDate((Date) this.getDate().clone());
     }
 
     @Override
@@ -170,7 +172,7 @@ public class NSDate extends NSObject {
     }
 
     @Override
-    public void toBinary(BinaryPropertyListWriter out) throws IOException {
+    void toBinary(BinaryPropertyListWriter out) throws IOException {
         out.write(0x33);
         out.writeDouble((this.date.getTime() - EPOCH) / 1000.0);
     }
@@ -184,6 +186,23 @@ public class NSDate extends NSObject {
     @Override
     public String toString() {
         return this.date.toString();
+    }
+
+    @Override
+    public Object toJavaObject() {
+        return this.date;
+    }
+
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSDate) {
+            return this.getDate().compareTo(((NSDate) o).getDate());
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
+        }
     }
 
     @Override

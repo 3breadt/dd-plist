@@ -24,19 +24,14 @@
 package com.dd.plist;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The NSDictionary class is a collection of NSObject instances that are identified by strings.
  * It represents a hash map where the keys are strings and the values NSObject instances.
  * The implementation is based on a linked hash map, so that the order of the elements in the dictionary is preserved.
- *
+ * <p>
  * You can access the keys through the function <code>allKeys()</code>.
  * Access to the objects stored for each key is given through the function <code>objectForKey(String key)</code>.
  *
@@ -44,7 +39,7 @@ import java.util.Set;
  * @see <a href="https://developer.apple.com/reference/foundation/nsdictionary" target="_blank">Foundation NSDictionary documentation</a>
  * @see java.util.LinkedHashMap
  */
-public class NSDictionary extends NSObject  implements Map<String, NSObject> {
+public class NSDictionary extends NSObject implements Map<String, NSObject> {
 
     private final HashMap<String, NSObject> dict;
 
@@ -88,7 +83,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
     }
 
     public boolean containsValue(Object value) {
-        if(value == null)
+        if (value == null)
             return false;
         NSObject wrap = NSObject.fromJavaObject(value);
         return this.dict.containsValue(wrap);
@@ -113,12 +108,12 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @param key The key.
      * @param obj The value.
      * @return The value previously associated to the given key,
-     *         or null, if no value was associated to it.
+     * or null, if no value was associated to it.
      */
     public NSObject put(String key, NSObject obj) {
-        if(key == null)
+        if (key == null)
             return null;
-        if(obj == null)
+        if (obj == null)
             return this.dict.get(key);
         return this.dict.put(key, obj);
     }
@@ -130,7 +125,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
      * @param key The key.
      * @param obj The value. Supported object types are numbers, byte-arrays, dates, strings and arrays or sets of those.
      * @return The value previously associated to the given key,
-     *         or null, if no value was associated to it.
+     * or null, if no value was associated to it.
      */
     public NSObject put(String key, Object obj) {
         return this.put(key, NSObject.fromJavaObject(obj));
@@ -152,6 +147,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
 
     /**
      * Removes all key-value pairs from this dictionary.
+     *
      * @see java.util.Map#clear()
      */
     public void clear() {
@@ -326,11 +322,50 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
     @Override
     public NSDictionary clone() {
         NSDictionary clone = new NSDictionary();
-        for(Entry<String, NSObject> entry : this.dict.entrySet()) {
+        for (Entry<String, NSObject> entry : this.dict.entrySet()) {
             clone.dict.put(entry.getKey(), entry.getValue() != null ? entry.getValue().clone() : null);
         }
 
         return clone;
+    }
+
+    @Override
+    public Object toJavaObject() {
+        HashMap<String, Object> clonedMap = new HashMap<>(this.dict.size());
+        for (String key : this.dict.keySet()) {
+            clonedMap.put(key, this.dict.get(key).toJavaObject());
+        }
+
+        return clonedMap;
+    }
+
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSDictionary) {
+            NSDictionary other = (NSDictionary) o;
+
+            long uniqueForMe = this.dict.keySet().stream().filter(e -> !other.dict.containsKey(e)).count();
+            long uniqueForOther = other.dict.keySet().stream().filter(e -> !this.dict.containsKey(e)).count();
+
+            int keyDifference = Long.compare(uniqueForMe, uniqueForOther);
+            if (keyDifference != 0) {
+                return keyDifference;
+            }
+
+            for (String key : this.dict.keySet().stream().sorted(String::compareTo).collect(Collectors.toCollection(LinkedList::new))) {
+                int itemDifference = this.objectForKey(key).compareTo(other.objectForKey(key));
+                if (itemDifference != 0) {
+                    return itemDifference;
+                }
+            }
+
+            return 0;
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
+        }
     }
 
     @Override
@@ -448,7 +483,7 @@ public class NSDictionary extends NSObject  implements Map<String, NSObject> {
         this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
         ascii.append(NEWLINE);
-        String[] keys = this.dict.keySet().toArray(new String[this.dict.size()]);
+        String[] keys = this.dict.keySet().toArray(new String[0]);
         for (String key : keys) {
             NSObject val = this.objectForKey(key);
             this.indent(ascii, level + 1);

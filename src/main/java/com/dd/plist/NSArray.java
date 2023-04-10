@@ -25,6 +25,7 @@ package com.dd.plist;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * The NSArray class is a wrapper for an array of NSObject instances.
@@ -72,7 +73,7 @@ public class NSArray extends NSObject {
      * @param i The index of the object
      */
     public void remove(int i) {
-        if((i >= this.array.length) || (i < 0))
+        if ((i >= this.array.length) || (i < 0))
             throw new ArrayIndexOutOfBoundsException("invalid index:" + i + ";the array length is " + this.array.length);
         NSObject[] newArray = new NSObject[this.array.length - 1];
         System.arraycopy(this.array, 0, newArray, 0, i);
@@ -121,13 +122,13 @@ public class NSArray extends NSObject {
      */
     public boolean containsObject(Object obj) {
         NSObject nso = NSObject.fromJavaObject(obj);
-        for(NSObject elem : this.array) {
-            if(elem == null) {
-                if(obj == null)
+        for (NSObject elem : this.array) {
+            if (elem == null) {
+                if (obj == null)
                     return true;
                 continue;
             }
-            if(elem.equals(nso)) {
+            if (elem.equals(nso)) {
                 return true;
             }
         }
@@ -145,8 +146,8 @@ public class NSArray extends NSObject {
      */
     public int indexOfObject(Object obj) {
         NSObject nso = NSObject.fromJavaObject(obj);
-        for(int i = 0; i < this.array.length; i++) {
-            if(this.array[i].equals(nso)) {
+        for (int i = 0; i < this.array.length; i++) {
+            if (this.array[i].equals(nso)) {
                 return i;
             }
         }
@@ -163,8 +164,8 @@ public class NSArray extends NSObject {
      */
     public int indexOfIdenticalObject(Object obj) {
         NSObject nso = NSObject.fromJavaObject(obj);
-        for(int i = 0; i < this.array.length; i++) {
-            if(this.array[i] == nso) {
+        for (int i = 0; i < this.array.length; i++) {
+            if (this.array[i] == nso) {
                 return i;
             }
         }
@@ -191,20 +192,20 @@ public class NSArray extends NSObject {
     public NSObject[] objectsAtIndexes(int... indexes) {
         NSObject[] result = new NSObject[indexes.length];
         Arrays.sort(indexes);
-        for(int i = 0; i < indexes.length; i++)
+        for (int i = 0; i < indexes.length; i++)
             result[i] = this.array[indexes[i]];
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(obj == null)
+        if (obj == null)
             return false;
-        if(obj.getClass().equals(NSArray.class)) {
+        if (obj.getClass().equals(NSArray.class)) {
             return Arrays.equals(((NSArray) obj).getArray(), this.array);
         } else {
             NSObject nso = NSObject.fromJavaObject(obj);
-            if(nso.getClass().equals(NSArray.class)) {
+            if (nso.getClass().equals(NSArray.class)) {
                 return Arrays.equals(((NSArray) nso).getArray(), this.array);
             }
         }
@@ -221,7 +222,7 @@ public class NSArray extends NSObject {
     @Override
     public NSArray clone() {
         NSObject[] clonedArray = new NSObject[this.array.length];
-        for(int i = 0; i < this.array.length; i++) {
+        for (int i = 0; i < this.array.length; i++) {
             clonedArray[i] = this.array[i] != null ? this.array[i].clone() : null;
         }
 
@@ -229,12 +230,46 @@ public class NSArray extends NSObject {
     }
 
     @Override
+    public Object toJavaObject() {
+        Object[] clonedArray = new Object[this.array.length];
+        for (int i = 0; i < this.array.length; i++) {
+            clonedArray[i] = this.array[i] == null ? null : this.array[i].toJavaObject();
+        }
+
+        return clonedArray;
+    }
+
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSArray) {
+            NSArray other = (NSArray) o;
+            if (other.count() != this.count()) {
+                return Integer.compare(this.count(), other.count());
+            }
+
+            for (int i = 0; i < this.array.length; i++) {
+                int itemDiff = NSNull.wrap(this.array[i]).compareTo(NSNull.wrap((other.array[i])));
+                if (itemDiff != 0) {
+                    return itemDiff;
+                }
+            }
+
+            return 0;
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
+        }
+    }
+
+    @Override
     void toXML(StringBuilder xml, int level) {
         this.indent(xml, level);
         xml.append("<array>");
         xml.append(NSObject.NEWLINE);
-        for(NSObject o : this.array) {
-            o.toXML(xml, level + 1);
+        for (NSObject o : this.array) {
+            NSNull.wrap(o).toXML(xml, level + 1);
             xml.append(NSObject.NEWLINE);
         }
         this.indent(xml, level);
@@ -244,7 +279,7 @@ public class NSArray extends NSObject {
     @Override
     void assignIDs(BinaryPropertyListWriter out) {
         super.assignIDs(out);
-        for(NSObject obj : this.array) {
+        for (NSObject obj : this.array) {
             obj.assignIDs(out);
         }
     }
@@ -252,7 +287,7 @@ public class NSArray extends NSObject {
     @Override
     void toBinary(BinaryPropertyListWriter out) throws IOException {
         out.writeIntHeader(0xA, this.array.length);
-        for(NSObject obj : this.array) {
+        for (NSObject obj : this.array) {
             out.writeID(out.getID(obj));
         }
     }
@@ -290,55 +325,46 @@ public class NSArray extends NSObject {
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        this.indent(ascii, level);
-        ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
-        int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for(int i = 0; i < this.array.length; i++) {
-            Class<?> objClass = this.array[i].getClass();
-            if((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
-                    && indexOfLastNewLine != ascii.length()) {
-                ascii.append(NEWLINE);
-                indexOfLastNewLine = ascii.length();
-                this.array[i].toASCII(ascii, level + 1);
-            } else {
-                if(i != 0)
-                    ascii.append(' ');
-                this.array[i].toASCII(ascii, 0);
-            }
-
-            if(i != this.array.length - 1)
-                ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
-
-            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
-                ascii.append(NEWLINE);
-                indexOfLastNewLine = ascii.length();
-            }
-        }
-        ascii.append(ASCIIPropertyListParser.ARRAY_END_TOKEN);
+        this.toASCII(ascii, level, false);
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+        this.toASCII(ascii, level, true);
+    }
+
+    private void toASCII(StringBuilder ascii, int level, boolean gnustep) {
         this.indent(ascii, level);
         ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
         int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
-        for(int i = 0; i < this.array.length; i++) {
-            Class<?> objClass = this.array[i].getClass();
-            if((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
+        for (int i = 0; i < this.array.length; i++) {
+            NSObject entry = NSNull.wrap(this.array[i]);
+            Class<?> objClass = entry.getClass();
+            if ((objClass.equals(NSDictionary.class) || objClass.equals(NSArray.class) || objClass.equals(NSData.class))
                     && indexOfLastNewLine != ascii.length()) {
                 ascii.append(NEWLINE);
                 indexOfLastNewLine = ascii.length();
-                this.array[i].toASCIIGnuStep(ascii, level + 1);
+                if (gnustep) {
+                    entry.toASCIIGnuStep(ascii, level + 1);
+                } else {
+                    entry.toASCII(ascii, level + 1);
+                }
             } else {
-                if(i != 0)
+                if (i != 0) {
                     ascii.append(' ');
-                this.array[i].toASCIIGnuStep(ascii, 0);
+                }
+
+                if (gnustep) {
+                    entry.toASCIIGnuStep(ascii, 0);
+                } else {
+                    entry.toASCII(ascii, 0);
+                }
             }
 
-            if(i != this.array.length - 1)
+            if (i != this.array.length - 1)
                 ascii.append(ASCIIPropertyListParser.ARRAY_ITEM_DELIMITER_TOKEN);
 
-            if(ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
+            if (ascii.length() - indexOfLastNewLine > ASCII_LINE_LENGTH) {
                 ascii.append(NEWLINE);
                 indexOfLastNewLine = ascii.length();
             }

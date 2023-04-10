@@ -25,7 +25,6 @@ package com.dd.plist;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * The UID class holds a unique identifier.
@@ -33,7 +32,7 @@ import java.util.Optional;
  *
  * @author Daniel Dreibrodt
  */
-public class UID extends NSObject implements Comparable<UID> {
+public class UID extends NSObject {
     private final BigInteger uid;
     private final String name;
 
@@ -106,19 +105,25 @@ public class UID extends NSObject implements Comparable<UID> {
         return new UID(this.name, this.uid.toByteArray());
     }
 
+    @Override
+    public Object toJavaObject() {
+        return this.getBytes();
+    }
+
     /**
-     * There is no XML representation specified for UIDs.
-     * In this implementation UIDs are represented as hexadecimal strings in the XML output.
+     * The UID type has no dedicated representation in an XML property list.
      *
+     * Typically, it is represented in XML as a dictionary with only one entry,
+     * where the key is "CF$UID" and the value is the integer representation
+     * of the UID.
      * @param xml   The XML StringBuilder
      * @param level The indentation level
      */
     @Override
     void toXML(StringBuilder xml, int level) {
-        this.indent(xml, level);
-        xml.append("<string>");
-        xml.append(this.uid.toString(16));
-        xml.append("</string>");
+        NSDictionary uidDict = new NSDictionary();
+        uidDict.put("CF$UID", new NSNumber(this.uid.longValue()));
+        uidDict.toXML(xml, level);
     }
 
     @Override
@@ -130,36 +135,36 @@ public class UID extends NSObject implements Comparable<UID> {
 
     @Override
     protected void toASCII(StringBuilder ascii, int level) {
-        this.indent(ascii, level);
-        ascii.append('"');
-        ascii.append(this.uid.toString(16));
-        ascii.append('"');
+        new NSString(this.uid.toString(16)).toASCII(ascii, level);
     }
 
     @Override
     protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        this.toASCII(ascii, level);
+        new NSString(this.uid.toString(16)).toASCIIGnuStep(ascii, level);
     }
 
     @Override
-    public int compareTo(UID o) {
-        if (o == null) {
-            throw new NullPointerException();
-        }
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof UID) {
+            UID other = (UID)o;
+            int diff = this.uid.compareTo(other.uid);
+            if (diff == 0) {
+                if (this.name == null) {
+                    return other.name != null ? 1 : 0;
+                } else if (other.name == null) {
+                    return -1;
+                }
 
-        int diff = this.uid.compareTo(o.uid);
-        if (diff == 0) {
-            if (this.name == null) {
-                return o.name != null ? 1 : 0;
+                return this.name.compareTo(other.name);
             }
-            else if (o.name == null) {
-                return -1;
-            }
 
-            return this.name.compareTo(o.name);
+            return diff;
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
         }
-
-        return diff;
     }
 
     @Override

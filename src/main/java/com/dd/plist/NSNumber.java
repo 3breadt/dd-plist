@@ -24,6 +24,7 @@
 package com.dd.plist;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * The NSNumber class wraps a numeric value. The value can be an integer a floating point number or a boolean value.
@@ -31,7 +32,7 @@ import java.io.IOException;
  * @author Daniel Dreibrodt
  * @see <a href="https://developer.apple.com/reference/foundation/nsnumber" target="_blank">Foundation NSNumber documentation</a>
  */
-public class NSNumber extends NSObject implements Comparable<Object> {
+public class NSNumber extends NSObject {
 
     /**
      * Indicates that the number's value is an integer.
@@ -389,6 +390,39 @@ public class NSNumber extends NSObject implements Comparable<Object> {
     }
 
     @Override
+    public Object toJavaObject() {
+        switch(this.type) {
+            case NSNumber.INTEGER : {
+                long longVal = this.longValue();
+                if (longVal > Integer.MAX_VALUE || longVal < Integer.MIN_VALUE) {
+                    return longVal;
+                } else {
+                    return this.intValue();
+                }
+            }
+            case NSNumber.BOOLEAN : {
+                return this.boolValue();
+            }
+            default : {
+                return this.doubleValue();
+            }
+        }
+    }
+
+    @Override
+    public int compareTo(NSObject o) {
+        Objects.requireNonNull(o);
+        if (o == this) {
+            return 0;
+        } else if (o instanceof NSNumber) {
+            NSNumber other = (NSNumber) o;
+            return Double.compare(this.doubleValue, other.doubleValue);
+        } else {
+            return this.getClass().getName().compareTo(o.getClass().getName());
+        }
+    }
+
+    @Override
     void toXML(StringBuilder xml, int level) {
         this.indent(xml, level);
         switch (this.type()) {
@@ -491,21 +525,6 @@ public class NSNumber extends NSObject implements Comparable<Object> {
             default: {
                 throw new IllegalStateException("The NSNumber instance has an invalid type: " + this.type);
             }
-        }
-    }
-
-    public int compareTo(Object o) {
-        double x = this.doubleValue();
-        double y;
-        if (o instanceof NSNumber) {
-            NSNumber num = (NSNumber) o;
-            y = num.doubleValue();
-            return Double.compare(x, y);
-        } else if (o instanceof Number) {
-            y = ((Number) o).doubleValue();
-            return Double.compare(x, y);
-        } else {
-            return -1;
         }
     }
 
