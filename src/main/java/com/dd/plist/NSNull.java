@@ -41,7 +41,7 @@ public final class NSNull extends NSObject {
      * @param o The object.
      * @return The non-null object, or a NSNull instance.
      */
-    protected static NSObject wrap(NSObject o) {
+    static NSObject wrap(NSObject o) {
         return o == null ? NULL : o;
     }
 
@@ -50,7 +50,7 @@ public final class NSNull extends NSObject {
      * @param o The object.
      * @return The non-null object, or null.
      */
-    protected static NSObject unwrap(NSObject o) {
+    static NSObject unwrap(NSObject o) {
         return o == NULL ? null : o;
     }
 

@@ -84,7 +84,7 @@ public final class BinaryPropertyListParser {
     private int offsetSize;
     private int numObjects;
     private int offsetTableOffset;
-    private HashMap<Integer, NSObject> parsedObjects = new HashMap<>();
+    private final HashMap<Integer, NSObject> parsedObjects = new HashMap<>();
 
     /**
      * Protected constructor so that instantiation is fully controlled by the

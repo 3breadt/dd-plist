@@ -22,8 +22,6 @@
  */
 package com.dd.plist;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
@@ -223,8 +221,8 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
 
     private static Object getInstance(Class<?> clazz) {
         try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalArgumentException("Could not instantiate class " + clazz.getSimpleName());
         }
     }
@@ -691,7 +689,7 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
             payload.add(fromJavaObject(elem));
         }
 
-        return new NSArray(payload.toArray(new NSObject[payload.size()]));
+        return new NSArray(payload.toArray(new NSObject[0]));
     }
 
     private static NSSet fromSet(Set<?> set) {
