@@ -568,7 +568,7 @@ public final class ASCIIPropertyListParser {
 
         //parse end token
         this.read(ARRAY_END_TOKEN);
-        return new NSArray(objects.toArray(new NSObject[objects.size()]));
+        return new NSArray(objects.toArray(new NSObject[0]));
     }
 
     /**

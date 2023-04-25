@@ -1,6 +1,7 @@
 package com.dd.plist.test.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class TestClass2 {
 
@@ -144,14 +145,14 @@ public class TestClass2 {
         if (Float.compare(that.aPrimitiveFloat, aPrimitiveFloat) != 0) return false;
         if (aPrimitiveShort != that.aPrimitiveShort) return false;
         if (aPrimitiveBoolean != that.aPrimitiveBoolean) return false;
-        if (aString != null ? !aString.equals(that.aString) : that.aString != null) return false;
-        if (aInteger != null ? !aInteger.equals(that.aInteger) : that.aInteger != null) return false;
-        if (aLong != null ? !aLong.equals(that.aLong) : that.aLong != null) return false;
-        if (aDouble != null ? !aDouble.equals(that.aDouble) : that.aDouble != null) return false;
-        if (aFloat != null ? !aFloat.equals(that.aFloat) : that.aFloat != null) return false;
-        if (aShort != null ? !aShort.equals(that.aShort) : that.aShort != null) return false;
-        if (aBoolean != null ? !aBoolean.equals(that.aBoolean) : that.aBoolean != null) return false;
-        return aDate != null ? aDate.equals(that.aDate) : that.aDate == null;
+        if (!Objects.equals(aString, that.aString)) return false;
+        if (!Objects.equals(aInteger, that.aInteger)) return false;
+        if (!Objects.equals(aLong, that.aLong)) return false;
+        if (!Objects.equals(aDouble, that.aDouble)) return false;
+        if (!Objects.equals(aFloat, that.aFloat)) return false;
+        if (!Objects.equals(aShort, that.aShort)) return false;
+        if (!Objects.equals(aBoolean, that.aBoolean)) return false;
+        return Objects.equals(aDate, that.aDate);
 
     }
 
@@ -169,7 +170,7 @@ public class TestClass2 {
         result = 31 * result + (int) (aPrimitiveLong ^ (aPrimitiveLong >>> 32));
         temp = Double.doubleToLongBits(aPrimitiveDouble);
         result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (aPrimitiveFloat != +0.0f ? Float.floatToIntBits(aPrimitiveFloat) : 0);
+        result = 31 * result + (aPrimitiveFloat != 0.0f ? Float.floatToIntBits(aPrimitiveFloat) : 0);
         result = 31 * result + (int) aPrimitiveShort;
         result = 31 * result + (aBoolean != null ? aBoolean.hashCode() : 0);
         result = 31 * result + (aPrimitiveBoolean ? 1 : 0);

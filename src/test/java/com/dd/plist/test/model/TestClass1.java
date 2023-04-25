@@ -2,6 +2,7 @@ package com.dd.plist.test.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class TestClass1 {
 
@@ -22,7 +23,7 @@ public class TestClass1 {
 
         TestClass1 testClass = (TestClass1) o;
 
-        return map != null ? map.equals(testClass.map) : testClass.map == null;
+        return Objects.equals(map, testClass.map);
 
     }
 
