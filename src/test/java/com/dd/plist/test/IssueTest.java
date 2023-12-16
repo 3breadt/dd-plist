@@ -1,6 +1,8 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -191,6 +193,22 @@ public class IssueTest  {
         assertDoesNotThrow(() -> set.addObject(new UID(null, BigInteger.valueOf(42))));
     }
 
+    @Test
+    public void testIssue88_providesCorrectErrorIndex() throws Exception {
+        File plistFile = new File("test-files/github-issue88.plist");
+        ParseException parseException = assertThrows(ParseException.class,
+            () -> PropertyListParser.parse(plistFile));
+
+        InputStream fileInputStream = Files.newInputStream(plistFile.toPath());
+        String fileContents = readInputStream(fileInputStream, StandardCharsets.UTF_8);
+        fileInputStream.close();
+
+        int errorOffset = parseException.getErrorOffset();
+        String unparseableString = fileContents.substring(errorOffset, errorOffset + 2);
+        assertTrue(unparseableString.startsWith("\\"));
+        assertTrue(parseException.getMessage().endsWith(unparseableString));
+    }
+
     @ParameterizedTest
     @MethodSource("provideIssue82ErrorFiles")
     public void testIssue82_IndexOutOfBoundsExceptions(File file) {
@@ -213,5 +231,15 @@ public class IssueTest  {
         return Stream.of(Objects.requireNonNull(new File("test-files/github-issue82/").listFiles()))
                 .filter(Objects::nonNull)
                 .map(Arguments::of);
+    }
+
+    private static String readInputStream(InputStream s, Charset charset) throws IOException {
+        char[] buffer = new char[1024];
+        StringBuilder sb = new StringBuilder();
+        InputStreamReader inputStreamReader = new InputStreamReader(s, charset);
+        for (int length; (length = inputStreamReader.read(buffer, 0, buffer.length)) != -1; ) {
+            sb.append(buffer, 0, length);
+        }
+        return sb.toString();
     }
 }
