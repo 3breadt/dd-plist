@@ -755,7 +755,7 @@ public final class ASCIIPropertyListParser {
         try {
             unescapedString = parseQuotedString(stringBuilder.toString());
         } catch (ParseException ex) {
-            throw new ParseException(ex.getMessage(), this.index + ex.getErrorOffset());
+            throw new ParseException(ex.getMessage(), this.index - stringBuilder.length() - 1 + ex.getErrorOffset());
         } catch (Exception ex) {
             throw new ParseException("A quoted string could not be parsed.", this.index);
         }
