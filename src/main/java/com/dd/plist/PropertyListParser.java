@@ -37,6 +37,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -229,6 +230,46 @@ public class PropertyListParser {
     public static NSObject parse(byte[] bytes) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         return parse(new ByteArrayInputStream(bytes));
     }
+    
+    /**
+     * Traverse hierarchy and set parents.
+     */
+    private static void setParents(NSObject parent) {
+        if (parent instanceof NSArray) {
+            NSArray a = (NSArray)parent;
+            
+            for (NSObject o: a.getArray()) {
+                o.setParent(parent);
+                setParents(o);
+            }
+        } else if (parent instanceof NSDictionary) {
+            NSDictionary d = (NSDictionary)parent;
+            
+            for (Map.Entry<String, NSObject> entry: d.entrySet()) {
+                entry.getValue().setParent(parent);
+                setParents(entry.getValue());
+            }
+        } else if (parent instanceof NSSet) {
+            NSSet s = (NSSet)parent;
+            
+            for (NSObject o: s.allObjects()) {
+                o.setParent(parent);
+                setParents(o);
+            }
+        } else if (parent instanceof NSString) {
+            // this parent is a leaf. Nothing else to traverse.
+        } else if (parent instanceof NSDate) {
+            // this parent is a leaf. Nothing else to traverse.
+        } else if (parent instanceof NSData) {
+            // this parent is a leaf. Nothing else to traverse.
+        } else if (parent instanceof NSNumber) {
+            // this parent is a leaf. Nothing else to traverse.
+        } else if (parent instanceof NSNull) {
+            // this parent is a leaf. Nothing else to traverse.
+        } else {
+            throw new IllegalArgumentException("Unknown node " + parent + "(" + parent.getClass().getName() + ")");
+        }
+    }
 
     /**
      * Parses a property list from an InputStream.
@@ -248,18 +289,30 @@ public class PropertyListParser {
             is = new BufferedInputStream(is);
         }
 
+        NSObject result = null;
+        
         switch (determineType(is, 0)) {
             case TYPE_BINARY:
-                return BinaryPropertyListParser.parse(is);
+                result = BinaryPropertyListParser.parse(is);
+                break;
             case TYPE_XML:
-                return XMLPropertyListParser.parse(is);
+                result = XMLPropertyListParser.parse(is);
+                break;
             case TYPE_ASCII:
-                return ASCIIPropertyListParser.parse(is);
+                result = ASCIIPropertyListParser.parse(is);
+                break;
             case TYPE_ERROR_BLANK:
-                return null;
+                result = null;
+                break;
             default:
                 throw new PropertyListFormatException("The given data is not a property list of a supported format.");
         }
+        
+        if (result != null) {
+            setParents(result);
+        }
+        
+        return result;
     }
 
     /**

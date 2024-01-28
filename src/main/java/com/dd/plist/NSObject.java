@@ -53,6 +53,8 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
      * tabulator character.
      */
     private final static String INDENT = "\t";
+    
+    private NSObject parent;
 
     /**
      * Creates and returns a deep copy of this instance.
@@ -700,4 +702,14 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
 
         return result;
     }
+
+    public NSObject getParent() {
+        return parent;
+    }
+
+    protected void setParent(NSObject parent) {
+        this.parent = parent;
+    }
+    
+    
 }
