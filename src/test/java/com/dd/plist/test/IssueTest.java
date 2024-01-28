@@ -103,6 +103,9 @@ public class IssueTest  {
         catch (UnsupportedOperationException ex) {
             // Expected exception for newer runtimes, then the parser will complain about the invalid DOCTYPE
         }
+        catch (PropertyListFormatException ex) {
+            // Expected exception for OpenJDK 17
+        }
         catch (Exception ex) {
             fail("Unexpected exception of type " + ex.getClass().getName() + " was thrown, with the message: " + ex.getMessage());
         }
