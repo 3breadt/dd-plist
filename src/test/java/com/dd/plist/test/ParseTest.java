@@ -1,6 +1,7 @@
 package com.dd.plist.test;
 
 import com.dd.plist.*;
+import java.nio.file.Files;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -11,9 +12,6 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ParseTest {
-    /**
-     * Test the xml reader/writer
-     */
     @Test
     public void testXml() throws Exception {
         // parse an example plist file
@@ -37,6 +35,43 @@ public class ParseTest {
         XMLPropertyListWriter.write(x, new File("test-files/out-testXml.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testXml.plist"));
         assertEquals(x, y);
+    }
+
+    @Test
+    public void testXmlLocations() throws Exception {
+        NSObject x = PropertyListParser.parse(new File("test-files/test1.plist"));
+        NSDictionary d = (NSDictionary) x;
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, d.getLocationInformation()).getXPath(),
+            "/plist/dict");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, d.get("keyA").getLocationInformation()).getXPath(),
+            "/plist/dict/*[2]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, d.get("key&B").getLocationInformation()).getXPath(),
+            "/plist/dict/*[4]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, d.get("date").getLocationInformation()).getXPath(),
+            "/plist/dict/*[6]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, d.get("data").getLocationInformation()).getXPath(),
+            "/plist/dict/*[8]");
+        NSArray array = assertInstanceOf(NSArray.class, d.get("array"));
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, array.getLocationInformation()).getXPath(),
+            "/plist/dict/*[10]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, array.objectAtIndex(0).getLocationInformation()).getXPath(),
+            "/plist/dict/*[10]/*[1]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, array.objectAtIndex(1).getLocationInformation()).getXPath(),
+            "/plist/dict/*[10]/*[2]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, array.objectAtIndex(2).getLocationInformation()).getXPath(),
+            "/plist/dict/*[10]/*[3]");
+        assertEquals(
+            assertInstanceOf(XMLLocationInformation.class, array.objectAtIndex(3).getLocationInformation()).getXPath(),
+            "/plist/dict/*[10]/*[4]");
     }
 
     /**
@@ -129,17 +164,53 @@ public class ParseTest {
         assertEquals(Double.NEGATIVE_INFINITY, ((NSNumber)dictFromXml.get("b")).doubleValue());
     }
 
-    /**
-     * Test the binary reader/writer.
-     */
     @Test
     public void testBinary() throws Exception {
-        NSObject x = PropertyListParser.parse(new File("test-files/test1.plist"));
+        NSObject x = XMLPropertyListParser.parse(new File("test-files/test1.plist"));
 
         // save and load as binary
         BinaryPropertyListWriter.write(x, new File("test-files/out-testBinary.plist"));
         NSObject y = PropertyListParser.parse(new File("test-files/out-testBinary.plist"));
         assertEquals(x, y);
+    }
+
+    @Test
+    public void testBinaryLocations() throws Exception {
+        NSObject x = PropertyListParser.parse(new File("test-files/test1-binary.plist"));
+
+        NSDictionary d = (NSDictionary) x;
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, d.getLocationInformation()).getId(),
+            0);
+        // each dictionary key is serialized as an NSObject, as we have 5 keys, the next value object has ID 6
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, d.get("keyA").getLocationInformation()).getId(),
+            6);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, d.get("key&B").getLocationInformation()).getId(),
+            7);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, d.get("date").getLocationInformation()).getId(),
+            8);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, d.get("data").getLocationInformation()).getId(),
+            9);
+        NSArray array = assertInstanceOf(NSArray.class, d.get("array"));
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, array.getLocationInformation()).getId(),
+            10);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, array.objectAtIndex(0).getLocationInformation()).getId(),
+            11);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, array.objectAtIndex(1).getLocationInformation()).getId(),
+            12);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, array.objectAtIndex(2).getLocationInformation()).getId(),
+            13);
+        assertEquals(
+            assertInstanceOf(BinaryLocationInformation.class, array.objectAtIndex(3).getLocationInformation()).getId(),
+            14);
     }
 
     @Test
@@ -188,6 +259,45 @@ public class ParseTest {
         assertEquals(a.objectAtIndex(1), new NSString("NO"));
         assertEquals(a.objectAtIndex(2), new NSString("87"));
         assertEquals(a.objectAtIndex(3), new NSString("3.14159"));
+    }
+
+    @Test
+    public void testASCIILocations() throws Exception {
+        File file = new File("test-files/test1-ascii.plist");
+        String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.US_ASCII);
+        NSObject x = PropertyListParser.parse(file);
+        NSDictionary d = (NSDictionary) x;
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, d.getLocationInformation()).getOffset(),
+            text.indexOf("{"));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, d.get("keyA").getLocationInformation()).getOffset(),
+            text.indexOf("valueA"));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, d.get("key&B").getLocationInformation()).getOffset(),
+            text.indexOf("\"value&\\U0042\""));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, d.get("date").getLocationInformation()).getOffset(),
+            text.indexOf("\"2011-11-28T09:21:30Z\""));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, d.get("data").getLocationInformation()).getOffset(),
+            text.indexOf("<00000004 10410820 82>"));
+        NSArray array = assertInstanceOf(NSArray.class, d.get("array"));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, array.getLocationInformation()).getOffset(),
+            text.indexOf("("));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, array.objectAtIndex(0).getLocationInformation()).getOffset(),
+            text.indexOf("YES"));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, array.objectAtIndex(1).getLocationInformation()).getOffset(),
+            text.indexOf("NO"));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, array.objectAtIndex(2).getLocationInformation()).getOffset(),
+            text.indexOf("87"));
+        assertEquals(
+            assertInstanceOf(ASCIILocationInformation.class, array.objectAtIndex(3).getLocationInformation()).getOffset(),
+            text.indexOf("3.14159"));
     }
 
     @Test

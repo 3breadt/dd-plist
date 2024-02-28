@@ -31,11 +31,16 @@ package com.dd.plist;
 public class PropertyListFormatException extends Exception {
 
     /**
+     * The location of the object that caused the exception.
+     */
+    private LocationInformation locationInformation;
+
+    /**
      * Creates a new exception with the given message.
      * @param message A message containing information about the nature of the exception.
      */
     public PropertyListFormatException(String message) {
-        super(message);
+        this(message, (LocationInformation) null);
     }
 
     /**
@@ -44,6 +49,39 @@ public class PropertyListFormatException extends Exception {
      * @param cause The original exception that caused this exception.
      */
     public PropertyListFormatException(String message, Throwable cause) {
+        this(message, null, cause);
+    }
+
+    /**
+     * Creates a new exception with the given message.
+     * @param message A message containing information about the nature of the exception.
+     * @param locationInformation The location of the element causing the exception.
+     */
+    PropertyListFormatException(String message, LocationInformation locationInformation) {
+        super(message);
+        this.locationInformation = locationInformation;
+    }
+
+    /**
+     * Creates a new exception with the given message.
+     * @param message A message containing information about the nature of the exception.
+     * @param locationInformation The location of the element causing the exception.
+     * @param cause The original exception that caused this exception.
+     */
+    PropertyListFormatException(String message, LocationInformation locationInformation, Throwable cause) {
         super(message, cause);
+        this.locationInformation = locationInformation;
+    }
+
+    /**
+     * The location of the element that caused the exception, if available.
+     * @return The location information, if available.
+     */
+    public LocationInformation getLocationInformation() {
+        return this.locationInformation;
+    }
+
+    void setLocationInformation(LocationInformation locationInformation) {
+        this.locationInformation = locationInformation;
     }
 }

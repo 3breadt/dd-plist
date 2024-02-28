@@ -58,47 +58,81 @@ import java.util.Objects;
  */
 public final class ASCIIPropertyListParser {
 
+    /** The space character token. */
     public static final char WHITESPACE_SPACE = ' ';
+    /** The tab character token. */
     public static final char WHITESPACE_TAB = '\t';
+    /** The newline character token. */
     public static final char WHITESPACE_NEWLINE = '\n';
+    /** The carriage return character token. */
     public static final char WHITESPACE_CARRIAGE_RETURN = '\r';
 
+    /** The token marking the beginning of an array. */
     public static final char ARRAY_BEGIN_TOKEN = '(';
+    /** The token marking the end of an array. */
     public static final char ARRAY_END_TOKEN = ')';
+    /** The token marking the end of an array element. */
     public static final char ARRAY_ITEM_DELIMITER_TOKEN = ',';
 
+    /** The token marking the beginning of a dictionary. */
     public static final char DICTIONARY_BEGIN_TOKEN = '{';
+    /** The token marking the end of a dictionary. */
     public static final char DICTIONARY_END_TOKEN = '}';
+    /** The token marking the assignment of a value to a dictionary key. */
     public static final char DICTIONARY_ASSIGN_TOKEN = '=';
+    /** The token marking the end of a dictionary entry. */
     public static final char DICTIONARY_ITEM_DELIMITER_TOKEN = ';';
 
+    /** The token marking the beginning of a quoted string. */
     public static final char QUOTEDSTRING_BEGIN_TOKEN = '"';
+    /** The token marking the end of a quoted string. */
     public static final char QUOTEDSTRING_END_TOKEN = '"';
+    /** The token marking the beginning of an escape sequence in a quoted string. */
     public static final char QUOTEDSTRING_ESCAPE_TOKEN = '\\';
 
+    /** The token marking the beginning of a data element. */
     public static final char DATA_BEGIN_TOKEN = '<';
+    /** The token marking the end of a data element. */
     public static final char DATA_END_TOKEN = '>';
 
+    /** The token marking the beginning of a data element in Base-64 encoding. */
     public static final char DATA_BASE64_BEGIN_TOKEN = '[';
+    /** The token marking the end of a data element in Base-64 encoding. */
     public static final char DATA_BASE64_END_TOKEN = ']';
 
+    /** The token marking the beginning of a GnuStep object. */
     public static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
+    /** The token marking the beginning of a GnuStep date. */
     public static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
+    /** The token marking the beginning of a GnuStep boolean value. */
     public static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
+    /** The token representing the boolean value {@code true} in the GnuStep format. */
     public static final char DATA_GSBOOL_TRUE_TOKEN = 'Y';
+    /** The token representing the boolean value {@code false} in the GnuStep format. */
     public static final char DATA_GSBOOL_FALSE_TOKEN = 'N';
+    /** The token marking the beginning of a GnuStep integer value. */
     public static final char DATA_GSINT_BEGIN_TOKEN = 'I';
+    /** The token marking the beginning of a GnuStep real value. */
     public static final char DATA_GSREAL_BEGIN_TOKEN = 'R';
 
+    /** The token that separates the parts of a date value (year, month and day). */
     public static final char DATE_DATE_FIELD_DELIMITER = '-';
+    /** The token that separates the parts of a time value (hour, minute and second). */
     public static final char DATE_TIME_FIELD_DELIMITER = ':';
+    /** The token that separates the date and time in the GnuStep format. */
     public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
+    /** The token that marks the beginning of the time zone in the Apple format. */
     public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
+    /** The token that marks the end of the time zone in the Apple format. */
     public static final char DATE_APPLE_END_TOKEN = 'Z';
 
+    /** The token marking the beginning of a comment. */
     public static final char COMMENT_BEGIN_TOKEN = '/';
+    /** The token marking a comment to be multi-line. */
     public static final char MULTILINE_COMMENT_SECOND_TOKEN = '*';
+    /** The token marking a comment to be single-line. */
     public static final char SINGLELINE_COMMENT_SECOND_TOKEN = '/';
+    /** The token marking the end of a multi-line comment. Must be preceded by a {@link ASCIIPropertyListParser#MULTILINE_COMMENT_SECOND_TOKEN}. */
     public static final char MULTILINE_COMMENT_END_TOKEN = '/';
 
     /**
@@ -506,41 +540,56 @@ public final class ASCIIPropertyListParser {
      * @see ASCIIPropertyListParser#index
      */
     private NSObject parseObject() throws ParseException {
+        LocationInformation loc = new ASCIILocationInformation(this.index);
+        NSObject result;
         switch (this.data[this.index]) {
             case ARRAY_BEGIN_TOKEN: {
-                return this.parseArray();
+                result = this.parseArray();
+                break;
             }
             case DICTIONARY_BEGIN_TOKEN: {
-                return this.parseDictionary();
+                result = this.parseDictionary();
+                break;
             }
             case DATA_BEGIN_TOKEN: {
-                return this.parseData();
+                result = this.parseData();
+                break;
             }
             case QUOTEDSTRING_BEGIN_TOKEN: {
                 String quotedString = this.parseQuotedString();
                 //apple dates are quoted strings of length 20 and after the 4 year digits a dash is found
                 if (quotedString.length() == 20 && quotedString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
                     try {
-                        return new NSDate(quotedString);
+                        result = new NSDate(quotedString);
                     } catch (Exception ex) {
                         //not a date? --> return string
-                        return new NSString(quotedString);
+                        result = new NSString(quotedString);
                     }
                 } else {
-                    return new NSString(quotedString);
+                    result = new NSString(quotedString);
                 }
+
+                break;
             }
             default: {
                 //0-9
                 if (this.data[this.index] >= '0' && this.data[this.index] <= '9') {
                     //could be a date or just a string
-                    return this.parseDateString();
+                    result = this.parseDateString();
                 } else {
                     //non-numerical -> string or boolean
-                    return new NSString(this.parseString());
+                    result = new NSString(this.parseString());
                 }
+
+              break;
             }
         }
+
+        if (result != null) {
+            result.setLocationInformation(loc);
+        }
+
+        return result;
     }
 
     /**

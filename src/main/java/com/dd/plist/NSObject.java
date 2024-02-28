@@ -39,7 +39,7 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
      * This constant will be different depending on the operating system on
      * which you use this library.
      */
-    final static String NEWLINE = System.getProperty("line.separator");
+    final static String NEWLINE = System.lineSeparator();
 
     /**
      * The maximum length of the text lines to be used when generating
@@ -53,6 +53,25 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
      * tabulator character.
      */
     private final static String INDENT = "\t";
+
+    private LocationInformation locationInformation;
+
+    /**
+     * Gets information about the location of this NSObject within the parsed property list,
+     * if available.
+     * @return The location information, or {@code null} if it is not available.
+     */
+    public LocationInformation getLocationInformation() {
+        return this.locationInformation;
+    }
+
+    /**
+     * Sets the location information.
+     * @param locationInformation The location information.
+     */
+    void setLocationInformation(LocationInformation locationInformation) {
+        this.locationInformation = locationInformation;
+    }
 
     /**
      * Creates and returns a deep copy of this instance.

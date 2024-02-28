@@ -181,7 +181,7 @@ public class IssueTest  {
     @Test
     public void testIssue76_UnexpectedIllegalArgumentExceptionForInvalidNumberInXmlPropertyList() {
         File plistFile = new File("test-files/github-issue76-xml.plist");
-        assertThrows(ParseException.class, () -> PropertyListParser.parse(plistFile));
+        assertThrows(PropertyListFormatException.class, () -> PropertyListParser.parse(plistFile));
     }
 
     @Test
