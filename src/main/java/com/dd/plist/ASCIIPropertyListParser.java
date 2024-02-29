@@ -145,6 +145,16 @@ public final class ASCIIPropertyListParser {
     private int index;
 
     /**
+     * Current line number.
+     */
+    private int lineNo = 1;
+
+    /**
+     * The index at which the current line began.
+     */
+    private int lineBeginning = -1;
+
+    /**
      * Creates a new parser for the given property list content.
      *
      * @param propertyListContent The content of the property list that is to be parsed.
@@ -437,6 +447,19 @@ public final class ASCIIPropertyListParser {
         this.index += numSymbols;
     }
 
+    private void trackLineBreak() {
+        if (this.data[this.index] == WHITESPACE_NEWLINE) {
+            // \n or \r\n
+            this.lineNo++;
+            this.lineBeginning = this.index;
+        } if (this.data[this.index] == WHITESPACE_CARRIAGE_RETURN
+            && !(this.index + 1 < this.data.length && this.data[this.index + 1] == WHITESPACE_NEWLINE)) {
+            // Single \r
+            this.lineNo++;
+            this.lineBeginning = this.index;
+        }
+    }
+
     /**
      * Skips all whitespaces and comments from the current parsing position onward.
      */
@@ -447,6 +470,7 @@ public final class ASCIIPropertyListParser {
 
             //Skip whitespaces
             while (this.accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB)) {
+                this.trackLineBreak();
                 this.skip();
             }
 
@@ -466,6 +490,7 @@ public final class ASCIIPropertyListParser {
                         break;
                     }
 
+                    this.trackLineBreak();
                     this.skip();
                 }
                 commentSkipped = true;
@@ -500,6 +525,7 @@ public final class ASCIIPropertyListParser {
         StringBuilder strBuf = new StringBuilder();
         while (this.index < this.data.length && !this.accept(symbol)) {
             strBuf.append(this.data[this.index]);
+            this.trackLineBreak();
             this.skip();
         }
         return strBuf.toString();
@@ -540,7 +566,7 @@ public final class ASCIIPropertyListParser {
      * @see ASCIIPropertyListParser#index
      */
     private NSObject parseObject() throws ParseException {
-        LocationInformation loc = new ASCIILocationInformation(this.index);
+        LocationInformation loc = new ASCIILocationInformation(this.index, this.lineNo, this.index - this.lineBeginning);
         NSObject result;
         switch (this.data[this.index]) {
             case ARRAY_BEGIN_TOKEN: {
@@ -797,6 +823,7 @@ public final class ASCIIPropertyListParser {
                 unescapedBackslash = !(this.data[this.index - 1] == QUOTEDSTRING_ESCAPE_TOKEN && unescapedBackslash);
             }
 
+            this.trackLineBreak();
             this.skip();
         }
 

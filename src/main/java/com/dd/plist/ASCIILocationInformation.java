@@ -5,11 +5,14 @@ package com.dd.plist;
  * @author Daniel Dreibrodt
  */
 public class ASCIILocationInformation extends LocationInformation {
-
   private final int offset;
+  private final int lineNo;
+  private final int column;
 
-  ASCIILocationInformation(int offset) {
+  ASCIILocationInformation(int offset, int lineNo, int column) {
     this.offset = offset;
+    this.lineNo = lineNo;
+    this.column = column;
   }
 
   /**
@@ -20,8 +23,24 @@ public class ASCIILocationInformation extends LocationInformation {
     return this.offset;
   }
 
+  /**
+   * Gets the line number.
+   * @return The line number, starting at 1.
+   */
+  public int getLineNumber() {
+    return this.lineNo;
+  }
+
+  /**
+   * Gets the column.
+   * @return The column, starting at 1.
+   */
+  public int getColumn() {
+    return this.column;
+  }
+
   @Override
   public String getDescription() {
-    return "Offset: " + this.offset;
+    return "Line: " + this.lineNo + ", Column: " + this.column + ", Offset: " + this.offset;
   }
 }
