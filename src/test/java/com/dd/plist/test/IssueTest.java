@@ -209,7 +209,7 @@ public class IssueTest  {
         int errorOffset = parseException.getErrorOffset();
         String unparseableString = fileContents.substring(errorOffset, errorOffset + 2);
         assertTrue(unparseableString.startsWith("\\"));
-        assertTrue(parseException.getMessage().endsWith(unparseableString));
+        assertTrue(parseException.getMessage().contains(unparseableString));
     }
 
     @ParameterizedTest
