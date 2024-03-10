@@ -11,10 +11,14 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class UidTests {
+/**
+ * Tests for the {@link UID} class.
+ * @author Daniel Dreibrodt
+ */
+public class UidTest {
 
     @Test
-    public void constructoRejectsTooLargeValues()
+    public void init_throwsIllegalArgumentExceptionForMoreThan16Bytes()
     {
         byte[] data = new byte[17];
         data[0] = 0x01;
@@ -22,7 +26,7 @@ public class UidTests {
     }
 
     @Test
-    public void getBytes() {
+    public void getBytes_returnsMinimumPossibleLength() {
         assertEquals(1, new UID(null, new byte[]{0x01}).getBytes().length);
         assertEquals(2, new UID(null, new byte[]{0x01, 0x00}).getBytes().length);
         assertEquals(4, new UID(null, new byte[]{0x01, 0x00, 0x00}).getBytes().length);
@@ -43,7 +47,7 @@ public class UidTests {
 
     @ParameterizedTest
     @MethodSource("provideUIDs")
-    public void compareToAndEquals(UID a, UID b, int expectation) {
+    public void compareToAndEquals_worksCorrectly(UID a, UID b, int expectation) {
         assertEquals(expectation, a.compareTo(b), "compareTo returned unexpected value");
         assertEquals(expectation * -1, b.compareTo(a), "compareTo returned unexpected value");
         assertEquals(expectation == 0, a.equals(b), "equals returned unexpected value");

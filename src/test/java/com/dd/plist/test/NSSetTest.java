@@ -7,7 +7,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class NSSetTests {
+/**
+ * Tests for the {@link NSSet} class.
+ * @author Daniel Dreibrodt
+ */
+public class NSSetTest {
     @Test
     public void init_arrayContainingNull_doesNotThrow() {
         assertDoesNotThrow(() -> new NSSet(new NSObject[] { null }));
@@ -19,7 +23,7 @@ public class NSSetTests {
     }
 
     @Test
-    public void add_null_doesNotThrow() {
+    public void addObject_null_doesNotThrow() {
         NSSet set = new NSSet();
         assertDoesNotThrow(() -> set.addObject(null));
     }
