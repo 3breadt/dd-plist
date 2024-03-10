@@ -74,6 +74,7 @@
                 <version>3.8.1</version>
                 <configuration>
                     <compilerArgument>-Xlint:unchecked</compilerArgument>
+                    <compilerArgument>-Xlint:deprecation</compilerArgument>
                 </configuration>
                 <executions>
                     <execution>

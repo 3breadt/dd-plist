@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Date;
+import java.util.function.BiConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,47 +34,28 @@ public class XMLPropertyListParserTest {
 
   @Test
   public void parse_providesCorrectObjectLocations() throws Exception {
-    NSObject x = PropertyListParser.parse(new File("test-files/test1.plist"));
+    BiConsumer<NSObject, String> locationChecker = (NSObject object, String expectedLocation) -> {
+      XMLLocationInformation location = assertInstanceOf(XMLLocationInformation.class,
+              object.getLocationInformation());
+      assertEquals(
+              expectedLocation,
+              location.getXPath() + ";" + location.getLineNumber() + ":" + location.getColumnNumber());
+    };
+
+    NSObject x = XMLPropertyListParser.parse(new File("test-files/test1.plist"), true);
     NSDictionary d = (NSDictionary) x;
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class, d.getLocationInformation()).getXPath(),
-        "/plist/dict");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            d.get("keyA").getLocationInformation()).getXPath(),
-        "/plist/dict/*[2]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            d.get("key&B").getLocationInformation()).getXPath(),
-        "/plist/dict/*[4]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            d.get("date").getLocationInformation()).getXPath(),
-        "/plist/dict/*[6]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            d.get("data").getLocationInformation()).getXPath(),
-        "/plist/dict/*[8]");
+
+    locationChecker.accept(d, "/plist/dict;4:7");
+    locationChecker.accept(d.get("keyA"), "/plist/dict/*[2];6:11");
+    locationChecker.accept(d.get("key&B"), "/plist/dict/*[4];8:11");
+    locationChecker.accept(d.get("date"), "/plist/dict/*[6];10:9");
+    locationChecker.accept(d.get("data"), "/plist/dict/*[8];12:9");
     NSArray array = assertInstanceOf(NSArray.class, d.get("array"));
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class, array.getLocationInformation()).getXPath(),
-        "/plist/dict/*[10]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            array.objectAtIndex(0).getLocationInformation()).getXPath(),
-        "/plist/dict/*[10]/*[1]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            array.objectAtIndex(1).getLocationInformation()).getXPath(),
-        "/plist/dict/*[10]/*[2]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            array.objectAtIndex(2).getLocationInformation()).getXPath(),
-        "/plist/dict/*[10]/*[3]");
-    assertEquals(
-        assertInstanceOf(XMLLocationInformation.class,
-            array.objectAtIndex(3).getLocationInformation()).getXPath(),
-        "/plist/dict/*[10]/*[4]");
+    locationChecker.accept(array, "/plist/dict/*[10];14:10");
+    locationChecker.accept(array.objectAtIndex(0), "/plist/dict/*[10]/*[1];15:12");
+    locationChecker.accept(array.objectAtIndex(1), "/plist/dict/*[10]/*[2];16:13");
+    locationChecker.accept(array.objectAtIndex(2), "/plist/dict/*[10]/*[3];17:14");
+    locationChecker.accept(array.objectAtIndex(3), "/plist/dict/*[10]/*[4];18:11");
   }
 
   /**

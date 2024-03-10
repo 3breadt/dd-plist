@@ -59,7 +59,7 @@ public class ASCIIPropertyListParserTest {
           object.getLocationInformation());
       assertEquals(text.indexOf(token), location.getOffset());
       assertEquals(lines.get(location.getLineNumber() - 1).indexOf(token),
-          location.getColumn() - 1);
+          location.getColumnNumber() - 1);
     };
 
     NSObject x = PropertyListParser.parse(file);
@@ -92,7 +92,7 @@ public class ASCIIPropertyListParserTest {
           "Incorrect location of " + object + ": " + location);
       assertEquals(
           lines.get(location.getLineNumber() - 1).indexOf(token),
-          location.getColumn() - 1,
+          location.getColumnNumber() - 1,
           "Incorrect location of " + object + ": " + location);
     };
 
@@ -140,7 +140,7 @@ public class ASCIIPropertyListParserTest {
           object.getLocationInformation());
       assertEquals(text.indexOf(token), location.getOffset());
       assertEquals(lines.get(location.getLineNumber() - 1).indexOf(token),
-          location.getColumn() - 1);
+          location.getColumnNumber() - 1);
     };
 
     NSObject x = PropertyListParser.parse(file);

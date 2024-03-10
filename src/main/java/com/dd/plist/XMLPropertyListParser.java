@@ -31,9 +31,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.*;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.sax.SAXSource;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Node;
@@ -42,6 +48,7 @@ import org.w3c.dom.Text;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 /**
  * Parses XML property lists.
@@ -168,7 +175,7 @@ public class XMLPropertyListParser {
             throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
         // Do not pass BOM to XML parser because it can't handle it
         InputStream filteredInputStream = new ByteOrderMarkFilterInputStream(is, false);
-        return parse(getDocBuilder().parse(filteredInputStream));
+        return parse(parseXml(new InputSource(filteredInputStream), false));
     }
 
     /**
@@ -186,7 +193,111 @@ public class XMLPropertyListParser {
      */
     public static NSObject parse(Reader reader)
             throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
-        return parse(getDocBuilder().parse(new InputSource(reader)));
+        return parse(parseXml(new InputSource(reader), false));
+    }
+
+
+    /**
+     * Parses an XML property list file.
+     *
+     * @param f                   The XML property list file.
+     * @param withLineInformation If set to {@code true}, the parser will try to collect line information and store it
+     *                            in the parsed object's location information
+     *                            (See {@link NSObject#getLocationInformation()}).
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any XML parsing error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
+     */
+    public static NSObject parse(File f, boolean withLineInformation)
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
+        return parse(f.toPath(), withLineInformation);
+    }
+
+    /**
+     * Parses an XML property list file.
+     *
+     * @param path The XML property list file path.
+     * @param withLineInformation If set to {@code true}, the parser will try to collect line information and store it
+     *                            in the parsed object's location information
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any XML parsing error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.File)
+     */
+    public static NSObject parse(Path path, boolean withLineInformation)
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
+        try (InputStream fileInputStream = Files.newInputStream(path)) {
+            return parse(fileInputStream, withLineInformation);
+        }
+    }
+
+    /**
+     * Parses an XML property list from a byte array.
+     *
+     * @param bytes The byte array containing the property list's data.
+     * @param withLineInformation If set to {@code true}, the parser will try to collect line information and store it
+     *                            in the parsed object's location information
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any XML parsing error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     */
+    public static NSObject parse(final byte[] bytes, boolean withLineInformation)
+            throws ParserConfigurationException, SAXException, PropertyListFormatException, IOException {
+        try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
+            return parse(inputStream, withLineInformation);
+        }
+    }
+
+    /**
+     * Parses an XML property list from an input stream.
+     * This method does not close the specified input stream.
+     *
+     * @param is The input stream pointing to the property list's data.
+     * @param withLineInformation If set to {@code true}, the parser will try to collect line information and store it
+     *                            in the parsed object's location information
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any XML parsing error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
+     */
+    public static NSObject parse(InputStream is, boolean withLineInformation)
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
+        // Do not pass BOM to XML parser because it can't handle it
+        InputStream filteredInputStream = new ByteOrderMarkFilterInputStream(is, false);
+        return parse(parseXml(new InputSource(filteredInputStream), withLineInformation));
+    }
+
+    /**
+     * Parses an XML property list from a {@link Reader}.
+     * This method does not close the specified reader.
+     *
+     * @param reader The reader providing the property list's data.
+     * @param withLineInformation If set to {@code true}, the parser will try to collect line information and store it
+     *                            in the parsed object's location information
+     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
+     * @throws javax.xml.parsers.ParserConfigurationException If a document builder for parsing an XML property list
+     *                                                        could not be created. This should not occur.
+     * @throws java.io.IOException                            If any I/O error occurs while reading the file.
+     * @throws org.xml.sax.SAXException                       If any XML parsing error occurs.
+     * @throws com.dd.plist.PropertyListFormatException       If the given property list has an invalid format.
+     * @see javax.xml.parsers.DocumentBuilder#parse(java.io.InputStream)
+     */
+    public static NSObject parse(Reader reader, boolean withLineInformation)
+            throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
+        return parse(parseXml(new InputSource(reader), withLineInformation));
     }
 
     /**
@@ -230,6 +341,46 @@ public class XMLPropertyListParser {
         return parseObject(rootNode, xpath + "/" + rootNode.getNodeName());
     }
 
+    private static Document parseXml(InputSource inputSource, boolean withLineInformation) throws IOException, SAXException, ParserConfigurationException {
+        if (withLineInformation) {
+            XMLReader xmlReader = createSafeXmlReader();
+
+            XMLLocationFilter locationFilter = new XMLLocationFilter(xmlReader);
+            SAXSource saxSource = new SAXSource(locationFilter, inputSource);
+
+            DOMResult domResult = new DOMResult();
+            try {
+                Transformer transformer = createSafeTransformer();
+                transformer.transform(saxSource, domResult);
+            } catch (TransformerException e) {
+                throw new IOException(e.getMessage(), e);
+            }
+
+            return (Document) domResult.getNode();
+        } else {
+            return getDocBuilder().parse(inputSource);
+        }
+    }
+
+    private static XMLReader createSafeXmlReader() throws SAXException, ParserConfigurationException {
+        SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+        parserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        parserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        parserFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        parserFactory.setXIncludeAware(false);
+
+        SAXParser parser = parserFactory.newSAXParser();
+        return parser.getXMLReader();
+    }
+
+    private static Transformer createSafeTransformer() throws TransformerConfigurationException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        return transformerFactory.newTransformer();
+    }
+
     /**
      * Parses a node in the XML structure and returns the corresponding NSObject
      *
@@ -239,7 +390,7 @@ public class XMLPropertyListParser {
      */
     private static NSObject parseObject(Node n, String xpath) throws PropertyListFormatException {
         String type = n.getNodeName();
-        LocationInformation loc = new XMLLocationInformation(xpath);
+        XMLLocationInformation loc = new XMLLocationInformation(n, xpath);
         NSObject parsedObject = null;
         try {
             switch (type) {
@@ -295,9 +446,11 @@ public class XMLPropertyListParser {
             throw ex;
         } catch (Exception ex) {
             throw new PropertyListFormatException(
-                "The " + n.getNodeName() + " node at " + xpath + " could not be parsed.",
-                loc,
-                ex);
+                    loc.hasLineInformation()
+                            ? ("The " + n.getNodeName() + " node at line " + loc.getLineNumber() + " and column " + loc.getColumnNumber() + " could not be parsed.")
+                            : ("The " + n.getNodeName() + " node at " + xpath + " could not be parsed."),
+                    loc,
+                    ex);
         }
 
         if (parsedObject != null) {

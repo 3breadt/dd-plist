@@ -32,10 +32,10 @@ public class ASCIILocationInformation extends LocationInformation {
   }
 
   /**
-   * Gets the column.
+   * Gets the column number.
    * @return The column, starting at 1.
    */
-  public int getColumn() {
+  public int getColumnNumber() {
     return this.column;
   }
 
