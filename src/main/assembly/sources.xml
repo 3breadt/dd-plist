@@ -5,9 +5,6 @@
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<files>
-		<file>
-			<source>build.xml</source>
-        </file>
         <file>
 			<source>pom.xml</source>
         </file>
