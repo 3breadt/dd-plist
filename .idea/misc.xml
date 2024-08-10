@@ -38,6 +38,7 @@
       <property name="caretWidth" class="java.lang.Integer" />
     </properties>
   </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
@@ -46,6 +47,6 @@
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="corretto-1.8" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/classes" />
+    <output url="file://$PROJECT_DIR$/target/classes" />
   </component>
 </project>
