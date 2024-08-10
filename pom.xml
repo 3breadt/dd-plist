@@ -185,6 +185,27 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.moditect</groupId>
+                <artifactId>moditect-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <executions>
+                    <execution>
+                        <id>add-module-infos</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>add-module-info</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <overwriteExistingFiles>true</overwriteExistingFiles>
+                            <module>
+                                <moduleInfoFile>src/main/moditect/module-info.java</moduleInfoFile>
+                            </module>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.7</version>
