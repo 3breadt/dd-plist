@@ -18,11 +18,19 @@
         <outputRelativeToContentRoot value="true" />
         <module name="dd-plist" />
       </profile>
+      <profile name="Annotation profile for dd-plist" enabled="true">
+        <sourceOutputDir name="../generated-sources/annotations" />
+        <sourceTestOutputDir name="../generated-test-sources/test-annotations" />
+        <module name="dd-plist.test" />
+        <module name="dd-plist.main" />
+      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="dd-plist" options="-Xlint:unchecked" />
+      <module name="dd-plist.main" options="-Xlint:unchecked" />
+      <module name="dd-plist.test" options="-Xlint:unchecked" />
     </option>
   </component>
 </project>
