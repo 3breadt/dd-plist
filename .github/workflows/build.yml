@@ -1,0 +1,52 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  MAVEN_OPTS: >-
+    -Dorg.slf4j.simpleLogger.showDateTime=true
+    -Djava.awt.headless=true
+  MAVEN_CLI_OPTS: >-
+    --batch-mode
+    --errors
+    --fail-at-end
+    --show-version
+    --no-transfer-progress
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.9-eclipse-temurin-21
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} -DskipTests=true clean compile
+
+      - name: Run tests
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} test
+
+      - name: Package
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} package -DskipTests=true
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dd-plist-jar
+          path: target/dd-plist.jar
+          retention-days: 14
+
+      - name: Upload binary distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: dd-plist-bin
+          path: target/dd-plist-bin.zip
+          retention-days: 14
+          if-no-files-found: ignore

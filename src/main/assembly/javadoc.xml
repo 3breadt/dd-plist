@@ -6,7 +6,7 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-    	<directory>target/javadoc</directory>
+    	<directory>${project.build.directory}/reports/apidocs</directory>
     	<outputDirectory>javadoc</outputDirectory>
 	</fileSet>
   </fileSets>

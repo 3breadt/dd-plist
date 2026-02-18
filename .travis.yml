@@ -1,7 +1,0 @@
-language: java
-arch:
-  - amd64
-jdk:
-  - openjdk8
-install: true
-script: mvn test
