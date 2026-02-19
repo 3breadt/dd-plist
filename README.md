@@ -28,7 +28,7 @@ If you use Maven and want to include the library into your project you can use t
     <dependency>
       <groupId>com.googlecode.plist</groupId>
       <artifactId>dd-plist</artifactId>
-      <version>1.28</version>
+      <version>1.29</version>
     </dependency>
 
 ## Help
@@ -68,39 +68,40 @@ For converting a file into another format there exist convenience methods in the
 
 ### Reading
 
-    try {
-      File file = new File("Info.plist");
-      NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(file);
-      String name = rootDict.objectForKey("Name").toString();
-      NSObject[] parameters = ((NSArray)rootDict.objectForKey("Parameters")).getArray();
-      for(NSObject param:parameters) {
-        if(param.getClass().equals(NSNumber.class)) {
-          NSNumber num = (NSNumber)param;
-          switch(num.type()) {
-            case NSNumber.BOOLEAN : {
-              boolean bool = num.boolValue();
-              //...
-              break;
-            }
-            case NSNumber.INTEGER : {
-              long l = num.longValue();
-              //or int i = num.intValue();
-              //...
-              break;
-            }
-            case NSNumber.REAL : {
-              double d = num.doubleValue();
-              //...
-              break;
-            }
-          }
+```java
+try {
+  File file = new File("Info.plist");
+  NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(file);
+  String name = rootDict.objectForKey("Name").toString();
+  NSObject[] parameters = ((NSArray)rootDict.objectForKey("Parameters")).getArray();
+  for(NSObject param:parameters) {
+    if(param.getClass().equals(NSNumber.class)) {
+      NSNumber num = (NSNumber)param;
+      switch(num.type()) {
+        case NSNumber.BOOLEAN : {
+          boolean bool = num.boolValue();
+          //...
+          break;
         }
-        // else...
+        case NSNumber.INTEGER : {
+          long l = num.longValue();
+          //or int i = num.intValue();
+          //...
+          break;
+        }
+        case NSNumber.REAL : {
+          double d = num.doubleValue();
+          //...
+          break;
+        }
       }
-    } catch(Exception ex) {
-      ex.printStackTrace();
     }
-
+    // else...
+  }
+} catch(Exception ex) {
+  ex.printStackTrace();
+}
+```
 
 #### On Android
 
@@ -108,46 +109,50 @@ Put your property list files into the project folder _res/raw_ to mark them as r
 
 In this example your property list file is called _properties.plist_.
 
-    try {
-      InputStream is = getResources().openRawResource(R.raw.properties);
-      NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(is);
-      //Continue parsing...
-    } catch(Exception ex) {
-      //Handle exceptions...
-    }
+```java
+try {
+  InputStream is = getResources().openRawResource(R.raw.properties);
+  NSDictionary rootDict = (NSDictionary)PropertyListParser.parse(is);
+  //Continue parsing...
+} catch(Exception ex) {
+  //Handle exceptions...
+}
+```
 
 ### Writing
 
-    //Creating the root object
-    NSDictionary root = new NSDictionary();
+```java
+//Creating the root object
+NSDictionary root = new NSDictionary();
 
-    //Creation of an array of the length 2
-    NSArray people = new NSArray(2);
+//Creation of an array of the length 2
+NSArray people = new NSArray(2);
 
-    //Creation of the first object to be stored in the array
-    NSDictionary person1 = new NSDictionary();
-    //The NSDictionary will automatically wrap strings, numbers and dates in the respective NSObject subclasses
-    person1.put("Name", "Peter"); //This will become a NSString
-    //Use the Java Calendar class to get a Date object
-    Calendar cal = Calendar.getInstance();
-    cal.set(2011, 1, 13, 9, 28);
-    person1.put("RegistrationDate", cal.getTime()); //This will become a NSDate
-    person1.put("Age", 23); //This will become a NSNumber
-    person1.put("Photo", new NSData(new File("peter.jpg")));
+//Creation of the first object to be stored in the array
+NSDictionary person1 = new NSDictionary();
+//The NSDictionary will automatically wrap strings, numbers and dates in the respective NSObject subclasses
+person1.put("Name", "Peter"); //This will become an NSString
+//Use the Java Calendar class to get a Date object
+Calendar cal = Calendar.getInstance();
+cal.set(2011, 1, 13, 9, 28);
+person1.put("RegistrationDate", cal.getTime()); //This will become an NSDate
+person1.put("Age", 23); //This will become an NSNumber
+person1.put("Photo", new NSData(new File("peter.jpg")));
 
-    //Creation of the second object to be stored in the array
-    NSDictionary person2 = new NSDictionary();
-    person2.put("Name", "Lisa");
-    person2.put("Age", 42);
-    person2.put("RegistrationDate", new NSDate("2010-09-23T12:32:42Z"));
-    person2.put("Photo", new NSData(new File("lisa.jpg")));
+//Creation of the second object to be stored in the array
+NSDictionary person2 = new NSDictionary();
+person2.put("Name", "Lisa");
+person2.put("Age", 42);
+person2.put("RegistrationDate", new NSDate("2010-09-23T12:32:42Z"));
+person2.put("Photo", new NSData(new File("lisa.jpg")));
 
-    //Put the objects into the array
-    people.setValue(0, person1);
-    people.setValue(1, person2);
+//Put the objects into the array
+people.setValue(0, person1);
+people.setValue(1, person2);
 
-    //Put the array into the property list
-    root.put("People", people);
+//Put the array into the property list
+root.put("People", people);
 
-    //Save the propery list
-    XMLPropertyListWriter.write(root, new File("people.plist"));
+//Save the propery list
+XMLPropertyListWriter.write(root, new File("people.plist"));
+```
