@@ -121,8 +121,10 @@ public class IssueTest  {
 
     @Test
     public void testIssue72_OutOfMemory_BinaryPlist() {
+        // The file declares an invalid offset table (offset size 0 and an out-of-range offset table
+        // offset). Instead of exhausting memory it must be rejected with a PropertyListFormatException.
         File plistFile = new File("test-files/github-issue72.plist");
-        assertDoesNotThrow(() -> BinaryPropertyListParser.parse(plistFile));
+        assertThrows(PropertyListFormatException.class, () -> BinaryPropertyListParser.parse(plistFile));
     }
     @Test
     public void testIssue73_AsciiPropertyListWithNonHexadecimalData() {
