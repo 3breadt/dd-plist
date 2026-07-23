@@ -200,6 +200,30 @@ public class BinaryPropertyListParserTest {
         PropertyListFormatException.class, () -> BinaryPropertyListParser.parse(plist));
   }
 
+  @Test
+  public void parse_rejectsExcessivelyNestedStructures() {
+    // https://github.com/3breadt/dd-plist/issues/104 (additional finding: unbounded recursion depth)
+    byte[] plist = buildDeeplyNestedArrayPlist(500_000);
+    assertThrows(PropertyListFormatException.class, () -> BinaryPropertyListParser.parse(plist));
+  }
+
+  @Test
+  public void parse_allowsDeeplyNestedStructuresWithinLimit() throws Exception {
+    // A legitimately (but deeply) nested structure well within the depth limit must still parse.
+    byte[] plist = buildDeeplyNestedArrayPlist(400);
+    NSObject root = BinaryPropertyListParser.parse(plist);
+
+    int depth = 0;
+    NSObject current = root;
+    while (current instanceof NSArray) {
+      depth++;
+      current = ((NSArray) current).objectAtIndex(0);
+    }
+
+    assertThat(depth, is(400));
+    assertThat(current, is(new NSNumber(false)));
+  }
+
   private static byte[] buildSingleObjectPlist(int typeNibble, byte[] lengthMarker, byte[] lengthValue)
       throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -218,5 +242,48 @@ public class BinaryPropertyListParserTest {
     trailer[31] = (byte) offsetTableOffset;         // offsetTableOffset (fits in a single byte here)
     bos.write(trailer);
     return bos.toByteArray();
+  }
+
+  private static byte[] buildDeeplyNestedArrayPlist(int depth) {
+    final int objectRefSize = 4;
+    final int offsetSize = 4;
+    final int headerLength = 8;
+    final int arrayLength = 1 + objectRefSize;                              // marker byte + one reference
+    final int numObjects = depth + 1;                                       // depth arrays + terminal
+    final int offsetTableOffset = headerLength + depth * arrayLength + 1;   // +1 for terminal object
+    final int totalLength = offsetTableOffset + numObjects * offsetSize + 32;
+
+    byte[] data = new byte[totalLength];
+    System.arraycopy(HEADER, 0, data, 0, HEADER.length);
+
+    int pos = headerLength;
+    for (int i = 0; i < depth; i++) {
+      data[pos] = (byte) 0xA1;                                             // NSArray with a single element
+      writeInt32BE(data, pos + 1, i + 1);                                  // reference to the next object
+      pos += arrayLength;
+    }
+    data[pos] = 0x08;                                                      // terminal 'false' boolean
+
+    int tablePos = offsetTableOffset;
+    for (int i = 0; i < depth; i++) {
+      writeInt32BE(data, tablePos, headerLength + i * arrayLength);
+      tablePos += offsetSize;
+    }
+    writeInt32BE(data, tablePos, headerLength + depth * arrayLength);      // offset of the terminal object
+
+    int trailer = totalLength - 32;
+    data[trailer + 6] = (byte) offsetSize;
+    data[trailer + 7] = (byte) objectRefSize;
+    writeInt32BE(data, trailer + 12, numObjects);                         // numObjects (low 32 bits)
+    // topObject stays 0 (bytes 16..23)
+    writeInt32BE(data, trailer + 28, offsetTableOffset);                  // offsetTableOffset (low 32 bits)
+    return data;
+  }
+
+  private static void writeInt32BE(byte[] data, int offset, int value) {
+    data[offset] = (byte) (value >>> 24);
+    data[offset + 1] = (byte) (value >>> 16);
+    data[offset + 2] = (byte) (value >>> 8);
+    data[offset + 3] = (byte) value;
   }
 }

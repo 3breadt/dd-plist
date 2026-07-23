@@ -58,6 +58,13 @@ import org.xml.sax.XMLReader;
 public class XMLPropertyListParser {
     private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
 
+    /**
+     * The maximum number of nested objects that will be parsed.
+     * This protects against {@link StackOverflowError}s caused by excessively (or maliciously) nested
+     * structures, while still allowing very deeply nested legitimate property lists to be parsed.
+     */
+    private static final int MAX_NESTING_DEPTH = 512;
+
     static {
         //
         // Attempt to disable parser features that can lead to XXE exploits; see:
@@ -338,7 +345,7 @@ public class XMLPropertyListParser {
             xpath = "";
         }
 
-        return parseObject(rootNode, xpath + "/" + rootNode.getNodeName());
+        return parseObject(rootNode, xpath + "/" + rootNode.getNodeName(), 1);
     }
 
     private static Document parseXml(InputSource inputSource, boolean withLineInformation) throws IOException, SAXException, ParserConfigurationException {
@@ -385,10 +392,17 @@ public class XMLPropertyListParser {
      * Parses a node in the XML structure and returns the corresponding NSObject
      *
      * @param n The XML node.
+     * @param depth The current nesting depth, used to guard against excessively nested structures.
      * @return The corresponding NSObject.
      * @throws PropertyListFormatException A parsing error occurred.
      */
-    private static NSObject parseObject(Node n, String xpath) throws PropertyListFormatException {
+    private static NSObject parseObject(Node n, String xpath, int depth) throws PropertyListFormatException {
+        if (depth > MAX_NESTING_DEPTH) {
+            throw new PropertyListFormatException(
+                    "The nesting depth of the property list exceeds the maximum supported depth of "
+                            + MAX_NESTING_DEPTH + ".");
+        }
+
         String type = n.getNodeName();
         XMLLocationInformation loc = new XMLLocationInformation(n, xpath);
         NSObject parsedObject = null;
@@ -405,7 +419,7 @@ public class XMLPropertyListParser {
 
                         Node value = children.get(i + 1);
                         String childPath = xpath + "/*[" + (1 + i + 1) + "]";
-                        dict.put(keyString, parseObject(value, childPath));
+                        dict.put(keyString, parseObject(value, childPath, depth + 1));
                     }
 
                     break;
@@ -417,7 +431,7 @@ public class XMLPropertyListParser {
 
                     for (int i = 0; i < children.size(); i++) {
                         String childPath = xpath + "/*[" + (i + 1) + "]";
-                        array.setValue(i, parseObject(children.get(i), childPath));
+                        array.setValue(i, parseObject(children.get(i), childPath, depth + 1));
                     }
 
                     break;

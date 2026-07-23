@@ -4,6 +4,7 @@ import com.dd.plist.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.BiConsumer;
 
@@ -129,6 +130,64 @@ public class XMLPropertyListParserTest {
         new File("test-files/infinity-xml.plist"));
     assertEquals(Double.POSITIVE_INFINITY, ((NSNumber) dictFromXml.get("a")).doubleValue());
     assertEquals(Double.NEGATIVE_INFINITY, ((NSNumber) dictFromXml.get("b")).doubleValue());
+  }
+
+  /**
+   * Verifies that an excessively (or maliciously) nested XML property list is rejected with a
+   * {@link PropertyListFormatException} instead of causing a {@link StackOverflowError}.
+   */
+  @Test
+  public void parse_rejectsExcessivelyNestedStructures() {
+    byte[] plist = buildDeeplyNestedArrayPlist(50000).getBytes(StandardCharsets.UTF_8);
+    PropertyListFormatException ex = assertThrows(
+        PropertyListFormatException.class,
+        () -> XMLPropertyListParser.parse(plist));
+    assertTrue(ex.getMessage().contains("nesting depth"),
+        "Unexpected exception message: " + ex.getMessage());
+  }
+
+  /**
+   * Verifies that a legitimately deeply nested XML property list within the supported depth limit
+   * can still be parsed.
+   */
+  @Test
+  public void parse_allowsDeeplyNestedStructuresWithinLimit() throws Exception {
+    byte[] plist = buildDeeplyNestedArrayPlist(400).getBytes(StandardCharsets.UTF_8);
+    NSObject parsed = XMLPropertyListParser.parse(plist);
+
+    int depth = 0;
+    NSObject current = parsed;
+    while (current instanceof NSArray) {
+      NSArray array = (NSArray) current;
+      assertEquals(1, array.count());
+      current = array.objectAtIndex(0);
+      depth++;
+    }
+
+    assertEquals(400, depth);
+    assertEquals(new NSString("leaf"), current);
+  }
+
+  /**
+   * Builds an XML property list consisting of {@code depth} nested arrays, each containing a single
+   * child, with an innermost {@code <string>} leaf element.
+   *
+   * @param depth The number of nested array elements.
+   * @return The XML property list as a string.
+   */
+  private static String buildDeeplyNestedArrayPlist(int depth) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    builder.append("<plist version=\"1.0\">");
+    for (int i = 0; i < depth; i++) {
+      builder.append("<array>");
+    }
+    builder.append("<string>leaf</string>");
+    for (int i = 0; i < depth; i++) {
+      builder.append("</array>");
+    }
+    builder.append("</plist>");
+    return builder.toString();
   }
 
   private void testXmlEncoding(String encoding) throws Exception {
