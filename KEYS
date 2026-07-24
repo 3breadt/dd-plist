@@ -1,0 +1,54 @@
+This file contains the OpenPGP public keys used to sign dd-plist releases.
+
+Users:
+    gpg --import KEYS
+
+Developers:
+    (gpg --list-sigs <name> && gpg --armor --export <name>) >> KEYS
+
+Do not remove keys that have been used to sign a release. They are retained so
+that archived releases remain verifiable.
+
+pub   ed25519 2026-02-19 [SC] [expires: 2029-02-19]
+      57A9 B92F EEDC 551C 3A5E  5E5F 6373 8466 88F5 87B4
+uid           Daniel Dreibrodt <daniel.dreibrodt@gmail.com>
+sub   cv25519 2026-02-19 [E] [expires: 2029-02-19]
+      72B2 D20F 8207 4BFF 5C60  AA99 806A DBCB 730C 571E
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEaZcNzRYJKwYBBAHaRw8BAQdA0lS6ITI0xkuBAG3sa3h6Wsl5hwVtf9GhUhjB
+D859Sfy0LURhbmllbCBEcmVpYnJvZHQgPGRhbmllbC5kcmVpYnJvZHRAZ21haWwu
+Y29tPoiZBBMWCgBBFiEEV6m5L+7cVRw6Xl5fY3OEZoj1h7QFAmmXDc0CGwMFCQWk
+y2MFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQY3OEZoj1h7QtbAD/XMLw
+krG8YMYueGZzv0bzS9vpvShTciMb0vU2jERkp0oA/0OHS5cJpue90VKn8qrskgFz
+vRt89o7rbKsISXbaHlEOuDgEaZcNzRIKKwYBBAGXVQEFAQEHQDN8O8soilRJCIaE
+1RDA91NGfKemAYReKS84jqQKhpxrAwEIB4h+BBgWCgAmFiEEV6m5L+7cVRw6Xl5f
+Y3OEZoj1h7QFAmmXDc0CGwwFCQWky2MACgkQY3OEZoj1h7R0XwD9HpmXDji6bcvL
+FoGHh7T3Ai5iEy/nB6XlHcU3nFHqemYA/0X47uW9dq1wrVg8aBp7Dl4DXZl8e4GW
+4TiVvevYvrEI
+=5u0v
+-----END PGP PUBLIC KEY BLOCK-----
+
+Expired key used to sign older releases:
+
+pub   ed25519 2022-06-23 [SC] [expired: 2024-06-23]
+      1CEE D21A 8E77 F056 ED23  41A8 4410 6031 03CE 3AF4
+uid           Daniel Dreibrodt <daniel.dreibrodt@gmail.com>
+sub   cv25519 2022-06-23 [E] [expired: 2024-06-23]
+      3336 155D 923E DE2E 79BA  29DE F017 5BF0 5CF5 05EB
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEYrTVvBYJKwYBBAHaRw8BAQdAAWAwXlV1MkbTfXEq8j8KKzxLEO1PdtsVP4rt
+uv14C0C0LURhbmllbCBEcmVpYnJvZHQgPGRhbmllbC5kcmVpYnJvZHRAZ21haWwu
+Y29tPoiZBBMWCgBBFiEEHO7SGo538FbtI0GoRBBgMQPOOvQFAmK01bwCGwMFCQPD
+HGQFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQRBBgMQPOOvSOsQEAhfAF
+bC6wW8xW11Ngm+POz8ohmqYkJ5AtEpDC5z2M+8kA/1AXxpfwKjHuhKD4k2P/hgZU
+sGPB763VB8W3Lq+mxdgBuDgEYrTVvBIKKwYBBAGXVQEFAQEHQNOP3+93kdr4C1X6
+0BSyrT7ueZwisrm1uKF4HnU3gGFhAwEIB4h+BBgWCgAmFiEEHO7SGo538FbtI0Go
+RBBgMQPOOvQFAmK01bwCGwwFCQPDHGQACgkQRBBgMQPOOvSe6QD/ZbIq27JRx4MZ
+3+g21CVHDn92VKlLln3A35xmao4EbZoA/if8BhKBK0IhPxqtYrzKBIbPP8CoSW3T
+eOOgpBUaeZMG
+=CAVU
+-----END PGP PUBLIC KEY BLOCK-----
