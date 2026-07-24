@@ -1,0 +1,68 @@
+name: Publish JavaDoc
+
+on:
+  push:
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag or commit to document
+        required: true
+        default: v1.30.0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build JavaDoc
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out release
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.ref || github.ref }}
+
+    - name: Set up Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: maven
+
+    - name: Test and generate JavaDoc
+      run: >
+        mvn --batch-mode --errors --no-transfer-progress clean test javadoc:javadoc
+
+    - name: Configure GitHub Pages
+      uses: actions/configure-pages@v5
+
+    - name: Upload JavaDoc
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: target/reports/apidocs
+
+  deploy:
+    name: Deploy JavaDoc
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Deploy JavaDoc
+      id: deployment
+      uses: actions/deploy-pages@v4
