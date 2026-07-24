@@ -56,8 +56,10 @@
     <url>https://github.com/3breadt/dd-plist/tree/master</url>
   </scm>
   <properties>
+    <google-java-format.version>1.35.0</google-java-format.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>8</maven.compiler.release>
+    <spotless.version>3.6.0</spotless.version>
   </properties>
   <distributionManagement>
     <snapshotRepository>
@@ -68,6 +70,32 @@
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <lineEndings>UNIX</lineEndings>
+            <googleJavaFormat>
+              <version>${google-java-format.version}</version>
+              <style>GOOGLE</style>
+            </googleJavaFormat>
+            <removeUnusedImports />
+            <trimTrailingWhitespace />
+            <endWithNewline />
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <id>check-java-format</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

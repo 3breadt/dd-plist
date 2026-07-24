@@ -41,329 +41,336 @@ import java.util.Objects;
  */
 public final class BinaryPropertyListWriter {
 
-    private static final int VERSION_00 = 0;
-    private static final int VERSION_10 = 10;
-    private static final int VERSION_15 = 15;
-    private static final int VERSION_20 = 20;
+  private static final int VERSION_00 = 0;
+  private static final int VERSION_10 = 10;
+  private static final int VERSION_15 = 15;
+  private static final int VERSION_20 = 20;
 
-    private int version = VERSION_00;
+  private int version = VERSION_00;
 
-    // raw output stream to result file
-    private final OutputStream out;
+  // raw output stream to result file
+  private final OutputStream out;
 
-    // # of bytes written so far
-    private long count;
+  // # of bytes written so far
+  private long count;
 
-    // map from object to its ID
-    private final Map<NSObject, Integer> idMap = new LinkedHashMap<>();
-    private int idSizeInBytes;
+  // map from object to its ID
+  private final Map<NSObject, Integer> idMap = new LinkedHashMap<>();
+  private int idSizeInBytes;
 
-    /**
-     * Creates a new binary property list writer
-     *
-     * @param outStr The output stream into which the binary property list will be written
-     * @param version The binary property list format version.
-     */
-    BinaryPropertyListWriter(OutputStream outStr, int version) {
-        this.version = version;
-        this.out = new BufferedOutputStream(outStr);
+  /**
+   * Creates a new binary property list writer
+   *
+   * @param outStr The output stream into which the binary property list will be written
+   * @param version The binary property list format version.
+   */
+  BinaryPropertyListWriter(OutputStream outStr, int version) {
+    this.version = version;
+    this.out = new BufferedOutputStream(outStr);
+  }
+
+  /**
+   * Finds out the minimum binary property list format version that can be used to save the given
+   * NSObject tree.
+   *
+   * @param root Object root
+   * @return Version code
+   */
+  private static int getMinimumRequiredVersion(NSObject root) {
+    int minVersion = VERSION_00;
+    if (root == null) {
+      minVersion = VERSION_10;
+    }
+    if (root instanceof NSDictionary) {
+      NSDictionary dict = (NSDictionary) root;
+      for (NSObject o : dict.getHashMap().values()) {
+        int v = getMinimumRequiredVersion(o);
+        if (v > minVersion) minVersion = v;
+      }
+    } else if (root instanceof NSArray) {
+      NSArray array = (NSArray) root;
+      for (NSObject o : array.getArray()) {
+        int v = getMinimumRequiredVersion(o);
+        if (v > minVersion) minVersion = v;
+      }
+    } else if (root instanceof NSSet) {
+      // Sets are only allowed in property lists v1+
+      minVersion = VERSION_10;
+      NSSet set = (NSSet) root;
+      for (NSObject o : set.allObjects()) {
+        int v = getMinimumRequiredVersion(o);
+        if (v > minVersion) minVersion = v;
+      }
+    }
+    return minVersion;
+  }
+
+  /**
+   * Writes a binary plist file with the given object as the root.
+   *
+   * @param file The file to write to.
+   * @param root The source of the data to write to the file.
+   * @throws IOException If an I/O error occurs while writing to the file or the object structure
+   *     contains data that cannot be saved.
+   * @deprecated Use the overload that takes the root as first argument and the file as second.
+   */
+  @Deprecated
+  public static void write(File file, NSObject root) throws IOException {
+    write(root, file.toPath());
+  }
+
+  /**
+   * Writes a binary plist file with the given object as the root.
+   *
+   * @param root The source of the data to write to the file.
+   * @param file The file to write to.
+   * @throws IOException If an I/O error occurs while writing to the file or the object structure
+   *     contains data that cannot be saved.
+   */
+  public static void write(NSObject root, File file) throws IOException {
+    write(root, file.toPath());
+  }
+
+  /**
+   * Writes a binary plist file with the given object as the root.
+   *
+   * @param root The source of the data to write to the file.
+   * @param file The file to write to.
+   * @param createParentDirectories If set to true, the file's parent directories will be created.
+   * @throws IOException If an I/O error occurs while writing to the file or the object structure
+   *     contains data that cannot be saved.
+   */
+  public static void write(NSObject root, File file, boolean createParentDirectories)
+      throws IOException {
+    if (createParentDirectories) {
+      File parent = file.getParentFile();
+      if (!parent.exists() && !parent.mkdirs()) {
+        throw new IOException("The output directory does not exist and could not be created.");
+      }
     }
 
-    /**
-     * Finds out the minimum binary property list format version that
-     * can be used to save the given NSObject tree.
-     *
-     * @param root Object root
-     * @return Version code
-     */
-    private static int getMinimumRequiredVersion(NSObject root) {
-        int minVersion = VERSION_00;
-        if (root == null) {
-            minVersion = VERSION_10;
+    write(root, file.toPath());
+  }
+
+  /**
+   * Writes a binary plist file with the given object as the root.
+   *
+   * @param root The source of the data to write to the file.
+   * @param path The path of the file to write to.
+   * @throws IOException If an I/O error occurs while writing to the file or the object structure
+   *     contains data that cannot be saved.
+   */
+  public static void write(NSObject root, Path path) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
+
+    try (OutputStream fileOutputStream = Files.newOutputStream(path)) {
+      write(fileOutputStream, root);
+    }
+  }
+
+  /**
+   * Writes a binary plist serialization of the given object as the root. This method does not close
+   * the output stream.
+   *
+   * @param out The stream to write to.
+   * @param root The source of the data to write to the stream.
+   * @throws IOException If an I/O error occurs while writing to the stream or the object structure
+   *     contains data that cannot be saved.
+   * @deprecated Use the overload that takes the root as first argument and the stream as second.
+   */
+  @Deprecated
+  public static void write(OutputStream out, NSObject root) throws IOException {
+    write(root, out);
+  }
+
+  /**
+   * Writes a binary plist serialization of the given object as the root. This method does not close
+   * the output stream.
+   *
+   * @param root The source of the data to write to the stream.
+   * @param out The stream to write to.
+   * @throws IOException If an I/O error occurs while writing to the stream or the object structure
+   *     contains data that cannot be saved.
+   */
+  public static void write(NSObject root, OutputStream out) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
+    Objects.requireNonNull(out, "The output stream is null.");
+
+    int minVersion = getMinimumRequiredVersion(root);
+    if (minVersion > VERSION_00) {
+      String versionString =
+          minVersion == VERSION_10
+              ? "v1.0"
+              : (minVersion == VERSION_15 ? "v1.5" : (minVersion == VERSION_20 ? "v2.0" : "v0.0"));
+      throw new IOException(
+          "The given property list structure cannot be saved. "
+              + "The required version of the binary format ("
+              + versionString
+              + ") is not yet supported.");
+    }
+
+    BinaryPropertyListWriter w = new BinaryPropertyListWriter(out, minVersion);
+    w.write(root);
+  }
+
+  /**
+   * Writes a binary plist serialization of the given object as the root into a byte array.
+   *
+   * @param root The root object of the property list
+   * @return The byte array containing the serialized property list
+   * @throws IOException If an I/O error occurs while writing to the stream or the object structure
+   *     contains data that cannot be saved.
+   */
+  public static byte[] writeToArray(NSObject root) throws IOException {
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    write(bout, root);
+    return bout.toByteArray();
+  }
+
+  void write(NSObject root) throws IOException {
+    // magic bytes
+    this.write(new byte[] {'b', 'p', 'l', 'i', 's', 't'});
+
+    // version
+    switch (this.version) {
+      case VERSION_00:
+        {
+          this.write(new byte[] {'0', '0'});
+          break;
         }
-        if (root instanceof NSDictionary) {
-            NSDictionary dict = (NSDictionary) root;
-            for (NSObject o : dict.getHashMap().values()) {
-                int v = getMinimumRequiredVersion(o);
-                if (v > minVersion)
-                    minVersion = v;
-            }
-        } else if (root instanceof NSArray) {
-            NSArray array = (NSArray) root;
-            for (NSObject o : array.getArray()) {
-                int v = getMinimumRequiredVersion(o);
-                if (v > minVersion)
-                    minVersion = v;
-            }
-        } else if (root instanceof NSSet) {
-            //Sets are only allowed in property lists v1+
-            minVersion = VERSION_10;
-            NSSet set = (NSSet) root;
-            for (NSObject o : set.allObjects()) {
-                int v = getMinimumRequiredVersion(o);
-                if (v > minVersion)
-                    minVersion = v;
-            }
+      case VERSION_10:
+        {
+          this.write(new byte[] {'1', '0'});
+          break;
         }
-        return minVersion;
-    }
-
-    /**
-     * Writes a binary plist file with the given object as the root.
-     *
-     * @param file The file to write to.
-     * @param root The source of the data to write to the file.
-     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
-     *                     data that cannot be saved.
-     * @deprecated Use the overload that takes the root as first argument and the file as second.
-     */
-    @Deprecated
-    public static void write(File file, NSObject root) throws IOException {
-        write(root, file.toPath());
-    }
-
-    /**
-     * Writes a binary plist file with the given object as the root.
-     *
-     * @param root The source of the data to write to the file.
-     * @param file The file to write to.
-     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
-     *                     data that cannot be saved.
-     */
-    public static void write(NSObject root, File file) throws IOException {
-        write(root, file.toPath());
-    }
-
-    /**
-     * Writes a binary plist file with the given object as the root.
-     *
-     * @param root The source of the data to write to the file.
-     * @param file The file to write to.
-     * @param createParentDirectories If set to true, the file's parent directories will be created.
-     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
-     *                     data that cannot be saved.
-     */
-    public static void write(NSObject root, File file, boolean createParentDirectories) throws IOException {
-        if (createParentDirectories) {
-            File parent = file.getParentFile();
-            if (!parent.exists() && !parent.mkdirs()) {
-                throw new IOException("The output directory does not exist and could not be created.");
-            }
+      case VERSION_15:
+        {
+          this.write(new byte[] {'1', '5'});
+          break;
         }
-
-        write(root, file.toPath());
-    }
-
-    /**
-     * Writes a binary plist file with the given object as the root.
-     *
-     * @param root The source of the data to write to the file.
-     * @param path The path of the file to write to.
-     * @throws IOException If an I/O error occurs while writing to the file or the object structure contains
-     *                     data that cannot be saved.
-     */
-    public static void write(NSObject root, Path path) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
-
-        try (OutputStream fileOutputStream = Files.newOutputStream(path)) {
-            write(fileOutputStream, root);
+      case VERSION_20:
+        {
+          this.write(new byte[] {'2', '0'});
+          break;
         }
+      default:
+        break;
     }
 
-    /**
-     * Writes a binary plist serialization of the given object as the root.
-     * This method does not close the output stream.
-     *
-     * @param out  The stream to write to.
-     * @param root The source of the data to write to the stream.
-     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
-     *                     data that cannot be saved.
-     * @deprecated Use the overload that takes the root as first argument and the stream as second.
-     */
-    @Deprecated
-    public static void write(OutputStream out, NSObject root) throws IOException {
-        write(root, out);
+    // assign IDs to all the objects.
+    root.assignIDs(this);
+
+    this.idSizeInBytes = computeIdSizeInBytes(this.idMap.size());
+
+    // offsets of each object, indexed by ID
+    long[] offsets = new long[this.idMap.size()];
+
+    // write each object, save offset
+    for (Map.Entry<NSObject, Integer> entry : this.idMap.entrySet()) {
+      NSObject obj = entry.getKey();
+      int id = entry.getValue();
+      offsets[id] = this.count;
+      if (obj == null) {
+        this.write(0x00);
+      } else {
+        obj.toBinary(this);
+      }
     }
 
-    /**
-     * Writes a binary plist serialization of the given object as the root.
-     * This method does not close the output stream.
-     *
-     * @param root The source of the data to write to the stream.
-     * @param out  The stream to write to.
-     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
-     *                     data that cannot be saved.
-     */
-    public static void write(NSObject root, OutputStream out) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
-        Objects.requireNonNull(out, "The output stream is null.");
-
-        int minVersion = getMinimumRequiredVersion(root);
-        if (minVersion > VERSION_00) {
-            String versionString = minVersion == VERSION_10 ? "v1.0" : (minVersion == VERSION_15 ? "v1.5" : (minVersion == VERSION_20 ? "v2.0" : "v0.0"));
-            throw new IOException("The given property list structure cannot be saved. " +
-                    "The required version of the binary format (" + versionString + ") is not yet supported.");
-        }
-
-        BinaryPropertyListWriter w = new BinaryPropertyListWriter(out, minVersion);
-        w.write(root);
+    // write offset table
+    long offsetTableOffset = this.count;
+    int offsetSizeInBytes = this.computeOffsetSizeInBytes(this.count);
+    for (long offset : offsets) {
+      this.writeBytes(offset, offsetSizeInBytes);
     }
 
-    /**
-     * Writes a binary plist serialization of the given object as the root
-     * into a byte array.
-     *
-     * @param root The root object of the property list
-     * @return The byte array containing the serialized property list
-     * @throws IOException If an I/O error occurs while writing to the stream or the object structure contains
-     *                     data that cannot be saved.
-     */
-    public static byte[] writeToArray(NSObject root) throws IOException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        write(bout, root);
-        return bout.toByteArray();
+    if (this.version != VERSION_15) {
+      // write trailer
+      // 6 null bytes
+      this.write(new byte[6]);
+      // size of an offset
+      this.write(offsetSizeInBytes);
+      // size of a ref
+      this.write(this.idSizeInBytes);
+      // number of objects
+      this.writeLong(this.idMap.size());
+      // top object
+      this.writeLong(this.idMap.get(root));
+      // offset table offset
+      this.writeLong(offsetTableOffset);
     }
 
-    void write(NSObject root) throws IOException {
-        // magic bytes
-        this.write(new byte[]{'b', 'p', 'l', 'i', 's', 't'});
+    this.out.flush();
+  }
 
-        //version
-        switch (this.version) {
-            case VERSION_00: {
-                this.write(new byte[]{'0', '0'});
-                break;
-            }
-            case VERSION_10: {
-                this.write(new byte[]{'1', '0'});
-                break;
-            }
-            case VERSION_15: {
-                this.write(new byte[]{'1', '5'});
-                break;
-            }
-            case VERSION_20: {
-                this.write(new byte[]{'2', '0'});
-                break;
-            }
-            default:
-                break;
-        }
-
-        // assign IDs to all the objects.
-        root.assignIDs(this);
-
-        this.idSizeInBytes = computeIdSizeInBytes(this.idMap.size());
-
-        // offsets of each object, indexed by ID
-        long[] offsets = new long[this.idMap.size()];
-
-        // write each object, save offset
-        for (Map.Entry<NSObject, Integer> entry : this.idMap.entrySet()) {
-            NSObject obj = entry.getKey();
-            int id = entry.getValue();
-            offsets[id] = this.count;
-            if (obj == null) {
-                this.write(0x00);
-            } else {
-                obj.toBinary(this);
-            }
-        }
-
-        // write offset table
-        long offsetTableOffset = this.count;
-        int offsetSizeInBytes = this.computeOffsetSizeInBytes(this.count);
-        for (long offset : offsets) {
-            this.writeBytes(offset, offsetSizeInBytes);
-        }
-
-        if (this.version != VERSION_15) {
-            // write trailer
-            // 6 null bytes
-            this.write(new byte[6]);
-            // size of an offset
-            this.write(offsetSizeInBytes);
-            // size of a ref
-            this.write(this.idSizeInBytes);
-            // number of objects
-            this.writeLong(this.idMap.size());
-            // top object
-            this.writeLong(this.idMap.get(root));
-            // offset table offset
-            this.writeLong(offsetTableOffset);
-        }
-
-        this.out.flush();
+  void assignID(NSObject obj) {
+    if (!this.idMap.containsKey(obj)) {
+      this.idMap.put(obj, this.idMap.size());
     }
+  }
 
-    void assignID(NSObject obj) {
-        if (!this.idMap.containsKey(obj)) {
-            this.idMap.put(obj, this.idMap.size());
-        }
-    }
+  int getID(NSObject obj) {
+    return this.idMap.get(obj);
+  }
 
-    int getID(NSObject obj) {
-        return this.idMap.get(obj);
-    }
+  private static int computeIdSizeInBytes(int numberOfIds) {
+    if (numberOfIds < 256) return 1;
+    if (numberOfIds < 65536) return 2;
+    return 4;
+  }
 
-    private static int computeIdSizeInBytes(int numberOfIds) {
-        if (numberOfIds < 256) return 1;
-        if (numberOfIds < 65536) return 2;
-        return 4;
-    }
+  private int computeOffsetSizeInBytes(long maxOffset) {
+    if (maxOffset < 256) return 1;
+    if (maxOffset < 65536) return 2;
+    if (maxOffset < 4294967296L) return 4;
+    return 8;
+  }
 
-    private int computeOffsetSizeInBytes(long maxOffset) {
-        if (maxOffset < 256) return 1;
-        if (maxOffset < 65536) return 2;
-        if (maxOffset < 4294967296L) return 4;
-        return 8;
+  void writeIntHeader(int kind, int value) throws IOException {
+    assert value >= 0;
+    if (value < 15) {
+      this.write((kind << 4) + value);
+    } else if (value < 256) {
+      this.write((kind << 4) + 15);
+      this.write(0x10);
+      this.writeBytes(value, 1);
+    } else if (value < 65536) {
+      this.write((kind << 4) + 15);
+      this.write(0x11);
+      this.writeBytes(value, 2);
+    } else {
+      this.write((kind << 4) + 15);
+      this.write(0x12);
+      this.writeBytes(value, 4);
     }
+  }
 
-    void writeIntHeader(int kind, int value) throws IOException {
-        assert value >= 0;
-        if (value < 15) {
-            this.write((kind << 4) + value);
-        } else if (value < 256) {
-            this.write((kind << 4) + 15);
-            this.write(0x10);
-            this.writeBytes(value, 1);
-        } else if (value < 65536) {
-            this.write((kind << 4) + 15);
-            this.write(0x11);
-            this.writeBytes(value, 2);
-        } else {
-            this.write((kind << 4) + 15);
-            this.write(0x12);
-            this.writeBytes(value, 4);
-        }
-    }
+  void write(int b) throws IOException {
+    this.out.write(b);
+    this.count++;
+  }
 
-    void write(int b) throws IOException {
-        this.out.write(b);
-        this.count++;
-    }
+  void write(byte[] bytes) throws IOException {
+    this.out.write(bytes);
+    this.count += bytes.length;
+  }
 
-    void write(byte[] bytes) throws IOException {
-        this.out.write(bytes);
-        this.count += bytes.length;
+  void writeBytes(long value, int bytes) throws IOException {
+    // write low-order bytes big-endian style
+    for (int i = bytes - 1; i >= 0; i--) {
+      this.write((int) (value >> (8 * i)));
     }
+  }
 
-    void writeBytes(long value, int bytes) throws IOException {
-        // write low-order bytes big-endian style
-        for (int i = bytes - 1; i >= 0; i--) {
-            this.write((int) (value >> (8 * i)));
-        }
-    }
+  void writeID(int id) throws IOException {
+    this.writeBytes(id, this.idSizeInBytes);
+  }
 
-    void writeID(int id) throws IOException {
-        this.writeBytes(id, this.idSizeInBytes);
-    }
+  void writeLong(long value) throws IOException {
+    this.writeBytes(value, 8);
+  }
 
-    void writeLong(long value) throws IOException {
-        this.writeBytes(value, 8);
-    }
-
-    void writeDouble(double value) throws IOException {
-        this.writeLong(Double.doubleToRawLongBits(value));
-    }
+  void writeDouble(double value) throws IOException {
+    this.writeLong(Double.doubleToRawLongBits(value));
+  }
 }

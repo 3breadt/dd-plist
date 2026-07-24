@@ -27,75 +27,76 @@ import java.io.IOException;
 
 /**
  * Internally used representation of the null value for storing it inside dictionaries and sets.
+ *
  * @author Daniel Dreibrodt
  */
 public final class NSNull extends NSObject {
 
-    private static final NSNull NULL = new NSNull();
+  private static final NSNull NULL = new NSNull();
 
-    private NSNull() {
+  private NSNull() {}
+
+  /**
+   * Returns the specified NSObject if it is not null, or a NSNull instance otherwise.
+   *
+   * @param o The object.
+   * @return The non-null object, or a NSNull instance.
+   */
+  static NSObject wrap(NSObject o) {
+    return o == null ? NULL : o;
+  }
+
+  /**
+   * Returns the specified NSObject if it is not a NSNull instance, or null otherwise.
+   *
+   * @param o The object.
+   * @return The non-null object, or null.
+   */
+  static NSObject unwrap(NSObject o) {
+    return o == NULL ? null : o;
+  }
+
+  @Override
+  public NSObject clone() {
+    return this;
+  }
+
+  @Override
+  public Object toJavaObject() {
+    return null;
+  }
+
+  @Override
+  void toXML(StringBuilder xml, int level) {
+    throw new NullPointerException("A null value cannot be represented in an XML property list.");
+  }
+
+  @Override
+  void toBinary(BinaryPropertyListWriter out) throws IOException {
+    out.write(0x00);
+  }
+
+  @Override
+  protected void toASCII(StringBuilder ascii, int level) {
+    throw new NullPointerException("A null value cannot be represented in an ASCII property list.");
+  }
+
+  @Override
+  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+    throw new NullPointerException("A null value cannot be represented in an ASCII property list.");
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj == NULL;
+  }
+
+  @Override
+  public int compareTo(NSObject o) {
+    if (o == NULL) {
+      return 0;
     }
 
-    /**
-     * Returns the specified NSObject if it is not null, or a NSNull instance otherwise.
-     * @param o The object.
-     * @return The non-null object, or a NSNull instance.
-     */
-    static NSObject wrap(NSObject o) {
-        return o == null ? NULL : o;
-    }
-
-    /**
-     * Returns the specified NSObject if it is not a NSNull instance, or null otherwise.
-     * @param o The object.
-     * @return The non-null object, or null.
-     */
-    static NSObject unwrap(NSObject o) {
-        return o == NULL ? null : o;
-    }
-
-    @Override
-    public NSObject clone() {
-        return this;
-    }
-
-    @Override
-    public Object toJavaObject() {
-        return null;
-    }
-
-    @Override
-    void toXML(StringBuilder xml, int level)  {
-        throw new NullPointerException("A null value cannot be represented in an XML property list.");
-    }
-
-    @Override
-    void toBinary(BinaryPropertyListWriter out) throws IOException {
-        out.write(0x00);
-    }
-
-    @Override
-    protected void toASCII(StringBuilder ascii, int level) {
-        throw new NullPointerException("A null value cannot be represented in an ASCII property list.");
-    }
-
-    @Override
-    protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-        throw new NullPointerException("A null value cannot be represented in an ASCII property list.");
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj == NULL;
-    }
-
-    @Override
-    public int compareTo(NSObject o) {
-        if (o == NULL)
-        {
-            return 0;
-        }
-
-        return o == null ? 1 : -1;
-    }
+    return o == null ? 1 : -1;
+  }
 }

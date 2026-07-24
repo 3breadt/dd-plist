@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the {@link ASCIIPropertyListWriter} class.
+ *
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListWriterTest {
@@ -22,7 +23,8 @@ public class ASCIIPropertyListWriterTest {
     NSDictionary x = (NSDictionary) PropertyListParser.parse(in);
     ASCIIPropertyListWriter.write(x, out);
 
-    //Information gets lost when saving into the ASCII format (NSNumbers are converted to NSStrings)
+    // Information gets lost when saving into the ASCII format (NSNumbers are converted to
+    // NSStrings)
 
     NSDictionary y = (NSDictionary) PropertyListParser.parse(out);
     NSDictionary z = (NSDictionary) PropertyListParser.parse(in2);

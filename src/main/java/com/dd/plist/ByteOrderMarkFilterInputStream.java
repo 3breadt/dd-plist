@@ -29,53 +29,52 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
-/**
- * An input stream that filters the Byte Order Mark from the input.
- */
+/** An input stream that filters the Byte Order Mark from the input. */
 class ByteOrderMarkFilterInputStream extends FilterInputStream {
-    private final boolean closeStream;
-    private boolean readingBom = true;
-    private final Queue<Integer> consumedBytes = new LinkedList<>();
+  private final boolean closeStream;
+  private boolean readingBom = true;
+  private final Queue<Integer> consumedBytes = new LinkedList<>();
 
-    /**
-     * Creates a {@code ByteOrderMarkFilterInputStream} instance.
-     *
-     * @param in the underlying input stream.
-     * @param closeStream If set to {@code false} the original input stream is not closed when the filtered stream is closed.
-     */
-    public ByteOrderMarkFilterInputStream(InputStream in, boolean closeStream) {
-        super(in);
-        this.closeStream = closeStream;
+  /**
+   * Creates a {@code ByteOrderMarkFilterInputStream} instance.
+   *
+   * @param in the underlying input stream.
+   * @param closeStream If set to {@code false} the original input stream is not closed when the
+   *     filtered stream is closed.
+   */
+  public ByteOrderMarkFilterInputStream(InputStream in, boolean closeStream) {
+    super(in);
+    this.closeStream = closeStream;
+  }
+
+  @Override
+  public int read() throws IOException {
+    if (this.readingBom) {
+      int b;
+      ByteOrderMarkReader bomReader = new ByteOrderMarkReader();
+      do {
+        b = super.read();
+        this.consumedBytes.add(b);
+        this.readingBom = bomReader.readByte(b);
+      } while (this.readingBom);
+
+      if (bomReader.getDetectedCharset() != null) {
+        this.consumedBytes.clear();
+        return b;
+      }
     }
 
-    @Override
-    public int read() throws IOException {
-        if (this.readingBom) {
-            int b;
-            ByteOrderMarkReader bomReader = new ByteOrderMarkReader();
-            do {
-                b = super.read();
-                this.consumedBytes.add(b);
-                this.readingBom = bomReader.readByte(b);
-            }
-            while (this.readingBom);
-
-            if (bomReader.getDetectedCharset() != null) {
-                this.consumedBytes.clear();
-                return b;
-            }
-        }
-
-        if (this.consumedBytes.size() > 0) {
-            return this.consumedBytes.poll();
-        }
-
-        return super.read();
+    if (this.consumedBytes.size() > 0) {
+      return this.consumedBytes.poll();
     }
 
-    @Override public void close() throws IOException {
-        if (this.closeStream) {
-            super.close();
-        }
+    return super.read();
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (this.closeStream) {
+      super.close();
     }
+  }
 }

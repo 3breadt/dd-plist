@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the {@link ASCIIPropertyListParser} class.
+ *
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListParserTest {
@@ -38,8 +39,9 @@ public class ASCIIPropertyListParserTest {
     assertEquals("valueA", d.objectForKey("keyA").toString());
     assertEquals("value&B", d.objectForKey("key&B").toString());
     assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
-    assertArrayEquals(((NSData) d.objectForKey("data")).bytes(),
-        new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
+    assertArrayEquals(
+        ((NSData) d.objectForKey("data")).bytes(),
+        new byte[] {0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
     NSArray a = (NSArray) d.objectForKey("array");
     assertEquals(4, a.count());
     assertEquals(a.objectAtIndex(0), new NSString("YES"));
@@ -54,13 +56,15 @@ public class ASCIIPropertyListParserTest {
     String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.US_ASCII);
     List<String> lines = Files.readAllLines(file.toPath());
 
-    BiConsumer<NSObject, String> locationChecker = (NSObject object, String token) -> {
-      ASCIILocationInformation location = assertInstanceOf(ASCIILocationInformation.class,
-          object.getLocationInformation());
-      assertEquals(text.indexOf(token), location.getOffset());
-      assertEquals(lines.get(location.getLineNumber() - 1).indexOf(token),
-          location.getColumnNumber() - 1);
-    };
+    BiConsumer<NSObject, String> locationChecker =
+        (NSObject object, String token) -> {
+          ASCIILocationInformation location =
+              assertInstanceOf(ASCIILocationInformation.class, object.getLocationInformation());
+          assertEquals(text.indexOf(token), location.getOffset());
+          assertEquals(
+              lines.get(location.getLineNumber() - 1).indexOf(token),
+              location.getColumnNumber() - 1);
+        };
 
     NSObject x = PropertyListParser.parse(file);
     NSDictionary d = (NSDictionary) x;
@@ -78,23 +82,25 @@ public class ASCIIPropertyListParserTest {
   }
 
   @Test
-  public void parse_providesCorrectObjectLocationsWhenAdditionalLineBreaksArePresent() throws Exception {
+  public void parse_providesCorrectObjectLocationsWhenAdditionalLineBreaksArePresent()
+      throws Exception {
     File file = new File("test-files/test1-ascii-multiline-handling.plist");
     String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.US_ASCII);
     List<String> lines = Files.readAllLines(file.toPath());
 
-    BiConsumer<NSObject, String> locationChecker = (NSObject object, String token) -> {
-      ASCIILocationInformation location = assertInstanceOf(ASCIILocationInformation.class,
-          object.getLocationInformation());
-      assertEquals(
-          text.indexOf(token),
-          location.getOffset(),
-          "Incorrect location of " + object + ": " + location);
-      assertEquals(
-          lines.get(location.getLineNumber() - 1).indexOf(token),
-          location.getColumnNumber() - 1,
-          "Incorrect location of " + object + ": " + location);
-    };
+    BiConsumer<NSObject, String> locationChecker =
+        (NSObject object, String token) -> {
+          ASCIILocationInformation location =
+              assertInstanceOf(ASCIILocationInformation.class, object.getLocationInformation());
+          assertEquals(
+              text.indexOf(token),
+              location.getOffset(),
+              "Incorrect location of " + object + ": " + location);
+          assertEquals(
+              lines.get(location.getLineNumber() - 1).indexOf(token),
+              location.getColumnNumber() - 1,
+              "Incorrect location of " + object + ": " + location);
+        };
 
     NSObject x = PropertyListParser.parse(file);
     NSDictionary d = (NSDictionary) x;
@@ -119,8 +125,9 @@ public class ASCIIPropertyListParserTest {
     assertEquals("valueA", d.objectForKey("keyA").toString());
     assertEquals("value&B", d.objectForKey("key&B").toString());
     assertEquals(((NSDate) d.objectForKey("date")).getDate(), new Date(1322472090000L));
-    assertArrayEquals(((NSData) d.objectForKey("data")).bytes(),
-        new byte[]{0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
+    assertArrayEquals(
+        ((NSData) d.objectForKey("data")).bytes(),
+        new byte[] {0x00, 0x00, 0x00, 0x04, 0x10, 0x41, 0x08, 0x20, (byte) 0x82});
     NSArray a = (NSArray) d.objectForKey("array");
     assertEquals(4, a.count());
     assertEquals(a.objectAtIndex(0), new NSNumber(true));
@@ -135,13 +142,15 @@ public class ASCIIPropertyListParserTest {
     String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.US_ASCII);
     List<String> lines = Files.readAllLines(file.toPath());
 
-    BiConsumer<NSObject, String> locationChecker = (NSObject object, String token) -> {
-      ASCIILocationInformation location = assertInstanceOf(ASCIILocationInformation.class,
-          object.getLocationInformation());
-      assertEquals(text.indexOf(token), location.getOffset());
-      assertEquals(lines.get(location.getLineNumber() - 1).indexOf(token),
-          location.getColumnNumber() - 1);
-    };
+    BiConsumer<NSObject, String> locationChecker =
+        (NSObject object, String token) -> {
+          ASCIILocationInformation location =
+              assertInstanceOf(ASCIILocationInformation.class, object.getLocationInformation());
+          assertEquals(text.indexOf(token), location.getOffset());
+          assertEquals(
+              lines.get(location.getLineNumber() - 1).indexOf(token),
+              location.getColumnNumber() - 1);
+        };
 
     NSObject x = PropertyListParser.parse(file);
     NSDictionary d = (NSDictionary) x;
@@ -160,8 +169,8 @@ public class ASCIIPropertyListParserTest {
 
   @Test
   public void parse_canHandleGnuStepBase64Data() throws Exception {
-    byte[] expectedData = new byte[]{(byte) 0xAA, (byte) 0xAA, (byte) 0xBB, (byte) 0xBB,
-        (byte) 0xCC, (byte) 0xCC};
+    byte[] expectedData =
+        new byte[] {(byte) 0xAA, (byte) 0xAA, (byte) 0xBB, (byte) 0xBB, (byte) 0xCC, (byte) 0xCC};
 
     NSObject x = PropertyListParser.parse(new File("test-files/test1-ascii-gnustep-base64.plist"));
     NSDictionary d = assertInstanceOf(NSDictionary.class, x);
@@ -170,8 +179,10 @@ public class ASCIIPropertyListParserTest {
 
   @Test
   public void parse_rejectsAsciiNullCharactersInString() {
-    assertThrows(ParseException.class, () -> PropertyListParser.parse(
-        new File("test-files/test2-ascii-null-char-in-string.plist")));
+    assertThrows(
+        ParseException.class,
+        () ->
+            PropertyListParser.parse(new File("test-files/test2-ascii-null-char-in-string.plist")));
   }
 
   @Test
@@ -201,34 +212,38 @@ public class ASCIIPropertyListParserTest {
 
   @Test
   public void parse_canHandleComments() throws Exception {
-    String stringFileContentStr = "/* Menu item to make the current document plain text */\n" +
-        "\"Make Plain Text\" = \"In reinen Text umwandeln\";\n" +
-        "/* Menu item to make the current document rich text */\n" +
-        "\"Make Rich Text\" = \"In formatierten Text umwandeln\";\n";
+    String stringFileContentStr =
+        "/* Menu item to make the current document plain text */\n"
+            + "\"Make Plain Text\" = \"In reinen Text umwandeln\";\n"
+            + "/* Menu item to make the current document rich text */\n"
+            + "\"Make Rich Text\" = \"In formatierten Text umwandeln\";\n";
     byte[] stringFileContentRaw = stringFileContentStr.getBytes();
 
     String stringFileContent = new String(stringFileContentRaw, StandardCharsets.UTF_8);
     String asciiPropertyList = "{" + stringFileContent + "}";
-    NSDictionary dict = (NSDictionary) ASCIIPropertyListParser.parse(
-        asciiPropertyList.getBytes(StandardCharsets.UTF_8));
+    NSDictionary dict =
+        (NSDictionary)
+            ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.UTF_8));
     assertTrue(dict.containsKey("Make Plain Text"));
     assertEquals("In reinen Text umwandeln", dict.get("Make Plain Text").toString());
   }
 
   @Test
   public void parse_canHandleEscapedCharacters() throws Exception {
-    String asciiPropertyList = "{\n" +
-        "a = \"abc \\n def\";\n" +
-        "b = \"\\r\";\n" +
-        "c = \"xyz\\b\";\n" +
-        "d = \"\\tasdf\";\n" +
-        "e = \"\\\\ \\\"\";\n" +
-        "f = \"a \\' b\";\n" +
-        "g = \"\\u07F7\";" +
-        "h = \"\\775\";" +
-        "}";
-    NSDictionary dict = (NSDictionary) ASCIIPropertyListParser.parse(
-        asciiPropertyList.getBytes(StandardCharsets.US_ASCII));
+    String asciiPropertyList =
+        "{\n"
+            + "a = \"abc \\n def\";\n"
+            + "b = \"\\r\";\n"
+            + "c = \"xyz\\b\";\n"
+            + "d = \"\\tasdf\";\n"
+            + "e = \"\\\\ \\\"\";\n"
+            + "f = \"a \\' b\";\n"
+            + "g = \"\\u07F7\";"
+            + "h = \"\\775\";"
+            + "}";
+    NSDictionary dict =
+        (NSDictionary)
+            ASCIIPropertyListParser.parse(asciiPropertyList.getBytes(StandardCharsets.US_ASCII));
     assertEquals("abc \n def", dict.get("a").toString());
     assertEquals("\r", dict.get("b").toString());
     assertEquals("xyz\b", dict.get("c").toString());
@@ -241,19 +256,21 @@ public class ASCIIPropertyListParserTest {
 
   @Test
   public void parse_canHandleIncompleteEscapeSequence() {
-    String asciiPropertyList = "{\n" +
-        "a = \"\\u123\";\n" +
-        "}";
+    String asciiPropertyList = "{\n" + "a = \"\\u123\";\n" + "}";
 
-    ParseException ex = assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(
-        asciiPropertyList.getBytes(StandardCharsets.US_ASCII)));
+    ParseException ex =
+        assertThrows(
+            ParseException.class,
+            () ->
+                ASCIIPropertyListParser.parse(
+                    asciiPropertyList.getBytes(StandardCharsets.US_ASCII)));
     assertEquals(asciiPropertyList.indexOf('\\'), ex.getErrorOffset());
   }
 
   private void testAsciiUnicode(String filename) throws Exception {
     // contains BOM, encoding shall be automatically detected
-    NSDictionary dict = (NSDictionary) ASCIIPropertyListParser.parse(
-        new File("test-files/" + filename));
+    NSDictionary dict =
+        (NSDictionary) ASCIIPropertyListParser.parse(new File("test-files/" + filename));
     assertEquals(6, dict.count());
     assertEquals("JÔÖú@2x.jpg", dict.objectForKey("path").toString());
     assertEquals("QÔÖú@2x 啕.jpg", dict.objectForKey("Key QÔÖª@2x 䌡").toString());

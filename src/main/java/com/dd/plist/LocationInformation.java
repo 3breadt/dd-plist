@@ -24,18 +24,21 @@ package com.dd.plist;
 
 /**
  * Information about the location of an NSObject within the parsed property list file.
+ *
  * @author Daniel Dreibrodt
  */
 public abstract class LocationInformation {
 
   /**
    * Gets a description of the object location.
+   *
    * @return The location description.
    */
   public abstract String getDescription();
 
   /**
    * Returns the description of the object location.
+   *
    * @return A description of the object location.
    * @see LocationInformation#getDescription()
    */

@@ -31,206 +31,154 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.text.StringCharacterIterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * <p>
  * Parser for ASCII property lists. Supports Apple OS X/iOS and GnuStep/NeXTSTEP format. This parser
- * is based on the recursive descent paradigm, but the underlying grammar is not explicitly
- * defined.
- * </p>
- * <p>
- * Resources on ASCII property list format:
- * </p>
+ * is based on the recursive descent paradigm, but the underlying grammar is not explicitly defined.
+ *
+ * <p>Resources on ASCII property list format:
+ *
  * <ul>
- * <li><a href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html">
- * Property List Programming Guide - Old-Style ASCII Property Lists
- * </a></li>
- * <li><a href="http://www.gnustep.org/resources/documentation/Developer/Base/Reference/NSPropertyList.html">
- * GnuStep - NSPropertyListSerialization class documentation
- * </a></li>
+ *   <li><a
+ *       href="https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html">
+ *       Property List Programming Guide - Old-Style ASCII Property Lists </a>
+ *   <li><a
+ *       href="http://www.gnustep.org/resources/documentation/Developer/Base/Reference/NSPropertyList.html">
+ *       GnuStep - NSPropertyListSerialization class documentation </a>
  * </ul>
  *
  * @author Daniel Dreibrodt
  */
 public final class ASCIIPropertyListParser {
 
-  /**
-   * The space character token.
-   */
+  /** The space character token. */
   public static final char WHITESPACE_SPACE = ' ';
-  /**
-   * The tab character token.
-   */
+
+  /** The tab character token. */
   public static final char WHITESPACE_TAB = '\t';
-  /**
-   * The newline character token.
-   */
+
+  /** The newline character token. */
   public static final char WHITESPACE_NEWLINE = '\n';
-  /**
-   * The carriage return character token.
-   */
+
+  /** The carriage return character token. */
   public static final char WHITESPACE_CARRIAGE_RETURN = '\r';
 
-  /**
-   * The token marking the beginning of an array.
-   */
+  /** The token marking the beginning of an array. */
   public static final char ARRAY_BEGIN_TOKEN = '(';
-  /**
-   * The token marking the end of an array.
-   */
+
+  /** The token marking the end of an array. */
   public static final char ARRAY_END_TOKEN = ')';
-  /**
-   * The token marking the end of an array element.
-   */
+
+  /** The token marking the end of an array element. */
   public static final char ARRAY_ITEM_DELIMITER_TOKEN = ',';
 
-  /**
-   * The token marking the beginning of a dictionary.
-   */
+  /** The token marking the beginning of a dictionary. */
   public static final char DICTIONARY_BEGIN_TOKEN = '{';
-  /**
-   * The token marking the end of a dictionary.
-   */
+
+  /** The token marking the end of a dictionary. */
   public static final char DICTIONARY_END_TOKEN = '}';
-  /**
-   * The token marking the assignment of a value to a dictionary key.
-   */
+
+  /** The token marking the assignment of a value to a dictionary key. */
   public static final char DICTIONARY_ASSIGN_TOKEN = '=';
-  /**
-   * The token marking the end of a dictionary entry.
-   */
+
+  /** The token marking the end of a dictionary entry. */
   public static final char DICTIONARY_ITEM_DELIMITER_TOKEN = ';';
 
-  /**
-   * The token marking the beginning of a quoted string.
-   */
+  /** The token marking the beginning of a quoted string. */
   public static final char QUOTEDSTRING_BEGIN_TOKEN = '"';
-  /**
-   * The token marking the end of a quoted string.
-   */
+
+  /** The token marking the end of a quoted string. */
   public static final char QUOTEDSTRING_END_TOKEN = '"';
-  /**
-   * The token marking the beginning of an escape sequence in a quoted string.
-   */
+
+  /** The token marking the beginning of an escape sequence in a quoted string. */
   public static final char QUOTEDSTRING_ESCAPE_TOKEN = '\\';
 
-  /**
-   * The token marking the beginning of a data element.
-   */
+  /** The token marking the beginning of a data element. */
   public static final char DATA_BEGIN_TOKEN = '<';
-  /**
-   * The token marking the end of a data element.
-   */
+
+  /** The token marking the end of a data element. */
   public static final char DATA_END_TOKEN = '>';
 
-  /**
-   * The token marking the beginning of a data element in Base-64 encoding.
-   */
+  /** The token marking the beginning of a data element in Base-64 encoding. */
   public static final char DATA_BASE64_BEGIN_TOKEN = '[';
-  /**
-   * The token marking the end of a data element in Base-64 encoding.
-   */
+
+  /** The token marking the end of a data element in Base-64 encoding. */
   public static final char DATA_BASE64_END_TOKEN = ']';
 
-  /**
-   * The token marking the beginning of a GnuStep object.
-   */
+  /** The token marking the beginning of a GnuStep object. */
   public static final char DATA_GSOBJECT_BEGIN_TOKEN = '*';
-  /**
-   * The token marking the beginning of a GnuStep date.
-   */
+
+  /** The token marking the beginning of a GnuStep date. */
   public static final char DATA_GSDATE_BEGIN_TOKEN = 'D';
-  /**
-   * The token marking the beginning of a GnuStep boolean value.
-   */
+
+  /** The token marking the beginning of a GnuStep boolean value. */
   public static final char DATA_GSBOOL_BEGIN_TOKEN = 'B';
-  /**
-   * The token representing the boolean value {@code true} in the GnuStep format.
-   */
+
+  /** The token representing the boolean value {@code true} in the GnuStep format. */
   public static final char DATA_GSBOOL_TRUE_TOKEN = 'Y';
-  /**
-   * The token representing the boolean value {@code false} in the GnuStep format.
-   */
+
+  /** The token representing the boolean value {@code false} in the GnuStep format. */
   public static final char DATA_GSBOOL_FALSE_TOKEN = 'N';
-  /**
-   * The token marking the beginning of a GnuStep integer value.
-   */
+
+  /** The token marking the beginning of a GnuStep integer value. */
   public static final char DATA_GSINT_BEGIN_TOKEN = 'I';
-  /**
-   * The token marking the beginning of a GnuStep real value.
-   */
+
+  /** The token marking the beginning of a GnuStep real value. */
   public static final char DATA_GSREAL_BEGIN_TOKEN = 'R';
 
-  /**
-   * The token that separates the parts of a date value (year, month and day).
-   */
+  /** The token that separates the parts of a date value (year, month and day). */
   public static final char DATE_DATE_FIELD_DELIMITER = '-';
-  /**
-   * The token that separates the parts of a time value (hour, minute and second).
-   */
+
+  /** The token that separates the parts of a time value (hour, minute and second). */
   public static final char DATE_TIME_FIELD_DELIMITER = ':';
-  /**
-   * The token that separates the date and time in the GnuStep format.
-   */
+
+  /** The token that separates the date and time in the GnuStep format. */
   public static final char DATE_GS_DATE_TIME_DELIMITER = ' ';
-  /**
-   * The token that marks the beginning of the time zone in the Apple format.
-   */
+
+  /** The token that marks the beginning of the time zone in the Apple format. */
   public static final char DATE_APPLE_DATE_TIME_DELIMITER = 'T';
-  /**
-   * The token that marks the end of the time zone in the Apple format.
-   */
+
+  /** The token that marks the end of the time zone in the Apple format. */
   public static final char DATE_APPLE_END_TOKEN = 'Z';
 
-  /**
-   * The token marking the beginning of a comment.
-   */
+  /** The token marking the beginning of a comment. */
   public static final char COMMENT_BEGIN_TOKEN = '/';
-  /**
-   * The token marking a comment to be multi-line.
-   */
+
+  /** The token marking a comment to be multi-line. */
   public static final char MULTILINE_COMMENT_SECOND_TOKEN = '*';
-  /**
-   * The token marking a comment to be single-line.
-   */
+
+  /** The token marking a comment to be single-line. */
   public static final char SINGLELINE_COMMENT_SECOND_TOKEN = '/';
+
   /**
-   * The token marking the end of a multi-line comment. Must be preceded by a
-   * {@link ASCIIPropertyListParser#MULTILINE_COMMENT_SECOND_TOKEN}.
+   * The token marking the end of a multi-line comment. Must be preceded by a {@link
+   * ASCIIPropertyListParser#MULTILINE_COMMENT_SECOND_TOKEN}.
    */
   public static final char MULTILINE_COMMENT_END_TOKEN = '/';
 
-  /**
-   * Property list source data
-   */
+  /** Property list source data */
   private final char[] data;
-  /**
-   * Current parsing index
-   */
+
+  /** Current parsing index */
   private int index;
 
-  /**
-   * Current line number.
-   */
+  /** Current line number. */
   private int lineNo = 1;
 
-  /**
-   * The index at which the current line began.
-   */
+  /** The index at which the current line began. */
   private int lineBeginning = -1;
 
   /**
    * Creates a new parser for the given property list content.
    *
    * @param propertyListContent The content of the property list that is to be parsed.
-   * @param encoding            The name of a supported {@link java.nio.charset.Charset charset} to
-   *                            decode the property list.
+   * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the
+   *     property list.
    * @throws java.io.UnsupportedEncodingException If no support for the named charset is available
-   *                                              in this instance of the Java virtual machine.
+   *     in this instance of the Java virtual machine.
    */
   private ASCIIPropertyListParser(byte[] propertyListContent, String encoding)
       throws UnsupportedEncodingException {
@@ -251,9 +199,9 @@ public final class ASCIIPropertyListParser {
    *
    * @param f The ASCII property list file.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
+   *     also be a {@link NSArray}.
    * @throws java.text.ParseException If an error occurs during parsing.
-   * @throws java.io.IOException      If an error occurs while reading from the input stream.
+   * @throws java.io.IOException If an error occurs while reading from the input stream.
    */
   public static NSObject parse(File f) throws IOException, ParseException {
     return parse(f.toPath());
@@ -262,16 +210,15 @@ public final class ASCIIPropertyListParser {
   /**
    * Parses an ASCII property list file.
    *
-   * @param f        The ASCII property list file.
+   * @param f The ASCII property list file.
    * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the
-   *                 property list.
+   *     property list.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
-   * @throws java.text.ParseException             If an error occurs during parsing.
-   * @throws java.io.IOException                  If an error occurs while reading from the input
-   *                                              stream.
+   *     also be a {@link NSArray}.
+   * @throws java.text.ParseException If an error occurs during parsing.
+   * @throws java.io.IOException If an error occurs while reading from the input stream.
    * @throws java.io.UnsupportedEncodingException If no support for the named charset is available
-   *                                              in this instance of the Java virtual machine.
+   *     in this instance of the Java virtual machine.
    */
   public static NSObject parse(File f, String encoding) throws IOException, ParseException {
     return parse(f.toPath(), encoding);
@@ -280,16 +227,15 @@ public final class ASCIIPropertyListParser {
   /**
    * Parses an ASCII property list file.
    *
-   * @param path     The path to the ASCII property list file.
+   * @param path The path to the ASCII property list file.
    * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the
-   *                 property list.
+   *     property list.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
-   * @throws java.text.ParseException             If an error occurs during parsing.
-   * @throws java.io.IOException                  If an error occurs while reading from the input
-   *                                              stream.
+   *     also be a {@link NSArray}.
+   * @throws java.text.ParseException If an error occurs during parsing.
+   * @throws java.io.IOException If an error occurs while reading from the input stream.
    * @throws java.io.UnsupportedEncodingException If no support for the named charset is available
-   *                                              in this instance of the Java virtual machine.
+   *     in this instance of the Java virtual machine.
    */
   public static NSObject parse(Path path, String encoding) throws IOException, ParseException {
     try (InputStream fileInputStream = Files.newInputStream(path)) {
@@ -302,9 +248,9 @@ public final class ASCIIPropertyListParser {
    *
    * @param path The path to the ASCII property list file.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
+   *     also be a {@link NSArray}.
    * @throws java.text.ParseException If an error occurs during parsing.
-   * @throws java.io.IOException      If an error occurs while reading from the input stream.
+   * @throws java.io.IOException If an error occurs while reading from the input stream.
    */
   public static NSObject parse(Path path) throws IOException, ParseException {
     try (InputStream fileInputStream = Files.newInputStream(path)) {
@@ -318,9 +264,9 @@ public final class ASCIIPropertyListParser {
    *
    * @param in The input stream that provides the property list's data.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
+   *     also be a {@link NSArray}.
    * @throws java.text.ParseException If an error occurs during parsing.
-   * @throws java.io.IOException      If an error occurs while reading from the input stream.
+   * @throws java.io.IOException If an error occurs while reading from the input stream.
    */
   public static NSObject parse(InputStream in) throws ParseException, IOException {
     return parse(PropertyListParser.readAll(in));
@@ -330,16 +276,15 @@ public final class ASCIIPropertyListParser {
    * Parses an ASCII property list from an input stream. This method does not close the specified
    * input stream.
    *
-   * @param in       The input stream that points to the property list's data.
+   * @param in The input stream that points to the property list's data.
    * @param encoding The name of a supported {@link java.nio.charset.Charset charset} to decode the
-   *                 property list.
+   *     property list.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
-   * @throws java.text.ParseException             If an error occurs during parsing.
-   * @throws java.io.IOException                  If an error occurs while reading from the input
-   *                                              stream.
+   *     also be a {@link NSArray}.
+   * @throws java.text.ParseException If an error occurs during parsing.
+   * @throws java.io.IOException If an error occurs while reading from the input stream.
    * @throws java.io.UnsupportedEncodingException If no support for the named charset is available
-   *                                              in this instance of the Java virtual machine.
+   *     in this instance of the Java virtual machine.
    */
   public static NSObject parse(InputStream in, String encoding) throws ParseException, IOException {
     return parse(PropertyListParser.readAll(in), encoding);
@@ -351,9 +296,9 @@ public final class ASCIIPropertyListParser {
    *
    * @param reader The reader that provides the property list's data.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
+   *     also be a {@link NSArray}.
    * @throws java.text.ParseException If an error occurs during parsing.
-   * @throws java.io.IOException      If an error occurs while reading from the input reader.
+   * @throws java.io.IOException If an error occurs while reading from the input reader.
    */
   public static NSObject parse(Reader reader) throws ParseException, IOException {
     Objects.requireNonNull(reader, "The specified reader is null");
@@ -374,7 +319,7 @@ public final class ASCIIPropertyListParser {
    *
    * @param plistData A string containing the property list's data.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
+   *     also be a {@link NSArray}.
    * @throws java.text.ParseException If an error occurs during parsing.
    */
   public static NSObject parse(String plistData) throws ParseException {
@@ -387,7 +332,7 @@ public final class ASCIIPropertyListParser {
    *
    * @param bytes The ASCII property list data.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
+   *     also be a {@link NSArray}.
    * @throws ParseException If an error occurs during parsing.
    */
   public static NSObject parse(byte[] bytes) throws ParseException {
@@ -408,14 +353,14 @@ public final class ASCIIPropertyListParser {
   /**
    * Parses an ASCII property list from a byte array.
    *
-   * @param bytes    The ASCII property list data.
+   * @param bytes The ASCII property list data.
    * @param encoding The name of a supported {@link java.nio.charset.Charset} charset to decode the
-   *                 property list.
+   *     property list.
    * @return The root object of the property list. This is usually a {@link NSDictionary} but can
-   * also be a {@link NSArray}.
-   * @throws ParseException                       If an error occurs during parsing.
+   *     also be a {@link NSArray}.
+   * @throws ParseException If an error occurs during parsing.
    * @throws java.io.UnsupportedEncodingException If no support for the named charset is available
-   *                                              in this instance of the Java virtual machine.
+   *     in this instance of the Java virtual machine.
    */
   public static NSObject parse(byte[] bytes, String encoding)
       throws ParseException, UnsupportedEncodingException {
@@ -526,9 +471,7 @@ public final class ASCIIPropertyListParser {
     this.index++;
   }
 
-  /**
-   * Skips the current symbol.
-   */
+  /** Skips the current symbol. */
   private void skip() {
     this.index++;
   }
@@ -550,36 +493,34 @@ public final class ASCIIPropertyListParser {
     }
     if (this.data[this.index] == WHITESPACE_CARRIAGE_RETURN
         && !(this.index + 1 < this.data.length
-        && this.data[this.index + 1] == WHITESPACE_NEWLINE)) {
+            && this.data[this.index + 1] == WHITESPACE_NEWLINE)) {
       // Single \r
       this.lineNo++;
       this.lineBeginning = this.index;
     }
   }
 
-  /**
-   * Skips all whitespaces and comments from the current parsing position onward.
-   */
+  /** Skips all whitespaces and comments from the current parsing position onward. */
   private void skipWhitespacesAndComments() {
     boolean commentSkipped;
     do {
       commentSkipped = false;
 
-      //Skip whitespaces
-      while (this.accept(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE,
-          WHITESPACE_TAB)) {
+      // Skip whitespaces
+      while (this.accept(
+          WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE, WHITESPACE_SPACE, WHITESPACE_TAB)) {
         this.trackLineBreak();
         this.skip();
       }
 
-      //Skip single line comments "//..."
+      // Skip single line comments "//..."
       if (this.acceptSequence(COMMENT_BEGIN_TOKEN, SINGLELINE_COMMENT_SECOND_TOKEN)) {
         this.skip(2);
         this.readInputUntil(WHITESPACE_CARRIAGE_RETURN, WHITESPACE_NEWLINE);
         commentSkipped = true;
       }
 
-      //Skip multi line comments "/* ... */"
+      // Skip multi line comments "/* ... */"
       else if (this.acceptSequence(COMMENT_BEGIN_TOKEN, MULTILINE_COMMENT_SECOND_TOKEN)) {
         this.skip(2);
         while (this.index < this.data.length) {
@@ -593,8 +534,8 @@ public final class ASCIIPropertyListParser {
         }
         commentSkipped = true;
       }
-    }
-    while (commentSkipped); //if a comment was skipped more whitespace or another comment can follow, so skip again
+    } while (commentSkipped); // if a comment was skipped more whitespace or another comment can
+    // follow, so skip again
   }
 
   /**
@@ -641,7 +582,7 @@ public final class ASCIIPropertyListParser {
       throw new ParseException("The property list is empty.", 0);
     }
 
-    //Skip Unicode byte order mark (BOM)
+    // Skip Unicode byte order mark (BOM)
     if (this.data[0] == '\uFEFF') {
       this.skip(1);
     }
@@ -662,50 +603,55 @@ public final class ASCIIPropertyListParser {
    * @see ASCIIPropertyListParser#index
    */
   private NSObject parseObject() throws ParseException {
-    LocationInformation loc = new ASCIILocationInformation(this.index, this.lineNo,
-        this.index - this.lineBeginning);
+    LocationInformation loc =
+        new ASCIILocationInformation(this.index, this.lineNo, this.index - this.lineBeginning);
     NSObject result;
     switch (this.data[this.index]) {
-      case ARRAY_BEGIN_TOKEN: {
-        result = this.parseArray();
-        break;
-      }
-      case DICTIONARY_BEGIN_TOKEN: {
-        result = this.parseDictionary();
-        break;
-      }
-      case DATA_BEGIN_TOKEN: {
-        result = this.parseData();
-        break;
-      }
-      case QUOTEDSTRING_BEGIN_TOKEN: {
-        String quotedString = this.parseQuotedString();
-        //apple dates are quoted strings of length 20 and after the 4 year digits a dash is found
-        if (quotedString.length() == 20 && quotedString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
-          try {
-            result = new NSDate(quotedString);
-          } catch (Exception ex) {
-            //not a date? --> return string
+      case ARRAY_BEGIN_TOKEN:
+        {
+          result = this.parseArray();
+          break;
+        }
+      case DICTIONARY_BEGIN_TOKEN:
+        {
+          result = this.parseDictionary();
+          break;
+        }
+      case DATA_BEGIN_TOKEN:
+        {
+          result = this.parseData();
+          break;
+        }
+      case QUOTEDSTRING_BEGIN_TOKEN:
+        {
+          String quotedString = this.parseQuotedString();
+          // apple dates are quoted strings of length 20 and after the 4 year digits a dash is found
+          if (quotedString.length() == 20 && quotedString.charAt(4) == DATE_DATE_FIELD_DELIMITER) {
+            try {
+              result = new NSDate(quotedString);
+            } catch (Exception ex) {
+              // not a date? --> return string
+              result = new NSString(quotedString);
+            }
+          } else {
             result = new NSString(quotedString);
           }
-        } else {
-          result = new NSString(quotedString);
-        }
 
-        break;
-      }
-      default: {
-        //0-9
-        if (this.data[this.index] >= '0' && this.data[this.index] <= '9') {
-          //could be a date or just a string
-          result = this.parseDateString();
-        } else {
-          //non-numerical -> string or boolean
-          result = new NSString(this.parseString());
+          break;
         }
+      default:
+        {
+          // 0-9
+          if (this.data[this.index] >= '0' && this.data[this.index] <= '9') {
+            // could be a date or just a string
+            result = this.parseDateString();
+          } else {
+            // non-numerical -> string or boolean
+            result = new NSString(this.parseString());
+          }
 
-        break;
-      }
+          break;
+        }
     }
 
     if (result != null) {
@@ -722,7 +668,7 @@ public final class ASCIIPropertyListParser {
    * @return The array found at the parsing position.
    */
   private NSArray parseArray() throws ParseException {
-    //Skip begin token
+    // Skip begin token
     this.skip();
     this.skipWhitespacesAndComments();
     List<NSObject> objects = new LinkedList<>();
@@ -732,13 +678,13 @@ public final class ASCIIPropertyListParser {
       if (this.accept(ARRAY_ITEM_DELIMITER_TOKEN)) {
         this.skip();
       } else {
-        break; //must have reached end of array
+        break; // must have reached end of array
       }
 
       this.skipWhitespacesAndComments();
     }
 
-    //parse end token
+    // parse end token
     this.read(ARRAY_END_TOKEN);
     return new NSArray(objects.toArray(new NSObject[0]));
   }
@@ -750,12 +696,12 @@ public final class ASCIIPropertyListParser {
    * @return The dictionary found at the parsing position.
    */
   private NSDictionary parseDictionary() throws ParseException {
-    //Skip begin token
+    // Skip begin token
     this.skip();
     this.skipWhitespacesAndComments();
     NSDictionary dict = new NSDictionary();
     while (!this.accept(DICTIONARY_END_TOKEN)) {
-      //Parse key
+      // Parse key
       String keyString;
       if (this.accept(QUOTEDSTRING_BEGIN_TOKEN)) {
         keyString = this.parseQuotedString();
@@ -765,7 +711,7 @@ public final class ASCIIPropertyListParser {
 
       this.skipWhitespacesAndComments();
 
-      //Parse assign token
+      // Parse assign token
       this.read(DICTIONARY_ASSIGN_TOKEN);
       this.skipWhitespacesAndComments();
 
@@ -776,7 +722,7 @@ public final class ASCIIPropertyListParser {
       this.skipWhitespacesAndComments();
     }
 
-    //skip end token
+    // skip end token
     this.skip();
 
     return dict;
@@ -792,7 +738,7 @@ public final class ASCIIPropertyListParser {
   private NSObject parseData() throws ParseException {
     int dataStartIndex = this.index;
     NSObject obj = null;
-    //Skip begin token
+    // Skip begin token
     this.skip();
     if (this.accept(DATA_GSOBJECT_BEGIN_TOKEN)) {
       this.skip();
@@ -802,7 +748,7 @@ public final class ASCIIPropertyListParser {
           DATA_GSINT_BEGIN_TOKEN,
           DATA_GSREAL_BEGIN_TOKEN);
       if (this.accept(DATA_GSBOOL_BEGIN_TOKEN)) {
-        //Boolean
+        // Boolean
         this.skip();
         this.expect(DATA_GSBOOL_TRUE_TOKEN, DATA_GSBOOL_FALSE_TOKEN);
         if (this.accept(DATA_GSBOOL_TRUE_TOKEN)) {
@@ -811,15 +757,15 @@ public final class ASCIIPropertyListParser {
           obj = new NSNumber(false);
         }
 
-        //Skip the parsed boolean token
+        // Skip the parsed boolean token
         this.skip();
       } else if (this.accept(DATA_GSDATE_BEGIN_TOKEN)) {
-        //Date
+        // Date
         this.skip();
         String dateString = this.readInputUntil(DATA_END_TOKEN);
         obj = new NSDate(dateString);
       } else if (this.accept(DATA_GSINT_BEGIN_TOKEN, DATA_GSREAL_BEGIN_TOKEN)) {
-        //Number
+        // Number
         this.skip();
         String numberString = this.readInputUntil(DATA_END_TOKEN);
         try {
@@ -842,8 +788,7 @@ public final class ASCIIPropertyListParser {
       try {
         obj = new NSData(dataString);
       } catch (IOException e) {
-        throw this.createParseException(
-            "The NSData object could be parsed.", dataStartIndex);
+        throw this.createParseException("The NSData object could be parsed.", dataStartIndex);
       }
 
       // skip DATA_BASE64_END_TOKEN token
@@ -889,7 +834,7 @@ public final class ASCIIPropertyListParser {
       try {
         return new NSDate(numericalString);
       } catch (Exception ex) {
-        //An exception occurs if the string is not actually a date but just a string
+        // An exception occurs if the string is not actually a date but just a string
       }
     }
 
@@ -903,9 +848,14 @@ public final class ASCIIPropertyListParser {
    * @return The string found at the current parsing position.
    */
   private String parseString() {
-    return this.readInputUntil(WHITESPACE_SPACE, WHITESPACE_TAB, WHITESPACE_NEWLINE,
+    return this.readInputUntil(
+        WHITESPACE_SPACE,
+        WHITESPACE_TAB,
+        WHITESPACE_NEWLINE,
         WHITESPACE_CARRIAGE_RETURN,
-        ARRAY_ITEM_DELIMITER_TOKEN, DICTIONARY_ITEM_DELIMITER_TOKEN, DICTIONARY_ASSIGN_TOKEN,
+        ARRAY_ITEM_DELIMITER_TOKEN,
+        DICTIONARY_ITEM_DELIMITER_TOKEN,
+        DICTIONARY_ASSIGN_TOKEN,
         ARRAY_END_TOKEN);
   }
 
@@ -918,15 +868,14 @@ public final class ASCIIPropertyListParser {
    */
   private String parseQuotedString() throws ParseException {
     int startIndex = this.index;
-    //Skip begin token
+    // Skip begin token
     this.skip();
 
     StringBuilder stringBuilder = new StringBuilder();
     boolean unescapedBackslash = true;
     EscapeSequenceHandler escapeSequenceHandler = null;
 
-    while (this.data[this.index] != QUOTEDSTRING_END_TOKEN
-        || escapeSequenceHandler != null) {
+    while (this.data[this.index] != QUOTEDSTRING_END_TOKEN || escapeSequenceHandler != null) {
       char c = this.data[this.index];
 
       if (escapeSequenceHandler != null) {
@@ -947,7 +896,7 @@ public final class ASCIIPropertyListParser {
       escapeSequenceHandler.handleEndOfString();
     }
 
-    //skip end token
+    // skip end token
     this.skip();
 
     return stringBuilder.toString();
@@ -959,8 +908,7 @@ public final class ASCIIPropertyListParser {
 
   private ParseException createParseException(String message, int index) {
     return new ParseException(
-        message + " (" + this.lineNo + ":" + (index - this.lineBeginning) + ")",
-        index);
+        message + " (" + this.lineNo + ":" + (index - this.lineBeginning) + ")", index);
   }
 
   private class EscapeSequenceHandler {
@@ -987,13 +935,13 @@ public final class ASCIIPropertyListParser {
     }
 
     public void handleEndOfString() throws ParseException {
-      String sequence = new String(
-          ASCIIPropertyListParser.this.data,
-          this.startIndex,
-          ASCIIPropertyListParser.this.index - this.startIndex + 1);
+      String sequence =
+          new String(
+              ASCIIPropertyListParser.this.data,
+              this.startIndex,
+              ASCIIPropertyListParser.this.index - this.startIndex + 1);
       throw ASCIIPropertyListParser.this.createParseException(
-          "The property list contains a string with an incomplete escape sequence: "
-              + sequence,
+          "The property list contains a string with an incomplete escape sequence: " + sequence,
           this.startIndex);
     }
 
@@ -1035,29 +983,27 @@ public final class ASCIIPropertyListParser {
           return false;
         default:
           throw ASCIIPropertyListParser.this.createParseException(
-              "The property list contains an invalid escape sequence: \\" + c,
-              this.startIndex);
+              "The property list contains an invalid escape sequence: \\" + c, this.startIndex);
       }
     }
 
     private boolean handleNextCharOfHexEscapeSequence(char c) throws ParseException {
       if (Character.digit(c, 16) == -1) {
-        String sequence = new String(
-            ASCIIPropertyListParser.this.data,
-            this.startIndex,
-            ASCIIPropertyListParser.this.index - this.startIndex + 1);
+        String sequence =
+            new String(
+                ASCIIPropertyListParser.this.data,
+                this.startIndex,
+                ASCIIPropertyListParser.this.index - this.startIndex + 1);
         throw ASCIIPropertyListParser.this.createParseException(
-            "The property list contains a string with an invalid escape sequence: "
-                + sequence,
+            "The property list contains a string with an invalid escape sequence: " + sequence,
             this.startIndex);
       }
 
       this.unicodeReference.append(c);
       if (this.unicodeReference.length() == 4) {
-          char escapedChar = (char) Integer.parseInt(this.unicodeReference.toString(),
-              16);
-          this.stringBuilder.append(escapedChar);
-          return true;
+        char escapedChar = (char) Integer.parseInt(this.unicodeReference.toString(), 16);
+        this.stringBuilder.append(escapedChar);
+        return true;
       }
 
       return false;
@@ -1065,22 +1011,21 @@ public final class ASCIIPropertyListParser {
 
     private boolean handleNextCharOfOctalEscapeSequence(char c) throws ParseException {
       if (Character.digit(c, 8) == -1) {
-        String sequence = new String(
-            ASCIIPropertyListParser.this.data,
-            this.startIndex,
-            ASCIIPropertyListParser.this.index - this.startIndex + 1);
+        String sequence =
+            new String(
+                ASCIIPropertyListParser.this.data,
+                this.startIndex,
+                ASCIIPropertyListParser.this.index - this.startIndex + 1);
         throw ASCIIPropertyListParser.this.createParseException(
-            "The property list contains a string with an invalid escape sequence: "
-                + sequence,
+            "The property list contains a string with an invalid escape sequence: " + sequence,
             this.startIndex);
       }
 
       this.unicodeReference.append(c);
       if (this.unicodeReference.length() == 3) {
-          char escapedChar = (char) Integer.parseInt(this.unicodeReference.toString(),
-              8);
-          this.stringBuilder.append(escapedChar);
-          return true;
+        char escapedChar = (char) Integer.parseInt(this.unicodeReference.toString(), 8);
+        this.stringBuilder.append(escapedChar);
+        return true;
       }
 
       return false;

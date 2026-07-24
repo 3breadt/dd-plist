@@ -37,50 +37,51 @@ import java.util.Objects;
  * @author Daniel Dreibrodt
  */
 public class XMLPropertyListWriter {
-    /**
-     * Saves a property list with the given object as root into an XML file.
-     *
-     * @param root The root object.
-     * @param out  The output file. If the output file's parent directory does not exist, it will be created.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSObject root, File out) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
+  /**
+   * Saves a property list with the given object as root into an XML file.
+   *
+   * @param root The root object.
+   * @param out The output file. If the output file's parent directory does not exist, it will be
+   *     created.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSObject root, File out) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
 
-        File parent = out.getParentFile();
-        if (!parent.exists() && !parent.mkdirs()) {
-            throw new IOException("The output directory does not exist and could not be created.");
-        }
-
-        write(root, out.toPath());
+    File parent = out.getParentFile();
+    if (!parent.exists() && !parent.mkdirs()) {
+      throw new IOException("The output directory does not exist and could not be created.");
     }
 
-    /**
-     * Saves a property list with the given object as root into an XML file.
-     *
-     * @param root The root object.
-     * @param path  The output file path.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSObject root, Path path) throws IOException {
-        try (OutputStream fileOutputStream = Files.newOutputStream(path)) {
-            write(root, fileOutputStream);
-        }
-    }
+    write(root, out.toPath());
+  }
 
-    /**
-     * Saves a property list with the given object as root in XML format into an output stream.
-     * This method does not close the specified output stream.
-     *
-     * @param root The root object.
-     * @param out  The output stream.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSObject root, OutputStream out) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
-
-        OutputStreamWriter w = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-        w.write(root.toXMLPropertyList());
-        w.flush();
+  /**
+   * Saves a property list with the given object as root into an XML file.
+   *
+   * @param root The root object.
+   * @param path The output file path.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSObject root, Path path) throws IOException {
+    try (OutputStream fileOutputStream = Files.newOutputStream(path)) {
+      write(root, fileOutputStream);
     }
+  }
+
+  /**
+   * Saves a property list with the given object as root in XML format into an output stream. This
+   * method does not close the specified output stream.
+   *
+   * @param root The root object.
+   * @param out The output stream.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSObject root, OutputStream out) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
+
+    OutputStreamWriter w = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+    w.write(root.toXMLPropertyList());
+    w.flush();
+  }
 }

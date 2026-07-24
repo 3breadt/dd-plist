@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the {@link BinaryPropertyListWriter} class.
+ *
  * @author Daniel Dreibrodt
  */
 public class BinaryPropertyListWriterTest {
@@ -23,5 +24,4 @@ public class BinaryPropertyListWriterTest {
     NSObject y = PropertyListParser.parse(new File("test-files/out-testBinary.plist"));
     assertEquals(x, y);
   }
-
 }

@@ -30,6 +30,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check Java formatting
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} spotless:check
+
       - name: Compile
         run: mvn ${{ env.MAVEN_CLI_OPTS }} -DskipTests=true clean compile
 

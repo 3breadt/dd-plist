@@ -37,652 +37,717 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 
 /**
- * Parses property lists that are in Apple's binary format.
- * Use this class when you are sure about the format of the property list.
- * Otherwise, use the PropertyListParser class.
- * <p>
- * Parsing is done by calling the static <code>parse</code> methods.
+ * Parses property lists that are in Apple's binary format. Use this class when you are sure about
+ * the format of the property list. Otherwise, use the PropertyListParser class.
+ *
+ * <p>Parsing is done by calling the static <code>parse</code> methods.
  *
  * @author Daniel Dreibrodt
  */
 public final class BinaryPropertyListParser {
-    private static final int SIMPLE_TYPE = 0x00;
-    private static final int INT_TYPE = 0x01;
-    private static final int REAL_TYPE = 0x02;
-    private static final int DATE_TYPE = 0x03;
-    private static final int DATA_TYPE = 0x04;
-    private static final int ASCII_STRING_TYPE = 0x05;
-    private static final int UTF16_STRING_TYPE = 0x06;
-    private static final int UTF8_STRING_TYPE = 0x07;
-    private static final int UID_TYPE = 0x08;
-    private static final int ARRAY_TYPE = 0x0A;
-    private static final int ORDERED_SET_TYPE = 0x0B;
-    private static final int SET_TYPE = 0x0C;
-    private static final int DICTIONARY_TYPE = 0x0D;
+  private static final int SIMPLE_TYPE = 0x00;
+  private static final int INT_TYPE = 0x01;
+  private static final int REAL_TYPE = 0x02;
+  private static final int DATE_TYPE = 0x03;
+  private static final int DATA_TYPE = 0x04;
+  private static final int ASCII_STRING_TYPE = 0x05;
+  private static final int UTF16_STRING_TYPE = 0x06;
+  private static final int UTF8_STRING_TYPE = 0x07;
+  private static final int UID_TYPE = 0x08;
+  private static final int ARRAY_TYPE = 0x0A;
+  private static final int ORDERED_SET_TYPE = 0x0B;
+  private static final int SET_TYPE = 0x0C;
+  private static final int DICTIONARY_TYPE = 0x0D;
 
-    /**
-     * Major version of the property list format
-     */
-    @SuppressWarnings("FieldCanBeLocal") //Useful when the features of different format versions are implemented
-    private int majorVersion;
+  /** Major version of the property list format */
+  @SuppressWarnings(
+      "FieldCanBeLocal") // Useful when the features of different format versions are implemented
+  private int majorVersion;
 
-    /**
-     * Minor version of the property list format
-     */
-    @SuppressWarnings("FieldCanBeLocal") //Useful when the features of different format versions are implemented
-    private int minorVersion;
+  /** Minor version of the property list format */
+  @SuppressWarnings(
+      "FieldCanBeLocal") // Useful when the features of different format versions are implemented
+  private int minorVersion;
 
-    /**
-     * The property list data.
-     */
-    private byte[] bytes;
+  /** The property list data. */
+  private byte[] bytes;
 
-    /**
-     * Length of an object reference in bytes
-     */
-    private int objectRefSize;
-    private int offsetSize;
-    private int numObjects;
-    private int offsetTableOffset;
-    private final HashMap<Integer, NSObject> parsedObjects = new HashMap<>();
+  /** Length of an object reference in bytes */
+  private int objectRefSize;
 
-    /**
-     * Protected constructor so that instantiation is fully controlled by the
-     * static parse methods.
-     *
-     * @see BinaryPropertyListParser#parse(byte[])
-     */
-    private BinaryPropertyListParser() {
-        /* empty */
+  private int offsetSize;
+  private int numObjects;
+  private int offsetTableOffset;
+  private final HashMap<Integer, NSObject> parsedObjects = new HashMap<>();
+
+  /**
+   * Protected constructor so that instantiation is fully controlled by the static parse methods.
+   *
+   * @see BinaryPropertyListParser#parse(byte[])
+   */
+  private BinaryPropertyListParser() {
+    /* empty */
+  }
+
+  /**
+   * Parses a binary property list file.
+   *
+   * @param f The binary property list file
+   * @return The root object of the property list. This is usually a {@link NSDictionary} but can
+   *     also be a {@link NSArray}.
+   * @throws PropertyListFormatException When the property list's format could not be parsed.
+   * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error
+   *     occurs on the input stream.
+   */
+  public static NSObject parse(File f) throws IOException, PropertyListFormatException {
+    return parse(f.toPath());
+  }
+
+  /**
+   * Parses a binary property list file.
+   *
+   * @param path The path to the binary property list file
+   * @return The root object of the property list. This is usually a {@link NSDictionary} but can
+   *     also be a {@link NSArray}.
+   * @throws PropertyListFormatException When the property list's format could not be parsed.
+   * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error
+   *     occurs on the input stream.
+   */
+  public static NSObject parse(Path path) throws IOException, PropertyListFormatException {
+    try (InputStream fileInputStream = Files.newInputStream(path)) {
+      return parse(fileInputStream);
+    }
+  }
+
+  /**
+   * Parses a binary property list from an input stream. This method does not close the specified
+   * input stream.
+   *
+   * @param is The input stream that points to the property list's data.
+   * @return The root object of the property list. This is usually a {@link NSDictionary} but can
+   *     also be a {@link NSArray}.
+   * @throws PropertyListFormatException When the property list's format could not be parsed.
+   * @throws java.io.IOException If a {@link NSString} object could not be decoded or an I/O error
+   *     occurs on the input stream.
+   */
+  public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
+    return parse(PropertyListParser.readAll(is));
+  }
+
+  /**
+   * Parses a binary property list from a byte array.
+   *
+   * @param data The binary property list's data.
+   * @return The root object of the property list. This is usually a {@link NSDictionary} but can
+   *     also be a {@link NSArray}.
+   * @throws PropertyListFormatException When the property list's format could not be parsed.
+   * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
+   */
+  public static NSObject parse(byte[] data)
+      throws PropertyListFormatException, UnsupportedEncodingException {
+    BinaryPropertyListParser parser = new BinaryPropertyListParser();
+    return parser.doParse(data);
+  }
+
+  /**
+   * Parses an unsigned integers from a byte array.
+   *
+   * @param bytes The byte array containing the unsigned integer.
+   * @return The unsigned integer represented by the given bytes.
+   */
+  @SuppressWarnings("unused")
+  public static long parseUnsignedInt(byte[] bytes) {
+    return parseUnsignedInt(bytes, 0, bytes.length);
+  }
+
+  /**
+   * Parses an unsigned integer from a byte array.
+   *
+   * @param bytes The byte array containing the unsigned integer.
+   * @param startIndex Beginning of the unsigned int in the byte array.
+   * @param endIndex End of the unsigned int in the byte array.
+   * @return The unsigned integer represented by the given bytes.
+   */
+  public static long parseUnsignedInt(byte[] bytes, int startIndex, int endIndex) {
+    long l = 0;
+    for (int i = startIndex; i < endIndex; i++) {
+      l <<= 8;
+      l |= bytes[i] & 0xFF;
+    }
+    l &= 0xFFFFFFFFL;
+    return l;
+  }
+
+  /**
+   * Parses a long from a (big-endian) byte array.
+   *
+   * @param bytes The bytes representing the long integer.
+   * @return The long integer represented by the given bytes.
+   */
+  @SuppressWarnings("unused")
+  public static long parseLong(byte[] bytes) {
+    return parseLong(bytes, 0, bytes.length);
+  }
+
+  /**
+   * Parses a long from a (big-endian) byte array.
+   *
+   * @param bytes The bytes representing the long integer.
+   * @param startIndex Beginning of the long in the byte array.
+   * @param endIndex End of the long in the byte array.
+   * @return The long integer represented by the given bytes.
+   */
+  public static long parseLong(byte[] bytes, int startIndex, int endIndex) {
+    long l = 0;
+    for (int i = startIndex; i < endIndex; i++) {
+      l <<= 8;
+      l |= bytes[i] & 0xFF;
+    }
+    return l;
+  }
+
+  /**
+   * Parses a double from a (big-endian) byte array.
+   *
+   * @param bytes The bytes representing the double.
+   * @return The double represented by the given bytes.
+   */
+  @SuppressWarnings("unused")
+  public static double parseDouble(byte[] bytes) {
+    return parseDouble(bytes, 0, bytes.length);
+  }
+
+  /**
+   * Parses a double from a (big-endian) byte array.
+   *
+   * @param bytes The bytes representing the double.
+   * @param startIndex Beginning of the double in the byte array.
+   * @param endIndex End of the double in the byte array.
+   * @return The double represented by the given bytes.
+   */
+  public static double parseDouble(byte[] bytes, int startIndex, int endIndex) {
+    if (endIndex - startIndex == 8) {
+      return Double.longBitsToDouble(parseLong(bytes, startIndex, endIndex));
+    } else if (endIndex - startIndex == 4) {
+      return Float.intBitsToFloat((int) parseLong(bytes, startIndex, endIndex));
+    } else {
+      throw new IllegalArgumentException(
+          "endIndex (" + endIndex + ") - startIndex (" + startIndex + ") != 4 or 8");
+    }
+  }
+
+  /**
+   * Copies a part of a byte array into a new array.
+   *
+   * @param src The source array.
+   * @param startIndex The index from which to start copying.
+   * @param endIndex The index until which to copy.
+   * @return The copied array.
+   */
+  public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
+    int length = endIndex - startIndex;
+    if (length < 0) {
+      throw new IllegalArgumentException(
+          "startIndex (" + startIndex + ")" + " > endIndex (" + endIndex + ")");
+    }
+    byte[] dest = new byte[length];
+    System.arraycopy(src, startIndex, dest, 0, length);
+    return dest;
+  }
+
+  /**
+   * Parses a binary property list from a byte array.
+   *
+   * @param data The binary property list's data.
+   * @return The root object of the property list. This is usually a {@link NSDictionary} but can
+   *     also be a {@link NSArray}.
+   * @throws PropertyListFormatException When the property list's format could not be parsed.
+   */
+  private NSObject doParse(byte[] data) throws PropertyListFormatException {
+    Objects.requireNonNull(data);
+    if (data.length < 8) {
+      throw new PropertyListFormatException(
+          "The available binary property list data is too short.");
     }
 
-    /**
-     * Parses a binary property list file.
-     *
-     * @param f The binary property list file
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException         If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
-     */
-    public static NSObject parse(File f) throws IOException, PropertyListFormatException {
-        return parse(f.toPath());
+    this.bytes = data;
+    String magic = new String(copyOfRange(this.bytes, 0, 8), StandardCharsets.US_ASCII);
+    if (!magic.startsWith("bplist")
+        || magic.length() < 8
+        || !Character.isDigit(magic.charAt(6))
+        || !Character.isDigit(magic.charAt(7))) {
+      throw new PropertyListFormatException(
+          "The binary property list has an invalid file header: " + magic);
     }
 
-    /**
-     * Parses a binary property list file.
-     *
-     * @param path The path to the binary property list file
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException         If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
-     */
-    public static NSObject parse(Path path) throws IOException, PropertyListFormatException {
-        try (InputStream fileInputStream = Files.newInputStream(path)) {
-            return parse(fileInputStream);
+    this.majorVersion = magic.charAt(6) - 0x30; // ASCII number
+    this.minorVersion = magic.charAt(7) - 0x30; // ASCII number
+
+    // 0.0 - OS X Tiger and earlier
+    // 0.1 - Leopard
+    // 0.? - Snow Leopard
+    // 1.5 - Lion
+    // 2.0 - Snow Lion
+
+    if (this.majorVersion > 0) {
+      throw new PropertyListFormatException(
+          "Unsupported binary property list format: v"
+              + this.majorVersion
+              + "."
+              + this.minorVersion
+              + ". "
+              + "Version 1.0 and later are not yet supported.");
+      // Version 1.0+ is not even supported by OS X's own parser
+    }
+
+    if (this.bytes.length < 40 /* header + trailer length */) {
+      throw new PropertyListFormatException(
+          "The binary property list does not contain a complete object offset table.");
+    }
+
+    // Parse trailer, last 32 bytes of the file
+    byte[] trailer = copyOfRange(this.bytes, this.bytes.length - 32, this.bytes.length);
+
+    try {
+      // Trailer starts with 6 null bytes (index 0 to 5)
+      this.offsetSize = (int) parseUnsignedInt(trailer, 6, 7);
+      this.objectRefSize = (int) parseUnsignedInt(trailer, 7, 8);
+      long numObjectsValue = parseUnsignedInt(trailer, 8, 16);
+      long topObjectValue = parseUnsignedInt(trailer, 16, 24);
+      long offsetTableOffsetValue = parseUnsignedInt(trailer, 24, 32);
+
+      // Validate consistency of the trailer against the actual data size.
+      if (this.offsetSize < 1
+          || this.objectRefSize < 1
+          || numObjectsValue < 0
+          || numObjectsValue > Integer.MAX_VALUE
+          || topObjectValue < 0
+          || topObjectValue >= this.bytes.length - 32
+          || offsetTableOffsetValue < 0
+          || offsetTableOffsetValue > this.bytes.length
+          || Math.addExact(
+                  offsetTableOffsetValue, Math.multiplyExact(numObjectsValue + 1, this.offsetSize))
+              > this.bytes.length) {
+        throw new PropertyListFormatException(
+            "The binary property list contains a corrupted object offset table.");
+      }
+
+      this.numObjects = (int) numObjectsValue;
+      this.offsetTableOffset = (int) offsetTableOffsetValue;
+      int topObject = (int) topObjectValue;
+
+      return this.parseObject(ParsedObjectStack.empty(), topObject);
+    } catch (ArithmeticException ex) {
+      throw new PropertyListFormatException(
+          "The binary property list contains corrupted data.", ex);
+    }
+  }
+
+  /**
+   * Parses an object inside the currently parsed binary property list. For the format specification
+   * check <a href="http://www.opensource.apple.com/source/CF/CF-855.17/CFBinaryPList.c">Apple's
+   * binary property list parser implementation</a>.
+   *
+   * @param stack The stack to keep track of parsed objects and detect cyclic references.
+   * @param obj The object ID.
+   * @return The parsed object.
+   * @throws PropertyListFormatException When the property list's format could not be parsed.
+   */
+  private NSObject parseObject(ParsedObjectStack stack, int obj)
+      throws PropertyListFormatException {
+    stack = stack.push(obj);
+
+    if (this.parsedObjects.containsKey(obj)) {
+      return this.parsedObjects.get(obj);
+    }
+
+    int offset = this.getObjectOffset(obj);
+    LocationInformation loc = new BinaryLocationInformation(obj, offset);
+
+    byte type = this.bytes[offset];
+    int objType = (type & 0xF0) >> 4;
+    int objInfo = type & 0x0F;
+    NSObject result;
+    try {
+      switch (objType) {
+        case SIMPLE_TYPE:
+          result = this.parseSimpleObject(offset, objInfo, obj);
+          break;
+        case INT_TYPE:
+          result = this.parseNumber(offset, objInfo, NSNumber.INTEGER);
+          break;
+        case REAL_TYPE:
+          result = this.parseNumber(offset, objInfo, NSNumber.REAL);
+          break;
+        case DATE_TYPE:
+          result = this.parseDate(offset, objInfo);
+          break;
+        case DATA_TYPE:
+          result = this.parseData(offset, objInfo);
+          break;
+        case ASCII_STRING_TYPE:
+          result = this.parseString(offset, objInfo, (o, l) -> l, StandardCharsets.US_ASCII.name());
+          break;
+        case UTF16_STRING_TYPE:
+          // UTF-16 characters can have variable length, but the Core Foundation reference
+          // implementation
+          // assumes 2 byte characters, thus only covering the Basic Multilingual Plane
+          result =
+              this.parseString(
+                  offset,
+                  objInfo,
+                  (o, l) -> Math.multiplyExact(2, l),
+                  StandardCharsets.UTF_16BE.name());
+          break;
+        case UTF8_STRING_TYPE:
+          // UTF-8 characters can have variable length, so we need to calculate the byte length
+          // dynamically
+          // by reading the UTF-8 characters one by one
+          result =
+              this.parseString(
+                  offset, objInfo, this::calculateUtf8StringLength, StandardCharsets.UTF_8.name());
+          break;
+        case UID_TYPE:
+          result = this.parseUid(obj, offset, objInfo + 1);
+          break;
+        case ARRAY_TYPE:
+          result = this.parseArray(offset, objInfo, stack);
+          break;
+        case ORDERED_SET_TYPE:
+          result = this.parseSet(offset, objInfo, true, stack);
+          break;
+        case SET_TYPE:
+          result = this.parseSet(offset, objInfo, false, stack);
+          break;
+        case DICTIONARY_TYPE:
+          result = this.parseDictionary(offset, objInfo, stack);
+          break;
+        default:
+          throw new PropertyListFormatException(this.buildTypeError(offset));
+      }
+    } catch (PropertyListFormatException ex) {
+      if (ex.getLocationInformation() == null) {
+        ex.setLocationInformation(loc);
+      }
+
+      throw ex;
+    } catch (java.io.UnsupportedEncodingException ex) {
+      throw new PropertyListFormatException(
+          "The encoding of the NSString at offset " + offset + " is not supported.", loc, ex);
+    }
+
+    if (result != null) {
+      result.setLocationInformation(loc);
+    }
+
+    this.parsedObjects.put(obj, result);
+    return result;
+  }
+
+  private NSDate parseDate(int offset, int objInfo) throws PropertyListFormatException {
+    if (objInfo != 0x3) {
+      throw new PropertyListFormatException(this.buildTypeError(offset, "NSDate"));
+    }
+
+    int endOffset = this.safeAddOffset(offset, 9, "NSDate");
+    return new NSDate(this.bytes, offset + 1, endOffset);
+  }
+
+  private NSData parseData(int offset, int objInfo) throws PropertyListFormatException {
+    int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
+    int length = lengthAndOffset[0];
+    int dataOffset = offset + lengthAndOffset[1];
+    int dataEndOffset = this.safeAddOffset(dataOffset, length, "NSData");
+    return new NSData(copyOfRange(this.bytes, dataOffset, dataEndOffset));
+  }
+
+  private NSObject parseSimpleObject(int offset, int objInfo, int obj)
+      throws PropertyListFormatException {
+    switch (objInfo) {
+      case 0x0: // null object (v1.0 and later)
+        return null;
+      case 0x8: // false
+        return new NSNumber(false);
+      case 0x9: // true
+        return new NSNumber(true);
+      case 0xC: // URL with no base URL (v1.0 and later)
+      case 0xD: // URL with base URL (v1.0 and later)
+        // TODO Implement binary URL parsing (not implemented in Core Foundation)
+        throw new PropertyListFormatException(
+            "The NSObject at offset " + offset + " is a URL, which is not supported.");
+      case 0xE: // 16-byte UUID (v1.0 and later)
+        return this.parseUid(obj, offset, 16);
+      default:
+        throw new PropertyListFormatException(this.buildTypeError(offset));
+    }
+  }
+
+  private UID parseUid(int obj, int offset, int length) throws PropertyListFormatException {
+    int endOffset = this.safeAddOffset(offset, length + 1, "UID");
+    return new UID(String.valueOf(obj), copyOfRange(this.bytes, offset + 1, endOffset));
+  }
+
+  private NSNumber parseNumber(int offset, int objInfo, int numberType)
+      throws PropertyListFormatException {
+    // integer
+    int length = (int) Math.pow(2, objInfo);
+    int endOffset = this.safeAddOffset(offset, length + 1, "NSNumber");
+    try {
+      return new NSNumber(this.bytes, offset + 1, endOffset, numberType);
+    } catch (IndexOutOfBoundsException ex) {
+      throw new PropertyListFormatException(buildLengthError(offset, "NSNumber"), ex);
+    }
+  }
+
+  private NSString parseString(
+      int offset,
+      int objInfo,
+      BiFunction<Integer, Integer, Integer> stringLengthCalculator,
+      String charsetName)
+      throws PropertyListFormatException, UnsupportedEncodingException {
+    int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
+    int strOffset = offset + lengthAndOffset[1];
+    int length;
+    try {
+      length = stringLengthCalculator.apply(strOffset, lengthAndOffset[0]);
+    } catch (ArithmeticException ex) {
+      throw new PropertyListFormatException(buildLengthError(offset, "NSString content"), ex);
+    }
+
+    int strEndIndex = this.safeAddOffset(strOffset, length, "NSString content");
+    return new NSString(this.bytes, strOffset, strEndIndex, charsetName);
+  }
+
+  private NSArray parseArray(int offset, int objInfo, ParsedObjectStack stack)
+      throws PropertyListFormatException, UnsupportedEncodingException {
+    int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
+    int length = lengthAndOffset[0];
+    int arrayOffset = offset + lengthAndOffset[1];
+
+    this.validateObjectReferenceListLength(arrayOffset, length, "NSArray");
+
+    NSArray array = new NSArray(length);
+    for (int i = 0; i < length; i++) {
+      int objRef = this.parseObjectReferenceFromList(arrayOffset, i);
+      array.setValue(i, this.parseObject(stack, objRef));
+    }
+    return array;
+  }
+
+  private NSSet parseSet(int offset, int objInfo, boolean ordered, ParsedObjectStack stack)
+      throws PropertyListFormatException, UnsupportedEncodingException {
+    int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
+    int length = lengthAndOffset[0];
+    int setOffset = offset + lengthAndOffset[1];
+
+    this.validateObjectReferenceListLength(setOffset, length, "NSSet");
+
+    NSSet set = new NSSet(ordered);
+    HashSet<Integer> addedObjectReferences = new HashSet<>();
+    for (int i = 0; i < length; i++) {
+      int objRef = this.parseObjectReferenceFromList(setOffset, i);
+      if (addedObjectReferences.add(objRef)) {
+        set.addObject(this.parseObject(stack, objRef));
+      }
+    }
+
+    return set;
+  }
+
+  private NSDictionary parseDictionary(int offset, int objInfo, ParsedObjectStack stack)
+      throws PropertyListFormatException, UnsupportedEncodingException {
+    int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
+    int length = lengthAndOffset[0];
+    int keyListOffset = offset + lengthAndOffset[1];
+    this.validateObjectReferenceListLength(keyListOffset, length, "NSDictionary keys");
+
+    int valueListOffset = keyListOffset + (length * this.objectRefSize);
+    this.validateObjectReferenceListLength(valueListOffset, length, "NSDictionary values");
+
+    NSDictionary dict = new NSDictionary();
+    for (int i = 0; i < length; i++) {
+      int keyRef = this.parseObjectReferenceFromList(keyListOffset, i);
+      int valRef = this.parseObjectReferenceFromList(valueListOffset, i);
+      NSObject key = this.parseObject(stack, keyRef);
+      if (key == null) {
+        throw new PropertyListFormatException(
+            "The key #" + (i + 1) + " of the NSDictionary at offset " + offset + " is NULL.");
+      }
+
+      NSObject val = this.parseObject(stack, valRef);
+      dict.put(key.toString(), val);
+    }
+    return dict;
+  }
+
+  private int[] readLengthAndOffset(int objInfo, int offset) throws PropertyListFormatException {
+    try {
+      int lengthValue = objInfo;
+      int lengthLength = 1;
+      if (objInfo == 0xF) {
+        int int_type = this.bytes[Math.addExact(offset, 1)];
+        int intType = (int_type & 0xF0) >> 4;
+        if (intType != 0x1) {
+          System.err.println(
+              "BinaryPropertyListParser: Length integer has an unexpected type ("
+                  + intType
+                  + "). Attempting to parse anyway...");
         }
-    }
-
-    /**
-     * Parses a binary property list from an input stream.
-     * This method does not close the specified input stream.
-     *
-     * @param is The input stream that points to the property list's data.
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
-     * @throws java.io.IOException         If a {@link NSString} object could not be decoded or an I/O error occurs on the input stream.
-     */
-    public static NSObject parse(InputStream is) throws IOException, PropertyListFormatException {
-        return parse(PropertyListParser.readAll(is));
-    }
-
-    /**
-     * Parses a binary property list from a byte array.
-     *
-     * @param data The binary property list's data.
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException          When the property list's format could not be parsed.
-     * @throws java.io.UnsupportedEncodingException If a {@link NSString} object could not be decoded.
-     */
-    public static NSObject parse(byte[] data) throws PropertyListFormatException, UnsupportedEncodingException {
-        BinaryPropertyListParser parser = new BinaryPropertyListParser();
-        return parser.doParse(data);
-    }
-
-    /**
-     * Parses an unsigned integers from a byte array.
-     *
-     * @param bytes The byte array containing the unsigned integer.
-     * @return The unsigned integer represented by the given bytes.
-     */
-    @SuppressWarnings("unused")
-    public static long parseUnsignedInt(byte[] bytes) {
-        return parseUnsignedInt(bytes, 0, bytes.length);
-    }
-
-    /**
-     * Parses an unsigned integer from a byte array.
-     *
-     * @param bytes      The byte array containing the unsigned integer.
-     * @param startIndex Beginning of the unsigned int in the byte array.
-     * @param endIndex   End of the unsigned int in the byte array.
-     * @return The unsigned integer represented by the given bytes.
-     */
-    public static long parseUnsignedInt(byte[] bytes, int startIndex, int endIndex) {
-        long l = 0;
-        for (int i = startIndex; i < endIndex; i++) {
-            l <<= 8;
-            l |= bytes[i] & 0xFF;
-        }
-        l &= 0xFFFFFFFFL;
-        return l;
-    }
-
-    /**
-     * Parses a long from a (big-endian) byte array.
-     *
-     * @param bytes The bytes representing the long integer.
-     * @return The long integer represented by the given bytes.
-     */
-    @SuppressWarnings("unused")
-    public static long parseLong(byte[] bytes) {
-        return parseLong(bytes, 0, bytes.length);
-    }
-
-    /**
-     * Parses a long from a (big-endian) byte array.
-     *
-     * @param bytes      The bytes representing the long integer.
-     * @param startIndex Beginning of the long in the byte array.
-     * @param endIndex   End of the long in the byte array.
-     * @return The long integer represented by the given bytes.
-     */
-    public static long parseLong(byte[] bytes, int startIndex, int endIndex) {
-        long l = 0;
-        for (int i = startIndex; i < endIndex; i++) {
-            l <<= 8;
-            l |= bytes[i] & 0xFF;
-        }
-        return l;
-    }
-
-    /**
-     * Parses a double from a (big-endian) byte array.
-     *
-     * @param bytes The bytes representing the double.
-     * @return The double represented by the given bytes.
-     */
-    @SuppressWarnings("unused")
-    public static double parseDouble(byte[] bytes) {
-        return parseDouble(bytes, 0, bytes.length);
-    }
-
-    /**
-     * Parses a double from a (big-endian) byte array.
-     *
-     * @param bytes      The bytes representing the double.
-     * @param startIndex Beginning of the double in the byte array.
-     * @param endIndex   End of the double in the byte array.
-     * @return The double represented by the given bytes.
-     */
-    public static double parseDouble(byte[] bytes, int startIndex, int endIndex) {
-        if (endIndex - startIndex == 8) {
-            return Double.longBitsToDouble(parseLong(bytes, startIndex, endIndex));
-        } else if (endIndex - startIndex == 4) {
-            return Float.intBitsToFloat((int) parseLong(bytes, startIndex, endIndex));
+        int intInfo = int_type & 0x0F;
+        int intLength = (int) Math.pow(2, intInfo);
+        lengthLength = 2 + intLength;
+        int intStartOffset = Math.addExact(offset, 2);
+        int intEndOffset = this.safeAddOffset(offset, lengthLength, "length integer");
+        if (intLength < 3) {
+          lengthValue = (int) parseUnsignedInt(this.bytes, intStartOffset, intEndOffset);
         } else {
-            throw new IllegalArgumentException("endIndex (" + endIndex + ") - startIndex (" + startIndex + ") != 4 or 8");
+          lengthValue =
+              new BigInteger(copyOfRange(this.bytes, intStartOffset, intEndOffset)).intValue();
         }
+      }
+
+      if (lengthValue < 0) {
+        throw new PropertyListFormatException(
+            "The length integer at offset "
+                + offset
+                + " is negative or exceeds the maximum supported value.");
+      }
+
+      return new int[] {lengthValue, lengthLength};
+    } catch (IllegalArgumentException | IndexOutOfBoundsException | ArithmeticException ex) {
+      throw new PropertyListFormatException(
+          "The length/offset integer at offset " + offset + " is invalid.", ex);
     }
+  }
 
-    /**
-     * Copies a part of a byte array into a new array.
-     *
-     * @param src        The source array.
-     * @param startIndex The index from which to start copying.
-     * @param endIndex   The index until which to copy.
-     * @return The copied array.
-     */
-    public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
-        int length = endIndex - startIndex;
-        if (length < 0) {
-            throw new IllegalArgumentException("startIndex (" + startIndex + ")" + " > endIndex (" + endIndex + ")");
-        }
-        byte[] dest = new byte[length];
-        System.arraycopy(src, startIndex, dest, 0, length);
-        return dest;
-    }
+  private int calculateUtf8StringLength(int offset, int numCharacters) {
+    int length = 0;
+    for (int i = 0; i < numCharacters; i++) {
+      int tempOffset = Math.addExact(offset, length);
+      if (tempOffset >= this.offsetTableOffset) {
+        // WARNING: Invalid UTF-8 string
+        return numCharacters;
+      }
 
-    /**
-     * Parses a binary property list from a byte array.
-     *
-     * @param data The binary property list's data.
-     * @return The root object of the property list. This is usually a {@link NSDictionary} but can also be a {@link NSArray}.
-     * @throws PropertyListFormatException          When the property list's format could not be parsed.
-     */
-    private NSObject doParse(byte[] data) throws PropertyListFormatException {
-        Objects.requireNonNull(data);
-        if (data.length < 8) {
-            throw new PropertyListFormatException("The available binary property list data is too short.");
-        }
-
-        this.bytes = data;
-        String magic = new String(copyOfRange(this.bytes, 0, 8), StandardCharsets.US_ASCII);
-        if (!magic.startsWith("bplist") || magic.length() < 8 || !Character.isDigit(magic.charAt(6)) || !Character.isDigit(magic.charAt(7))) {
-            throw new PropertyListFormatException("The binary property list has an invalid file header: " + magic);
-        }
-
-        this.majorVersion = magic.charAt(6) - 0x30; //ASCII number
-        this.minorVersion = magic.charAt(7) - 0x30; //ASCII number
-
-        // 0.0 - OS X Tiger and earlier
-        // 0.1 - Leopard
-        // 0.? - Snow Leopard
-        // 1.5 - Lion
-        // 2.0 - Snow Lion
-
-        if (this.majorVersion > 0) {
-            throw new PropertyListFormatException("Unsupported binary property list format: v" + this.majorVersion + "." + this.minorVersion + ". " +
-                    "Version 1.0 and later are not yet supported.");
-            //Version 1.0+ is not even supported by OS X's own parser
+      int currentByte = this.bytes[tempOffset];
+      if ((currentByte & 0x80) != 0x80) {
+        length++;
+      } else {
+        int n = 0;
+        if ((currentByte & 0xC0) == 0x80) {
+          // Unexpected continuation mark, fall back
+          return numCharacters;
+        } else if ((currentByte & 0xE0) == 0xC0) {
+          n = 1;
+        } else if ((currentByte & 0xF0) == 0xE0) {
+          n = 2;
+        } else if ((currentByte & 0xF8) == 0xF0) {
+          n = 3;
         }
 
-        if (this.bytes.length < 40 /* header + trailer length */) {
-            throw new PropertyListFormatException("The binary property list does not contain a complete object offset table.");
+        if (this.hasUtf8Sequence(tempOffset, n)) {
+          length += 2;
+        } else {
+          // Invalid sequence, fall back
+          return numCharacters;
         }
-
-        // Parse trailer, last 32 bytes of the file
-        byte[] trailer = copyOfRange(this.bytes, this.bytes.length - 32, this.bytes.length);
-
-        try {
-            // Trailer starts with 6 null bytes (index 0 to 5)
-            this.offsetSize = (int) parseUnsignedInt(trailer, 6, 7);
-            this.objectRefSize = (int) parseUnsignedInt(trailer, 7, 8);
-            long numObjectsValue = parseUnsignedInt(trailer, 8, 16);
-            long topObjectValue = parseUnsignedInt(trailer, 16, 24);
-            long offsetTableOffsetValue = parseUnsignedInt(trailer, 24, 32);
-
-            // Validate consistency of the trailer against the actual data size.
-            if (this.offsetSize < 1
-                    || this.objectRefSize < 1
-                    || numObjectsValue < 0 || numObjectsValue > Integer.MAX_VALUE
-                    || topObjectValue < 0 || topObjectValue >= this.bytes.length - 32
-                    || offsetTableOffsetValue < 0 || offsetTableOffsetValue > this.bytes.length
-                    || Math.addExact(offsetTableOffsetValue, Math.multiplyExact(numObjectsValue + 1, this.offsetSize)) > this.bytes.length) {
-                throw new PropertyListFormatException("The binary property list contains a corrupted object offset table.");
-            }
-
-            this.numObjects = (int) numObjectsValue;
-            this.offsetTableOffset = (int) offsetTableOffsetValue;
-            int topObject = (int) topObjectValue;
-
-            return this.parseObject(ParsedObjectStack.empty(), topObject);
-        } catch (ArithmeticException ex) {
-            throw new PropertyListFormatException("The binary property list contains corrupted data.", ex);
-        }
+      }
     }
 
-    /**
-     * Parses an object inside the currently parsed binary property list.
-     * For the format specification check
-     * <a href="http://www.opensource.apple.com/source/CF/CF-855.17/CFBinaryPList.c">
-     * Apple's binary property list parser implementation</a>.
-     *
-     * @param stack The stack to keep track of parsed objects and detect cyclic references.
-     * @param obj   The object ID.
-     * @return The parsed object.
-     * @throws PropertyListFormatException When the property list's format could not be parsed.
-     */
-    private NSObject parseObject(ParsedObjectStack stack, int obj) throws PropertyListFormatException {
-        stack = stack.push(obj);
+    return length;
+  }
 
-        if (this.parsedObjects.containsKey(obj)) {
-            return this.parsedObjects.get(obj);
-        }
-
-        int offset = this.getObjectOffset(obj);
-        LocationInformation loc = new BinaryLocationInformation(obj, offset);
-
-        byte type = this.bytes[offset];
-        int objType = (type & 0xF0) >> 4;
-        int objInfo = type & 0x0F;
-        NSObject result;
-        try {
-            switch (objType) {
-                case SIMPLE_TYPE:
-                    result = this.parseSimpleObject(offset, objInfo, obj);
-                    break;
-                case INT_TYPE:
-                    result = this.parseNumber(offset, objInfo, NSNumber.INTEGER);
-                    break;
-                case REAL_TYPE:
-                    result = this.parseNumber(offset, objInfo, NSNumber.REAL);
-                    break;
-                case DATE_TYPE:
-                    result = this.parseDate(offset, objInfo);
-                    break;
-                case DATA_TYPE:
-                    result = this.parseData(offset, objInfo);
-                    break;
-                case ASCII_STRING_TYPE:
-                    result = this.parseString(offset, objInfo, (o, l) -> l,
-                        StandardCharsets.US_ASCII.name());
-                    break;
-                case UTF16_STRING_TYPE:
-                    // UTF-16 characters can have variable length, but the Core Foundation reference implementation
-                    // assumes 2 byte characters, thus only covering the Basic Multilingual Plane
-                    result = this.parseString(offset, objInfo, (o, l) -> Math.multiplyExact(2, l),
-                        StandardCharsets.UTF_16BE.name());
-                    break;
-                case UTF8_STRING_TYPE:
-                    // UTF-8 characters can have variable length, so we need to calculate the byte length dynamically
-                    // by reading the UTF-8 characters one by one
-                    result = this.parseString(offset, objInfo, this::calculateUtf8StringLength,
-                        StandardCharsets.UTF_8.name());
-                    break;
-                case UID_TYPE:
-                    result = this.parseUid(obj, offset, objInfo + 1);
-                    break;
-                case ARRAY_TYPE:
-                    result = this.parseArray(offset, objInfo, stack);
-                    break;
-                case ORDERED_SET_TYPE:
-                    result = this.parseSet(offset, objInfo, true, stack);
-                    break;
-                case SET_TYPE:
-                    result = this.parseSet(offset, objInfo, false, stack);
-                    break;
-                case DICTIONARY_TYPE:
-                    result = this.parseDictionary(offset, objInfo, stack);
-                    break;
-                default:
-                    throw new PropertyListFormatException(this.buildTypeError(offset));
-            }
-        } catch (PropertyListFormatException ex) {
-            if (ex.getLocationInformation() == null) {
-                ex.setLocationInformation(loc);
-            }
-
-            throw ex;
-        } catch (java.io.UnsupportedEncodingException ex) {
-            throw new PropertyListFormatException(
-                "The encoding of the NSString at offset " + offset + " is not supported.",
-                loc,
-                ex);
-        }
-
-        if (result != null) {
-            result.setLocationInformation(loc);
-        }
-
-        this.parsedObjects.put(obj, result);
-        return result;
+  private boolean hasUtf8Sequence(int offset, int n) {
+    for (int i = 1; i <= n; i++) {
+      if (((offset + i) >= this.offsetTableOffset) || ((this.bytes[offset + i] & 0xC0) != 0x80)) {
+        return false;
+      }
     }
 
-    private NSDate parseDate(int offset, int objInfo) throws PropertyListFormatException {
-        if (objInfo != 0x3) {
-            throw new PropertyListFormatException(this.buildTypeError(offset, "NSDate"));
-        }
+    return true;
+  }
 
-        int endOffset = this.safeAddOffset(offset, 9, "NSDate");
-        return new NSDate(this.bytes, offset + 1, endOffset);
+  private void validateObjectReferenceListLength(int baseOffset, int numObjects, String objectType)
+      throws PropertyListFormatException {
+    try {
+      int endOffset = Math.addExact(baseOffset, Math.multiplyExact(numObjects, this.objectRefSize));
+      if (endOffset > this.offsetTableOffset) {
+        throw new PropertyListFormatException(
+            "The length of the object reference list of the "
+                + objectType
+                + " at offset "
+                + baseOffset
+                + " is larger than the amount of available data.");
+      }
+    } catch (ArithmeticException ex) {
+      throw new PropertyListFormatException(
+          "Encountered the end of the file while validating the object reference list of the "
+              + objectType
+              + " at offset "
+              + baseOffset
+              + ".",
+          ex);
+    }
+  }
+
+  private int parseObjectReferenceFromList(int baseOffset, int objectIndex)
+      throws PropertyListFormatException {
+    // No offset validation required here, already covered in calling methods
+    return this.parseObjectReference(baseOffset + objectIndex * this.objectRefSize);
+  }
+
+  private int parseObjectReference(int offset) throws PropertyListFormatException {
+    // No offset validation required here, already covered in calling methods
+    return (int) parseUnsignedInt(this.bytes, offset, offset + this.objectRefSize);
+  }
+
+  private int getObjectOffset(int obj) throws PropertyListFormatException {
+    if (obj >= this.numObjects) {
+      throw new PropertyListFormatException(
+          "The given binary property list contains an invalid object identifier (" + obj + ").");
     }
 
-    private NSData parseData(int offset, int objInfo) throws PropertyListFormatException {
-        int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
-        int length = lengthAndOffset[0];
-        int dataOffset = offset + lengthAndOffset[1];
-        int dataEndOffset = this.safeAddOffset(dataOffset, length, "NSData");
-        return new NSData(copyOfRange(this.bytes, dataOffset, dataEndOffset));
+    int startOffset = this.offsetTableOffset + obj * this.offsetSize;
+    int offset = (int) parseUnsignedInt(this.bytes, startOffset, startOffset + this.offsetSize);
+    if (offset > this.offsetTableOffset) {
+      throw new PropertyListFormatException(
+          "The given binary property list contains an invalid object offset ("
+              + offset
+              + ") for object "
+              + obj
+              + ".");
     }
 
-    private NSObject parseSimpleObject(int offset, int objInfo, int obj) throws PropertyListFormatException {
-        switch (objInfo) {
-            case 0x0: //null object (v1.0 and later)
-                return null;
-            case 0x8: // false
-                return new NSNumber(false);
-            case 0x9: // true
-                return new NSNumber(true);
-            case 0xC: // URL with no base URL (v1.0 and later)
-            case 0xD: // URL with base URL (v1.0 and later)
-                //TODO Implement binary URL parsing (not implemented in Core Foundation)
-                throw new PropertyListFormatException("The NSObject at offset " + offset + " is a URL, which is not supported.");
-            case 0xE: //16-byte UUID (v1.0 and later)
-                return this.parseUid(obj, offset, 16);
-            default:
-                throw new PropertyListFormatException(this.buildTypeError(offset));
-        }
+    return offset;
+  }
+
+  private int safeAddOffset(int offset, int length, String objectType)
+      throws PropertyListFormatException {
+    try {
+      int endOffset = Math.addExact(offset, length);
+      if (endOffset > this.offsetTableOffset) {
+        throw new PropertyListFormatException(buildLengthError(offset, objectType));
+      }
+
+      return endOffset;
+    } catch (ArithmeticException ex) {
+      throw new PropertyListFormatException(buildLengthError(offset, objectType), ex);
     }
+  }
 
-    private UID parseUid(int obj, int offset, int length) throws PropertyListFormatException {
-        int endOffset = this.safeAddOffset(offset, length + 1, "UID");
-        return new UID(String.valueOf(obj), copyOfRange(this.bytes, offset + 1, endOffset));
-    }
+  private String buildTypeError(int offset) {
+    return this.buildTypeError(offset, "NSObject");
+  }
 
-    private NSNumber parseNumber(int offset, int objInfo, int numberType) throws PropertyListFormatException {
-        // integer
-        int length = (int) Math.pow(2, objInfo);
-        int endOffset = this.safeAddOffset(offset, length + 1, "NSNumber");
-        try {
-            return new NSNumber(this.bytes, offset + 1, endOffset, numberType);
-        } catch (IndexOutOfBoundsException ex) {
-            throw new PropertyListFormatException(buildLengthError(offset, "NSNumber"), ex);
-        }
-    }
+  private String buildTypeError(int offset, String objectType) {
+    return String.format(
+        "The %s at offset %d has an unknown or unsupported type (0x%02x)",
+        objectType, offset, this.bytes[offset]);
+  }
 
-    private NSString parseString(int offset, int objInfo, BiFunction<Integer, Integer, Integer> stringLengthCalculator, String charsetName) throws PropertyListFormatException, UnsupportedEncodingException {
-        int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
-        int strOffset = offset + lengthAndOffset[1];
-        int length;
-        try {
-            length = stringLengthCalculator.apply(strOffset, lengthAndOffset[0]);
-        } catch (ArithmeticException ex) {
-            throw new PropertyListFormatException(buildLengthError(offset, "NSString content"), ex);
-        }
-
-        int strEndIndex = this.safeAddOffset(strOffset, length, "NSString content");
-        return new NSString(this.bytes, strOffset, strEndIndex, charsetName);
-    }
-
-    private NSArray parseArray(int offset, int objInfo, ParsedObjectStack stack) throws PropertyListFormatException, UnsupportedEncodingException {
-        int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
-        int length = lengthAndOffset[0];
-        int arrayOffset = offset + lengthAndOffset[1];
-
-        this.validateObjectReferenceListLength(arrayOffset, length, "NSArray");
-
-        NSArray array = new NSArray(length);
-        for (int i = 0; i < length; i++) {
-            int objRef = this.parseObjectReferenceFromList(arrayOffset, i);
-            array.setValue(i, this.parseObject(stack, objRef));
-        }
-        return array;
-    }
-
-    private NSSet parseSet(int offset, int objInfo, boolean ordered, ParsedObjectStack stack) throws PropertyListFormatException, UnsupportedEncodingException {
-        int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
-        int length = lengthAndOffset[0];
-        int setOffset = offset + lengthAndOffset[1];
-        
-        this.validateObjectReferenceListLength(setOffset, length, "NSSet");
-
-        NSSet set = new NSSet(ordered);
-        HashSet<Integer> addedObjectReferences = new HashSet<>();
-        for (int i = 0; i < length; i++) {
-            int objRef = this.parseObjectReferenceFromList(setOffset, i);
-            if (addedObjectReferences.add(objRef)) {
-                set.addObject(this.parseObject(stack, objRef));
-            }
-        }
-
-        return set;
-    }
-
-    private NSDictionary parseDictionary(int offset, int objInfo, ParsedObjectStack stack) throws PropertyListFormatException, UnsupportedEncodingException {
-        int[] lengthAndOffset = this.readLengthAndOffset(objInfo, offset);
-        int length = lengthAndOffset[0];
-        int keyListOffset = offset + lengthAndOffset[1];
-        this.validateObjectReferenceListLength(keyListOffset, length, "NSDictionary keys");
-
-        int valueListOffset = keyListOffset + (length * this.objectRefSize);
-        this.validateObjectReferenceListLength(valueListOffset, length, "NSDictionary values");
-
-        NSDictionary dict = new NSDictionary();
-        for (int i = 0; i < length; i++) {
-            int keyRef = this.parseObjectReferenceFromList(keyListOffset, i);
-            int valRef = this.parseObjectReferenceFromList(valueListOffset, i);
-            NSObject key = this.parseObject(stack, keyRef);
-            if (key == null) {
-                throw new PropertyListFormatException("The key #" + (i + 1) + " of the NSDictionary at offset " + offset + " is NULL.");
-            }
-
-            NSObject val = this.parseObject(stack, valRef);
-            dict.put(key.toString(), val);
-        }
-        return dict;
-    }
-
-    private int[] readLengthAndOffset(int objInfo, int offset) throws PropertyListFormatException {
-        try {
-            int lengthValue = objInfo;
-            int lengthLength = 1;
-            if (objInfo == 0xF) {
-                int int_type = this.bytes[Math.addExact(offset, 1)];
-                int intType = (int_type & 0xF0) >> 4;
-                if (intType != 0x1) {
-                    System.err.println("BinaryPropertyListParser: Length integer has an unexpected type (" + intType + "). Attempting to parse anyway...");
-                }
-                int intInfo = int_type & 0x0F;
-                int intLength = (int) Math.pow(2, intInfo);
-                lengthLength = 2 + intLength;
-                int intStartOffset = Math.addExact(offset, 2);
-                int intEndOffset = this.safeAddOffset(offset, lengthLength, "length integer");
-                if (intLength < 3) {
-                    lengthValue = (int) parseUnsignedInt(this.bytes, intStartOffset, intEndOffset);
-                } else {
-                    lengthValue = new BigInteger(copyOfRange(this.bytes, intStartOffset, intEndOffset)).intValue();
-                }
-            }
-
-            if (lengthValue < 0) {
-                throw new PropertyListFormatException("The length integer at offset " + offset + " is negative or exceeds the maximum supported value.");
-            }
-
-            return new int[]{lengthValue, lengthLength};
-        } catch (IllegalArgumentException | IndexOutOfBoundsException | ArithmeticException ex) {
-            throw new PropertyListFormatException("The length/offset integer at offset " + offset + " is invalid.", ex);
-        }
-    }
-
-    private int calculateUtf8StringLength(int offset, int numCharacters) {
-        int length = 0;
-        for (int i = 0; i < numCharacters; i++) {
-            int tempOffset = Math.addExact(offset, length);
-            if (tempOffset >= this.offsetTableOffset) {
-                // WARNING: Invalid UTF-8 string
-                return numCharacters;
-            }
-
-            int currentByte = this.bytes[tempOffset];
-            if ((currentByte & 0x80) != 0x80) {
-                length++;
-            } else {
-                int n = 0;
-                if ((currentByte & 0xC0) == 0x80) {
-                    // Unexpected continuation mark, fall back
-                    return numCharacters;
-                } else if ((currentByte & 0xE0) == 0xC0) {
-                    n = 1;
-                } else if ((currentByte & 0xF0) == 0xE0) {
-                    n = 2;
-                } else if ((currentByte & 0xF8) == 0xF0) {
-                    n = 3;
-                }
-
-                if (this.hasUtf8Sequence(tempOffset, n)) {
-                    length += 2;
-                } else {
-                    // Invalid sequence, fall back
-                    return numCharacters;
-                }
-            }
-        }
-
-        return length;
-    }
-
-    private boolean hasUtf8Sequence(int offset, int n) {
-        for (int i = 1; i <= n; i++) {
-            if (((offset + i) >= this.offsetTableOffset)
-                    || ((this.bytes[offset + i] & 0xC0) != 0x80)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private void validateObjectReferenceListLength(int baseOffset, int numObjects, String objectType) throws PropertyListFormatException {
-        try {
-            int endOffset = Math.addExact(baseOffset, Math.multiplyExact(numObjects, this.objectRefSize));
-            if (endOffset > this.offsetTableOffset) {
-                throw new PropertyListFormatException("The length of the object reference list of the " + objectType + " at offset " + baseOffset + " is larger than the amount of available data.");
-            }
-        } catch (ArithmeticException ex) {
-            throw new PropertyListFormatException("Encountered the end of the file while validating the object reference list of the " + objectType + " at offset " + baseOffset + ".", ex);
-        }
-    }
-
-    private int parseObjectReferenceFromList(int baseOffset, int objectIndex) throws PropertyListFormatException {
-        // No offset validation required here, already covered in calling methods
-        return this.parseObjectReference(baseOffset + objectIndex * this.objectRefSize);
-    }
-
-    private int parseObjectReference(int offset) throws PropertyListFormatException {
-        // No offset validation required here, already covered in calling methods
-        return (int) parseUnsignedInt(this.bytes, offset, offset + this.objectRefSize);
-    }
-
-    private int getObjectOffset(int obj) throws PropertyListFormatException {
-        if (obj >= this.numObjects) {
-            throw new PropertyListFormatException("The given binary property list contains an invalid object identifier (" + obj + ").");
-        }
-
-        int startOffset = this.offsetTableOffset + obj * this.offsetSize;
-        int offset = (int) parseUnsignedInt(this.bytes, startOffset, startOffset + this.offsetSize);
-        if (offset > this.offsetTableOffset) {
-            throw new PropertyListFormatException("The given binary property list contains an invalid object offset (" + offset + ") for object " + obj + ".");
-        }
-
-        return offset;
-    }
-
-    private int safeAddOffset(int offset, int length, String objectType) throws PropertyListFormatException {
-        try {
-            int endOffset = Math.addExact(offset, length);
-            if (endOffset > this.offsetTableOffset) {
-                throw new PropertyListFormatException(buildLengthError(offset, objectType));
-            }
-
-            return endOffset;
-        } catch (ArithmeticException ex) {
-            throw new PropertyListFormatException(buildLengthError(offset, objectType), ex);
-        }
-    }
-
-    private String buildTypeError(int offset) {
-        return this.buildTypeError(offset, "NSObject");
-    }
-
-    private String buildTypeError(int offset, String objectType) {
-        return String.format("The %s at offset %d has an unknown or unsupported type (0x%02x)",
-            objectType, offset, this.bytes[offset]);
-    }
-
-    private static String buildLengthError(int offset, String objectType) {
-        return String.format(
-            "The length of the %s at offset %d is larger than the amount of available data.",
-            objectType, offset);
-    }
+  private static String buildLengthError(int offset, String objectType) {
+    return String.format(
+        "The length of the %s at offset %d is larger than the amount of available data.",
+        objectType, offset);
+  }
 }
-

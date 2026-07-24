@@ -25,11 +25,13 @@ They originate from the NeXSTEP programming environment and are now a basic part
 
 If you use Maven and want to include the library into your project you can use the following dependency.
 
-    <dependency>
-      <groupId>com.googlecode.plist</groupId>
-      <artifactId>dd-plist</artifactId>
-      <version>1.30</version>
-    </dependency>
+```xml
+<dependency>
+  <groupId>com.googlecode.plist</groupId>
+  <artifactId>dd-plist</artifactId>
+  <version>1.30</version>
+</dependency>
+```
 
 ## Help
 
@@ -155,4 +157,22 @@ root.put("People", people);
 
 //Save the propery list
 XMLPropertyListWriter.write(root, new File("people.plist"));
+```
+
+## Contributing
+
+Java source formatting follows the
+[Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
+It is enforced with Spotless in CI and during Maven's `verify` phase.
+
+Check formatting before submitting a change:
+
+```shell
+mvn spotless:check
+```
+
+Apply the required formatting automatically:
+
+```shell
+mvn spotless:apply
 ```

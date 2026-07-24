@@ -1,42 +1,41 @@
 package com.dd.plist.test;
 
-import com.dd.plist.*;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import com.dd.plist.*;
+import java.io.File;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Dreibrodt
  */
 public class CloneTest {
-    @Test
-    public void testCloneEquals() throws Exception {
-        NSDictionary root = (NSDictionary)PropertyListParser.parse(new File("test-files/test1.plist"));
-        NSDictionary clonedDictionary = root.clone();
+  @Test
+  public void testCloneEquals() throws Exception {
+    NSDictionary root = (NSDictionary) PropertyListParser.parse(new File("test-files/test1.plist"));
+    NSDictionary clonedDictionary = root.clone();
 
-        assertEquals(clonedDictionary, root);
-    }
+    assertEquals(clonedDictionary, root);
+  }
 
-    @Test
-    public void testCloneIsDeep() throws Exception {
-        NSDictionary root = (NSDictionary)PropertyListParser.parse(new File("test-files/test1.plist"));
-        NSDictionary clonedDictionary = root.clone();
+  @Test
+  public void testCloneIsDeep() throws Exception {
+    NSDictionary root = (NSDictionary) PropertyListParser.parse(new File("test-files/test1.plist"));
+    NSDictionary clonedDictionary = root.clone();
 
-        ((NSString)root.get("keyA")).append("modified");
-        assertEquals("valueA", ((NSString)clonedDictionary.get("keyA")).getContent());
+    ((NSString) root.get("keyA")).append("modified");
+    assertEquals("valueA", ((NSString) clonedDictionary.get("keyA")).getContent());
 
-        ((NSDate)root.get("date")).getDate().setTime(42);
-        assertNotSame(42, ((NSDate)clonedDictionary.get("date")).getDate().getTime());
+    ((NSDate) root.get("date")).getDate().setTime(42);
+    assertNotSame(42, ((NSDate) clonedDictionary.get("date")).getDate().getTime());
 
-        ((NSData)root.get("data")).bytes()[0] = 0x42;
-        assertEquals(0x00, ((NSData)clonedDictionary.get("data")).bytes()[0]);
+    ((NSData) root.get("data")).bytes()[0] = 0x42;
+    assertEquals(0x00, ((NSData) clonedDictionary.get("data")).bytes()[0]);
 
-        NSArray originalArray = ((NSArray)root.get("array"));
-        NSArray clonedArray = ((NSArray)clonedDictionary.get("array"));
+    NSArray originalArray = ((NSArray) root.get("array"));
+    NSArray clonedArray = ((NSArray) clonedDictionary.get("array"));
 
-        originalArray.getArray()[0] = new NSNumber(false);
-        assertTrue(((NSNumber) clonedArray.getArray()[0]).boolValue());
-    }
+    originalArray.getArray()[0] = new NSNumber(false);
+    assertTrue(((NSNumber) clonedArray.getArray()[0]).boolValue());
+  }
 }

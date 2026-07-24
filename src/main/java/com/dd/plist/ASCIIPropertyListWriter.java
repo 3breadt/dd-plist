@@ -36,132 +36,138 @@ import java.util.Objects;
  * @author Daniel Dreibrodt
  */
 public final class ASCIIPropertyListWriter {
-    /**
-     * Prevents instantiation.
-     */
-    private ASCIIPropertyListWriter() {
-        /* empty */
+  /** Prevents instantiation. */
+  private ASCIIPropertyListWriter() {
+    /* empty */
+  }
+
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param out The output file. If the output file's parent directory does not exist, it will be
+   *     created.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSDictionary root, File out) throws IOException {
+    File parent = out.getParentFile();
+    if (!parent.exists() && !parent.mkdirs()) {
+      throw new IOException("The output directory does not exist and could not be created.");
     }
 
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param out  The output file. If the output file's parent directory does not exist, it will be created.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSDictionary root, File out) throws IOException {
-        File parent = out.getParentFile();
-        if (!parent.exists() && !parent.mkdirs()) {
-            throw new IOException("The output directory does not exist and could not be created.");
-        }
+    write(root, out.toPath());
+  }
 
-        write(root, out.toPath());
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param path The output file path.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSDictionary root, Path path) throws IOException {
+    try (OutputStreamWriter w =
+        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
+      w.write(root.toASCIIPropertyList());
+    }
+  }
+
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param out The output file. If the output file's parent directory does not exist, it will be
+   *     created.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSArray root, File out) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
+
+    File parent = out.getParentFile();
+    if (!parent.exists() && !parent.mkdirs()) {
+      throw new IOException("The output directory does not exist and could not be created.");
     }
 
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param path The output file path.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSDictionary root, Path path) throws IOException {
-        try (OutputStreamWriter w = new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-            w.write(root.toASCIIPropertyList());
-        }
+    write(root, out.toPath());
+  }
+
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param path The output file path.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void write(NSArray root, Path path) throws IOException {
+    try (OutputStreamWriter w =
+        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
+      w.write(root.toASCIIPropertyList());
+    }
+  }
+
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param out The output file. If the output file's parent directory does not exist, it will be
+   *     created.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void writeGnuStep(NSDictionary root, File out) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
+
+    File parent = out.getParentFile();
+    if (!parent.exists() && !parent.mkdirs()) {
+      throw new IOException("The output directory does not exist and could not be created.");
     }
 
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param out  The output file. If the output file's parent directory does not exist, it will be created.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSArray root, File out) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
+    writeGnuStep(root, out.toPath());
+  }
 
-        File parent = out.getParentFile();
-        if (!parent.exists() && !parent.mkdirs()) {
-            throw new IOException("The output directory does not exist and could not be created.");
-        }
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param path The output file path.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void writeGnuStep(NSDictionary root, Path path) throws IOException {
+    try (OutputStreamWriter w =
+        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
+      w.write(root.toGnuStepASCIIPropertyList());
+    }
+  }
 
-        write(root, out.toPath());
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param out The output file. If the output file's parent directory does not exist, it will be
+   *     created.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void writeGnuStep(NSArray root, File out) throws IOException {
+    Objects.requireNonNull(root, "The root object is null.");
+
+    File parent = out.getParentFile();
+    if (!parent.exists() && !parent.mkdirs()) {
+      throw new IOException("The output directory does not exist and could not be created.");
     }
 
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param path The output file path.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void write(NSArray root, Path path) throws IOException {
-        try (OutputStreamWriter w = new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-            w.write(root.toASCIIPropertyList());
-        }
+    writeGnuStep(root, out.toPath());
+  }
+
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object.
+   * @param path The output file path.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  public static void writeGnuStep(NSArray root, Path path) throws IOException {
+    try (OutputStreamWriter w =
+        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
+      w.write(root.toGnuStepASCIIPropertyList());
     }
-
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param out  The output file. If the output file's parent directory does not exist, it will be created.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void writeGnuStep(NSDictionary root, File out) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
-
-        File parent = out.getParentFile();
-        if (!parent.exists() && !parent.mkdirs()) {
-            throw new IOException("The output directory does not exist and could not be created.");
-        }
-
-        writeGnuStep(root, out.toPath());
-    }
-
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param path The output file path.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void writeGnuStep(NSDictionary root, Path path) throws IOException {
-        try (OutputStreamWriter w = new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-            w.write(root.toGnuStepASCIIPropertyList());
-        }
-    }
-
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param out  The output file. If the output file's parent directory does not exist, it will be created.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void writeGnuStep(NSArray root, File out) throws IOException {
-        Objects.requireNonNull(root, "The root object is null.");
-
-        File parent = out.getParentFile();
-        if (!parent.exists() && !parent.mkdirs()) {
-            throw new IOException("The output directory does not exist and could not be created.");
-        }
-
-        writeGnuStep(root, out.toPath());
-    }
-
-    /**
-     * Saves a property list with the given object as root into an ASCII file.
-     *
-     * @param root The root object.
-     * @param path The output file path.
-     * @throws IOException If an error occurs during the writing process.
-     */
-    public static void writeGnuStep(NSArray root, Path path) throws IOException {
-        try (OutputStreamWriter w = new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-            w.write(root.toGnuStepASCIIPropertyList());
-        }
-    }
+  }
 }
