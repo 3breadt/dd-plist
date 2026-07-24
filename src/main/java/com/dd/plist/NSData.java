@@ -59,7 +59,11 @@ public class NSData extends NSObject {
         //Remove all white spaces from the string so that it is parsed completely
         //and not just until the first white space occurs.
         String data = base64.replaceAll("\\s+", "");
-        this.bytes = Base64.decode(data, Base64.DONT_GUNZIP);
+        try {
+            this.bytes = java.util.Base64.getDecoder().decode(data);
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("The given string is not properly Base64 encoded.", ex);
+        }
     }
 
     /**
@@ -121,7 +125,7 @@ public class NSData extends NSObject {
      * @return The data as a Base64 encoded <code>String</code>.
      */
     public String getBase64EncodedData() {
-        return Base64.encodeBytes(this.bytes);
+        return java.util.Base64.getEncoder().encodeToString(this.bytes);
     }
 
     @Override

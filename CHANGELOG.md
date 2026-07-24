@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-- *No changes yet*
+### Changed
+
+- Switch from using bundled iharder Base64 implementation to `java.util.Base64` which is
+  significantly more performant.
+  ⚠️ This breaks compatibility of `dd-plist` with Android versions earlier than Oreo (8.0).
 
 ## [1.30.0] - 2026-07-24
 

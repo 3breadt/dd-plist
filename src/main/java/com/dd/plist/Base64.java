@@ -173,7 +173,10 @@ import java.nio.charset.StandardCharsets;
  * @author Robert Harder
  * @author rob@iharder.net
  * @version 2.3.7
+ * @deprecated Obsolete since Java 8 provides Base64 encoding and decoding via
+ * {@link java.util.Base64}. Use that class instead.
  */
+@Deprecated
 public class Base64 {
 
 /* ********  P U B L I C   F I E L D S  ******** */
