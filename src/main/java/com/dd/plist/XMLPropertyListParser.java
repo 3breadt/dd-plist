@@ -62,6 +62,10 @@ public class XMLPropertyListParser {
      * The maximum number of nested objects that will be parsed.
      * This protects against {@link StackOverflowError}s caused by excessively (or maliciously) nested
      * structures, while still allowing very deeply nested legitimate property lists to be parsed.
+     *
+     * This limit is applied after the XML parser has constructed the DOM. The JAXP
+     * {@code jdk.xml.maxElementDepth} limit is independent and may reject the document first when
+     * set lower than its XML element depth.
      */
     private static final int MAX_NESTING_DEPTH = 512;
 
