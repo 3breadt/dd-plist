@@ -9,17 +9,17 @@ They originate from the NeXSTEP programming environment and are now a basic part
 
 ## Features
 
- * Read / write property lists from / to files, streams or byte arrays
- * Convert between property list formats
- * Property list contents are provided as objects from the NeXTSTEP environment (NSDictionary, NSArray, NSString, etc.)
- * Serialize native java data structures to property list objects
- * Deserialize from property list objects to native java data structures
+* Read / write property lists from / to files, streams or byte arrays
+* Convert between property list formats
+* Property list contents are provided as objects from the NeXTSTEP environment (NSDictionary, NSArray, NSString, etc.)
+* Serialize native java data structures to property list objects
+* Deserialize from property list objects to native java data structures
 
 ## Supported formats
 
- * Cocoa XML
- * Cocoa Binary (v0)
- * Cocoa / NeXSTSTEP / GNUstep ASCII
+* Cocoa XML
+* Cocoa Binary (v0)
+* Cocoa / NeXSTSTEP / GNUstep ASCII
 
 ## Maven support
 
@@ -28,7 +28,7 @@ If you use Maven and want to include the library into your project you can use t
     <dependency>
       <groupId>com.googlecode.plist</groupId>
       <artifactId>dd-plist</artifactId>
-      <version>1.29</version>
+      <version>1.30</version>
     </dependency>
 
 ## Help
