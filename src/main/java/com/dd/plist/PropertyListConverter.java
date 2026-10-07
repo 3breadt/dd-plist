@@ -60,15 +60,8 @@ public final class PropertyListConverter {
           SAXException,
           PropertyListFormatException,
           IOException {
-    NSObject root = PropertyListParser.parse(in);
-    if (root instanceof NSDictionary) {
-      ASCIIPropertyListWriter.write((NSDictionary) root, out);
-    } else if (root instanceof NSArray) {
-      ASCIIPropertyListWriter.write((NSArray) root, out);
-    } else {
-      throw new PropertyListFormatException(
-          "The root of the given input property list is neither a Dictionary nor an Array.");
-    }
+    writeASCII(
+        PropertyListParser.parse(in), PropertyListParser.createParentDirectories(out), false);
   }
 
   /**
@@ -91,15 +84,7 @@ public final class PropertyListConverter {
           SAXException,
           PropertyListFormatException,
           IOException {
-    NSObject root = PropertyListParser.parse(in);
-    if (root instanceof NSDictionary) {
-      ASCIIPropertyListWriter.write((NSDictionary) root, out);
-    } else if (root instanceof NSArray) {
-      ASCIIPropertyListWriter.write((NSArray) root, out);
-    } else {
-      throw new PropertyListFormatException(
-          "The root of the given input property list is neither a Dictionary nor an Array.");
-    }
+    writeASCII(PropertyListParser.parse(in), out, false);
   }
 
   /**
@@ -122,11 +107,25 @@ public final class PropertyListConverter {
           SAXException,
           PropertyListFormatException,
           IOException {
-    NSObject root = PropertyListParser.parse(in);
+    writeASCII(PropertyListParser.parse(in), PropertyListParser.createParentDirectories(out), true);
+  }
+
+  private static void writeASCII(NSObject root, Path out, boolean gnuStep)
+      throws IOException, PropertyListFormatException {
     if (root instanceof NSDictionary) {
-      ASCIIPropertyListWriter.writeGnuStep((NSDictionary) root, out);
+      NSDictionary dict = (NSDictionary) root;
+      if (gnuStep) {
+        ASCIIPropertyListWriter.writeGnuStep(dict, out);
+      } else {
+        ASCIIPropertyListWriter.write(dict, out);
+      }
     } else if (root instanceof NSArray) {
-      ASCIIPropertyListWriter.writeGnuStep((NSArray) root, out);
+      NSArray array = (NSArray) root;
+      if (gnuStep) {
+        ASCIIPropertyListWriter.writeGnuStep(array, out);
+      } else {
+        ASCIIPropertyListWriter.write(array, out);
+      }
     } else {
       throw new PropertyListFormatException(
           "The root of the given input property list is neither a Dictionary nor an Array.");
