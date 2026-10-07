@@ -11,10 +11,4 @@
       <destName>dd-plist.jar</destName>
     </file>
   </files>
-  <fileSets>
-    <fileSet>
-      <directory>target/javadoc</directory>
-      <outputDirectory>javadoc</outputDirectory>
-    </fileSet>
-  </fileSets>
 </assembly>
