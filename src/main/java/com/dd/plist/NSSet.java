@@ -25,7 +25,6 @@ package com.dd.plist;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The NSSet class is an unordered collection of NSObject instances. This implementation uses a
@@ -68,8 +67,10 @@ public class NSSet extends NSObject {
    * @see java.util.LinkedHashSet
    */
   public NSSet(NSObject... objects) {
-    this.set = new LinkedHashSet<>();
-    this.set.addAll(Arrays.asList(objects));
+    this();
+    for (NSObject obj : objects) {
+      this.addObject(obj);
+    }
   }
 
   /**
@@ -82,8 +83,9 @@ public class NSSet extends NSObject {
    */
   public NSSet(boolean ordered, NSObject... objects) {
     this(ordered);
-    this.set.addAll(
-        Arrays.stream(objects).map(NSNull::wrap).collect(Collectors.toCollection(ArrayList::new)));
+    for (NSObject obj : objects) {
+      this.addObject(obj);
+    }
   }
 
   /**
@@ -246,7 +248,7 @@ public class NSSet extends NSObject {
     NSObject[] clonedSet = new NSObject[this.set.size()];
     int i = 0;
     for (NSObject element : this.set) {
-      clonedSet[i++] = element != null ? element.clone() : null;
+      clonedSet[i++] = element.clone();
     }
 
     return new NSSet(this.ordered, clonedSet);

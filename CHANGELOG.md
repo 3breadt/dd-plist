@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Writing to a `File` given as a bare file name (no parent directory) threw a
   `NullPointerException` in the XML, ASCII and binary writers.
+- `NSSet(NSObject...)` stored a `null` argument as a raw Java `null` instead of `NSNull`, so
+  `containsObject(null)` returned `false`, `addObject(null)` added a second entry and
+  `toJavaObject()` threw a `NullPointerException`. Both varargs constructors now behave like
+  `addObject`.
 
 ### Changed
 
