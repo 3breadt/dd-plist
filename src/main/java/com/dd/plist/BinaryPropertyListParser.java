@@ -31,6 +31,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
@@ -167,13 +168,7 @@ public final class BinaryPropertyListParser {
    * @return The unsigned integer represented by the given bytes.
    */
   public static long parseUnsignedInt(byte[] bytes, int startIndex, int endIndex) {
-    long l = 0;
-    for (int i = startIndex; i < endIndex; i++) {
-      l <<= 8;
-      l |= bytes[i] & 0xFF;
-    }
-    l &= 0xFFFFFFFFL;
-    return l;
+    return parseLong(bytes, startIndex, endIndex) & 0xFFFFFFFFL;
   }
 
   /**
@@ -243,14 +238,11 @@ public final class BinaryPropertyListParser {
    * @return The copied array.
    */
   public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
-    int length = endIndex - startIndex;
-    if (length < 0) {
-      throw new IllegalArgumentException(
-          "startIndex (" + startIndex + ")" + " > endIndex (" + endIndex + ")");
+    if (endIndex > src.length) {
+      // Arrays.copyOfRange would silently zero-pad; System.arraycopy (previous impl.) threw.
+      throw new ArrayIndexOutOfBoundsException(endIndex);
     }
-    byte[] dest = new byte[length];
-    System.arraycopy(src, startIndex, dest, 0, length);
-    return dest;
+    return Arrays.copyOfRange(src, startIndex, endIndex);
   }
 
   /**
