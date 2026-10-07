@@ -114,9 +114,7 @@ public final class BinaryPropertyListParser {
    *     occurs on the input stream.
    */
   public static NSObject parse(Path path) throws IOException, PropertyListFormatException {
-    try (InputStream fileInputStream = Files.newInputStream(path)) {
-      return parse(fileInputStream);
-    }
+    return parse(Files.readAllBytes(path));
   }
 
   /**

@@ -241,9 +241,7 @@ public final class ASCIIPropertyListParser {
    *     in this instance of the Java virtual machine.
    */
   public static NSObject parse(Path path, String encoding) throws IOException, ParseException {
-    try (InputStream fileInputStream = Files.newInputStream(path)) {
-      return parse(fileInputStream, encoding);
-    }
+    return parse(Files.readAllBytes(path), encoding);
   }
 
   /**
@@ -256,9 +254,7 @@ public final class ASCIIPropertyListParser {
    * @throws java.io.IOException If an error occurs while reading from the input stream.
    */
   public static NSObject parse(Path path) throws IOException, ParseException {
-    try (InputStream fileInputStream = Files.newInputStream(path)) {
-      return parse(fileInputStream);
-    }
+    return parse(Files.readAllBytes(path));
   }
 
   /**
