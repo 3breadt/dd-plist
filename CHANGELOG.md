@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- Limited ASCII property lists to 512 nested objects to prevent stack overflows from
+  excessively nested input
+
 ### Changed
 
 - Switch from using bundled iharder Base64 implementation to `java.util.Base64` which is

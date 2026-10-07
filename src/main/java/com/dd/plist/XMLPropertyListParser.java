@@ -57,17 +57,6 @@ import org.xml.sax.XMLReader;
 public class XMLPropertyListParser {
   private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
 
-  /**
-   * The maximum number of nested objects that will be parsed. This protects against {@link
-   * StackOverflowError}s caused by excessively (or maliciously) nested structures, while still
-   * allowing very deeply nested legitimate property lists to be parsed.
-   *
-   * <p>This limit is applied after the XML parser has constructed the DOM. The JAXP {@code
-   * jdk.xml.maxElementDepth} limit is independent and may reject the document first when set lower
-   * than its XML element depth.
-   */
-  private static final int MAX_NESTING_DEPTH = 512;
-
   static {
     //
     // Attempt to disable parser features that can lead to XXE exploits; see:
@@ -425,10 +414,12 @@ public class XMLPropertyListParser {
    */
   private static NSObject parseObject(Node n, String xpath, int depth)
       throws PropertyListFormatException {
-    if (depth > MAX_NESTING_DEPTH) {
+    // The JAXP jdk.xml.maxElementDepth limit is independent and may reject the document first when
+    // set lower than its XML element depth.
+    if (depth > ParsedObjectStack.MAX_NESTING_DEPTH) {
       throw new PropertyListFormatException(
           "The nesting depth of the property list exceeds the maximum supported depth of "
-              + MAX_NESTING_DEPTH
+              + ParsedObjectStack.MAX_NESTING_DEPTH
               + ".");
     }
 

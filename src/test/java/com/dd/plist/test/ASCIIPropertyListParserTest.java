@@ -279,4 +279,63 @@ public class ASCIIPropertyListParserTest {
     assertEquals("\"\\\":\n拡張文字ｷﾀｱｱｱ", dict.get("with_escapes").toString());
     assertEquals(" 幸", dict.get("with_u_escapes").toString());
   }
+
+  @Test
+  public void parse_rejectsExcessivelyNestedStructures() {
+    byte[] plist = buildDeeplyNestedArrayPlist(100_000, "leaf").getBytes(StandardCharsets.US_ASCII);
+    ParseException ex =
+        assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(plist));
+    assertTrue(
+        ex.getMessage().contains("nesting depth"),
+        "Unexpected exception message: " + ex.getMessage());
+
+    byte[] dictPlist = buildNestedDicts(100_000).getBytes(StandardCharsets.US_ASCII);
+    assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(dictPlist));
+  }
+
+  @Test
+  public void parse_allowsDeeplyNestedStructuresWithinLimit() throws Exception {
+    byte[] plist = buildDeeplyNestedArrayPlist(400, "leaf").getBytes(StandardCharsets.US_ASCII);
+    NSObject current = ASCIIPropertyListParser.parse(plist);
+    int depth = 0;
+    while (current instanceof NSArray) {
+      current = ((NSArray) current).objectAtIndex(0);
+      depth++;
+    }
+    assertEquals(400, depth);
+    assertEquals(new NSString("leaf"), current);
+  }
+
+  @Test
+  public void parse_enforcesNestingDepthLimitBoundary() throws Exception {
+    byte[] withinLimit = buildDeeplyNestedArrayPlist(512, "").getBytes(StandardCharsets.US_ASCII);
+    assertInstanceOf(NSArray.class, ASCIIPropertyListParser.parse(withinLimit));
+
+    byte[] overLimit = buildDeeplyNestedArrayPlist(513, "").getBytes(StandardCharsets.US_ASCII);
+    assertThrows(ParseException.class, () -> ASCIIPropertyListParser.parse(overLimit));
+  }
+
+  private static String buildDeeplyNestedArrayPlist(int depth, String leaf) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < depth; i++) {
+      builder.append('(');
+    }
+    builder.append(leaf);
+    for (int i = 0; i < depth; i++) {
+      builder.append(')');
+    }
+    return builder.toString();
+  }
+
+  private static String buildNestedDicts(int depth) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < depth; i++) {
+      builder.append("{a=");
+    }
+    builder.append("leaf");
+    for (int i = 0; i < depth; i++) {
+      builder.append(";}");
+    }
+    return builder.toString();
+  }
 }

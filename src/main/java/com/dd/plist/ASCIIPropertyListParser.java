@@ -171,6 +171,9 @@ public final class ASCIIPropertyListParser {
   /** The index at which the current line began. */
   private int lineBeginning = -1;
 
+  /** Nesting depth of the object currently being parsed; guards against stack overflows. */
+  private int depth;
+
   /**
    * Creates a new parser for the given property list content.
    *
@@ -603,6 +606,13 @@ public final class ASCIIPropertyListParser {
    * @see ASCIIPropertyListParser#index
    */
   private NSObject parseObject() throws ParseException {
+    if (++this.depth > ParsedObjectStack.MAX_NESTING_DEPTH) {
+      throw this.createParseException(
+          "The nesting depth of the property list exceeds the maximum supported depth of "
+              + ParsedObjectStack.MAX_NESTING_DEPTH
+              + ".");
+    }
+
     LocationInformation loc =
         new ASCIILocationInformation(this.index, this.lineNo, this.index - this.lineBeginning);
     NSObject result;
@@ -658,6 +668,7 @@ public final class ASCIIPropertyListParser {
       result.setLocationInformation(loc);
     }
 
+    this.depth--;
     return result;
   }
 
