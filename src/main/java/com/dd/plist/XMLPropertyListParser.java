@@ -57,23 +57,29 @@ import org.xml.sax.XMLReader;
 public class XMLPropertyListParser {
   private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
 
+  // Parser features that must be disabled on every XML parsing path to prevent XXE exploits; see
+  // https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
+  private static final String FEATURE_LOAD_EXTERNAL_DTD =
+      "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+  private static final String FEATURE_EXTERNAL_GENERAL_ENTITIES =
+      "http://xml.org/sax/features/external-general-entities";
+  private static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES =
+      "http://xml.org/sax/features/external-parameter-entities";
+
   static {
-    //
-    // Attempt to disable parser features that can lead to XXE exploits; see:
-    // https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#Java
-    //
+    // Attempt to disable parser features that can lead to XXE exploits.
     try {
-      FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+      FACTORY.setFeature(FEATURE_LOAD_EXTERNAL_DTD, false);
     } catch (ParserConfigurationException ignored) {
     }
 
     try {
-      FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      FACTORY.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
     } catch (ParserConfigurationException ignored) {
     }
 
     try {
-      FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+      FACTORY.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
     } catch (ParserConfigurationException ignored) {
     }
 
@@ -384,10 +390,9 @@ public class XMLPropertyListParser {
 
   private static XMLReader createSafeXmlReader() throws SAXException, ParserConfigurationException {
     SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-    parserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-    parserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-    parserFactory.setFeature(
-        "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+    parserFactory.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+    parserFactory.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+    parserFactory.setFeature(FEATURE_LOAD_EXTERNAL_DTD, false);
     parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     parserFactory.setXIncludeAware(false);
 
