@@ -602,10 +602,7 @@ public final class ASCIIPropertyListParser {
    */
   private NSObject parseObject(int depth) throws ParseException {
     if (depth > ParsedObjectStack.MAX_NESTING_DEPTH) {
-      throw this.createParseException(
-          "The nesting depth of the property list exceeds the maximum supported depth of "
-              + ParsedObjectStack.MAX_NESTING_DEPTH
-              + ".");
+      throw this.createParseException(ParsedObjectStack.NESTING_DEPTH_EXCEEDED_MESSAGE);
     }
 
     LocationInformation loc =

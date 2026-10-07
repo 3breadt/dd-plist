@@ -37,6 +37,12 @@ class ParsedObjectStack {
    */
   static final int MAX_NESTING_DEPTH = 512;
 
+  /** The error message used by all parsers when {@link #MAX_NESTING_DEPTH} is exceeded. */
+  static final String NESTING_DEPTH_EXCEEDED_MESSAGE =
+      "The nesting depth of the property list exceeds the maximum supported depth of "
+          + MAX_NESTING_DEPTH
+          + ".";
+
   private final ParsedObjectStack parent;
   private final int object;
   private final int depth;
@@ -67,10 +73,7 @@ class ParsedObjectStack {
    */
   public ParsedObjectStack push(int obj) throws PropertyListFormatException {
     if (this.depth >= MAX_NESTING_DEPTH) {
-      throw new PropertyListFormatException(
-          "The nesting depth of the property list exceeds the maximum supported depth of "
-              + MAX_NESTING_DEPTH
-              + ".");
+      throw new PropertyListFormatException(NESTING_DEPTH_EXCEEDED_MESSAGE);
     }
 
     this.throwIfOnStack(obj);

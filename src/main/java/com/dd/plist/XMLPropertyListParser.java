@@ -415,10 +415,7 @@ public class XMLPropertyListParser {
     // The JAXP jdk.xml.maxElementDepth limit is independent and may reject the document first when
     // set lower than its XML element depth.
     if (depth > ParsedObjectStack.MAX_NESTING_DEPTH) {
-      throw new PropertyListFormatException(
-          "The nesting depth of the property list exceeds the maximum supported depth of "
-              + ParsedObjectStack.MAX_NESTING_DEPTH
-              + ".");
+      throw new PropertyListFormatException(ParsedObjectStack.NESTING_DEPTH_EXCEEDED_MESSAGE);
     }
 
     String type = n.getNodeName();
