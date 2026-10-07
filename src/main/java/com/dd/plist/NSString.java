@@ -40,7 +40,7 @@ import java.util.Scanner;
  *     target="_blank">Foundation NSString documentation</a>
  */
 public class NSString extends NSObject {
-  private static CharsetEncoder asciiEncoder, utf16beEncoder, utf8Encoder;
+  private static CharsetEncoder asciiEncoder, utf16beEncoder;
 
   private String content;
 
@@ -242,35 +242,7 @@ public class NSString extends NSObject {
   void toXML(StringBuilder xml, int level) {
     this.indent(xml, level);
     xml.append("<string>");
-
-    // Make sure that the string is encoded in UTF-8 for the XML output
-    synchronized (NSString.class) {
-      if (utf8Encoder == null) utf8Encoder = StandardCharsets.UTF_8.newEncoder();
-      else utf8Encoder.reset();
-
-      try {
-        ByteBuffer byteBuf = utf8Encoder.encode(CharBuffer.wrap(this.content));
-        byte[] bytes = new byte[byteBuf.remaining()];
-        byteBuf.get(bytes);
-        this.content = new String(bytes, StandardCharsets.UTF_8);
-      } catch (Exception ex) {
-        throw new RuntimeException("Could not encode the NSString into UTF-8: " + ex.getMessage());
-      }
-    }
-
-    String cleanedContent = escapeStringForXml(this.content);
-
-    // According to http://www.w3.org/TR/REC-xml/#syntax node values must not
-    // contain the characters < or &. Also the > character should be escaped.
-    if (cleanedContent.contains("&")
-        || cleanedContent.contains("<")
-        || cleanedContent.contains(">")) {
-      xml.append("<![CDATA[");
-      xml.append(cleanedContent.replaceAll("]]>", "]]]]><![CDATA[>"));
-      xml.append("]]>");
-    } else {
-      xml.append(cleanedContent);
-    }
+    appendXmlText(xml, this.content);
     xml.append("</string>");
   }
 
@@ -303,15 +275,15 @@ public class NSString extends NSObject {
   @Override
   protected void toASCII(StringBuilder ascii, int level) {
     this.indent(ascii, level);
-    ascii.append("\"");
+    ascii.append('"');
     // According to
     // https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html
     // non-ASCII characters are not escaped but simply written into the
     // file, thus actually violating the ASCII plain text format.
     // We will escape the string anyway because current Xcode project files (ASCII property lists)
     // also escape their strings.
-    ascii.append(escapeStringForASCII(this.content));
-    ascii.append("\"");
+    escapeStringForASCII(ascii, this.content);
+    ascii.append('"');
   }
 
   @Override
@@ -332,19 +304,23 @@ public class NSString extends NSObject {
   }
 
   /**
-   * Escapes a string for use in ASCII property lists.
+   * Appends a string to an ASCII property list, escaping it as required.
    *
+   * @param out The output buffer.
    * @param s The unescaped string.
-   * @return The escaped string.
    */
-  static String escapeStringForASCII(String s) {
-    StringBuilder out = new StringBuilder();
-    for (char c : s.toCharArray()) {
+  static void escapeStringForASCII(StringBuilder out, String s) {
+    int len = s.length();
+    int i = 0;
+    while (i < len && !needsAsciiEscape(s.charAt(i))) i++;
+    out.append(s, 0, i);
+    for (; i < len; i++) {
+      char c = s.charAt(i);
       if (c > 127) {
         // non-ASCII Unicode
         out.append("\\U");
         String hex = Integer.toHexString(c);
-        while (hex.length() < 4) hex = "0" + hex;
+        for (int pad = hex.length(); pad < 4; pad++) out.append('0');
         out.append(hex);
       } else if (c == '\\') {
         out.append("\\\\");
@@ -362,12 +338,34 @@ public class NSString extends NSObject {
         out.append(c);
       }
     }
-    return out.toString();
   }
 
-  static String escapeStringForXml(String s) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < s.length(); i++) {
+  private static boolean needsAsciiEscape(char c) {
+    return c > 127 || c == '\\' || c == '"' || c == '\b' || c == '\n' || c == '\r' || c == '\t';
+  }
+
+  /**
+   * Appends a string to an XML property list as character data. Characters that are not allowed in
+   * XML 1.0 (see https://www.w3.org/TR/xml/#charsets) are dropped, and the text is wrapped in a
+   * CDATA section if it contains markup characters.
+   *
+   * @param xml The output buffer.
+   * @param s The string.
+   */
+  static void appendXmlText(StringBuilder xml, String s) {
+    int len = s.length();
+    int i = 0;
+    while (i < len && isPlainXmlChar(s.charAt(i))) i++;
+    if (i == len) {
+      xml.append(s);
+      return;
+    }
+    // According to http://www.w3.org/TR/REC-xml/#syntax node values must not
+    // contain the characters < or &. Also the > character should be escaped.
+    boolean cdata = s.indexOf('&', i) >= 0 || s.indexOf('<', i) >= 0 || s.indexOf('>', i) >= 0;
+    if (cdata) xml.append("<![CDATA[");
+    xml.append(s, 0, i);
+    for (; i < len; i++) {
       int codePoint = s.codePointAt(i);
       if (codePoint > 0xFFFF) {
         i++;
@@ -378,11 +376,27 @@ public class NSString extends NSObject {
           || (codePoint == 0xD)
           || ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
           || ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
-          || ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
-        sb.appendCodePoint(codePoint);
+          || (codePoint >= 0x10000)) {
+        if (codePoint == '>' && cdata && endsWithCdataTerminatorStart(xml)) {
+          // "]]>" must be split across two CDATA sections
+          xml.append("]]><![CDATA[");
+        }
+        xml.appendCodePoint(codePoint);
       }
     }
+    if (cdata) xml.append("]]>");
+  }
 
-    return sb.toString();
+  /** Whether the character can be appended unchanged, without CDATA wrapping. */
+  private static boolean isPlainXmlChar(char c) {
+    return (c >= 0x20 && c < 0xD800 && c != '&' && c != '<' && c != '>')
+        || c == '\t'
+        || c == '\n'
+        || c == '\r';
+  }
+
+  private static boolean endsWithCdataTerminatorStart(StringBuilder sb) {
+    int n = sb.length();
+    return n >= 2 && sb.charAt(n - 1) == ']' && sb.charAt(n - 2) == ']';
   }
 }

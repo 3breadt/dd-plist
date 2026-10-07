@@ -370,22 +370,14 @@ public class NSDictionary extends NSObject implements Map<String, NSObject> {
     this.indent(xml, level);
     xml.append("<dict>");
     xml.append(NSObject.NEWLINE);
-    for (String key : this.dict.keySet()) {
-      NSObject val = this.objectForKey(key);
-      this.indent(xml, level + 1);
+    int itemLevel = level + 1;
+    for (Map.Entry<String, NSObject> entry : this.dict.entrySet()) {
+      this.indent(xml, itemLevel);
       xml.append("<key>");
-      // According to http://www.w3.org/TR/REC-xml/#syntax node values must not
-      // contain the characters < or &. Also the > character should be escaped.
-      if (key.contains("&") || key.contains("<") || key.contains(">")) {
-        xml.append("<![CDATA[");
-        xml.append(key.replaceAll("]]>", "]]]]><![CDATA[>"));
-        xml.append("]]>");
-      } else {
-        xml.append(key);
-      }
+      NSString.appendXmlText(xml, entry.getKey());
       xml.append("</key>");
       xml.append(NSObject.NEWLINE);
-      val.toXML(xml, level + 1);
+      entry.getValue().toXML(xml, itemLevel);
       xml.append(NSObject.NEWLINE);
     }
     this.indent(xml, level);
@@ -461,7 +453,7 @@ public class NSDictionary extends NSObject implements Map<String, NSObject> {
       NSObject val = entry.getValue();
       this.indent(ascii, keyLevel);
       ascii.append('"');
-      ascii.append(NSString.escapeStringForASCII(entry.getKey()));
+      NSString.escapeStringForASCII(ascii, entry.getKey());
       ascii.append("\" =");
       Class<?> objClass = val.getClass();
       if (objClass.equals(NSDictionary.class)

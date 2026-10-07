@@ -16,6 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Switch from using bundled iharder Base64 implementation to `java.util.Base64` which is
   significantly more performant.
   ⚠️ This breaks compatibility of `dd-plist` with Android versions earlier than Oreo (8.0).
+- XML and ASCII writers escape strings directly into the output buffer and skip escaping
+  entirely for plain strings, roughly halving the time to serialize string-heavy property lists.
+- `NSString.toXML` no longer re-encodes the string through UTF-8 on every call. A string containing
+  an unpaired surrogate is now written without that character, like other characters that are
+  invalid in XML, instead of throwing a `RuntimeException`.
+- `NSDictionary` keys are now filtered for characters that are invalid in XML, like string values
+  already were, so a dictionary with such keys produces a parseable XML property list.
 
 ## [1.30.0] - 2026-07-24
 
