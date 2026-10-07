@@ -273,7 +273,7 @@ public class NSString extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     this.indent(ascii, level);
     ascii.append('"');
     // According to
@@ -284,11 +284,6 @@ public class NSString extends NSObject {
     // also escape their strings.
     escapeStringForASCII(ascii, this.content);
     ascii.append('"');
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.toASCII(ascii, level);
   }
 
   @Override

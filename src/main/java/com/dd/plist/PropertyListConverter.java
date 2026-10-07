@@ -112,24 +112,11 @@ public final class PropertyListConverter {
 
   private static void writeASCII(NSObject root, Path out, boolean gnuStep)
       throws IOException, PropertyListFormatException {
-    if (root instanceof NSDictionary) {
-      NSDictionary dict = (NSDictionary) root;
-      if (gnuStep) {
-        ASCIIPropertyListWriter.writeGnuStep(dict, out);
-      } else {
-        ASCIIPropertyListWriter.write(dict, out);
-      }
-    } else if (root instanceof NSArray) {
-      NSArray array = (NSArray) root;
-      if (gnuStep) {
-        ASCIIPropertyListWriter.writeGnuStep(array, out);
-      } else {
-        ASCIIPropertyListWriter.write(array, out);
-      }
-    } else {
+    if (!(root instanceof NSDictionary || root instanceof NSArray)) {
       throw new PropertyListFormatException(
           "The root of the given input property list is neither a Dictionary nor an Array.");
     }
+    ASCIIPropertyListWriter.write(root, out, gnuStep);
   }
 
   /**

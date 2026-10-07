@@ -62,10 +62,7 @@ public final class ASCIIPropertyListWriter {
    * @throws IOException If an error occurs during the writing process.
    */
   public static void write(NSDictionary root, Path path) throws IOException {
-    try (OutputStreamWriter w =
-        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-      w.write(root.toASCIIPropertyList());
-    }
+    write(root, path, false);
   }
 
   /**
@@ -89,10 +86,7 @@ public final class ASCIIPropertyListWriter {
    * @throws IOException If an error occurs during the writing process.
    */
   public static void write(NSArray root, Path path) throws IOException {
-    try (OutputStreamWriter w =
-        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-      w.write(root.toASCIIPropertyList());
-    }
+    write(root, path, false);
   }
 
   /**
@@ -116,10 +110,7 @@ public final class ASCIIPropertyListWriter {
    * @throws IOException If an error occurs during the writing process.
    */
   public static void writeGnuStep(NSDictionary root, Path path) throws IOException {
-    try (OutputStreamWriter w =
-        new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-      w.write(root.toGnuStepASCIIPropertyList());
-    }
+    write(root, path, true);
   }
 
   /**
@@ -143,9 +134,21 @@ public final class ASCIIPropertyListWriter {
    * @throws IOException If an error occurs during the writing process.
    */
   public static void writeGnuStep(NSArray root, Path path) throws IOException {
+    write(root, path, true);
+  }
+
+  /**
+   * Saves a property list with the given object as root into an ASCII file.
+   *
+   * @param root The root object. Must be an {@link NSDictionary} or an {@link NSArray}.
+   * @param path The output file path.
+   * @param gnuStep Whether to use the GnuStep format.
+   * @throws IOException If an error occurs during the writing process.
+   */
+  static void write(NSObject root, Path path, boolean gnuStep) throws IOException {
     try (OutputStreamWriter w =
         new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.US_ASCII)) {
-      w.write(root.toGnuStepASCIIPropertyList());
+      w.write(root.toASCIIPropertyList(gnuStep));
     }
   }
 }

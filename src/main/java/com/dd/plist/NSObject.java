@@ -150,21 +150,14 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
    * Generates the ASCII representation of this object. The generated ASCII representation does not
    * end with a newline. Complies with the <a
    * href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/PropertyLists/OldStylePlists/OldStylePLists.html"
-   * target="_blank">Old-Style ASCII Property Lists definition</a>.
+   * target="_blank">Old-Style ASCII Property Lists definition</a>, or with the GnuStep format if
+   * requested.
    *
    * @param ascii The {@link StringBuilder} onto which the ASCII representation is appended.
    * @param level The indentation level of the object.
+   * @param gnuStep Whether to use the GnuStep format.
    */
-  abstract void toASCII(StringBuilder ascii, int level);
-
-  /**
-   * Generates the ASCII representation of this object in the GnuStep format. The generated ASCII
-   * representation does not end with a newline.
-   *
-   * @param ascii The {@link StringBuilder} onto which the ASCII representation is appended.
-   * @param level The indentation level of the object.
-   */
-  abstract void toASCIIGnuStep(StringBuilder ascii, int level);
+  abstract void toASCII(StringBuilder ascii, int level, boolean gnuStep);
 
   /**
    * Generates a complete ASCII property list, terminated by a newline, with this object as root.
@@ -174,11 +167,7 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
    */
   final String toASCIIPropertyList(boolean gnuStep) {
     StringBuilder ascii = new StringBuilder();
-    if (gnuStep) {
-      this.toASCIIGnuStep(ascii, 0);
-    } else {
-      this.toASCII(ascii, 0);
-    }
+    this.toASCII(ascii, 0, gnuStep);
     ascii.append(NEWLINE);
     return ascii.toString();
   }

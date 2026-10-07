@@ -525,18 +525,16 @@ public class NSNumber extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     this.indent(ascii, level);
-    if (this.isBoolean()) {
-      ascii.append(this.boolValue ? YES_SYMBOL : NO_SYMOBL);
-    } else {
-      ascii.append(this.stringValue());
+    if (!gnuStep) {
+      if (this.isBoolean()) {
+        ascii.append(this.boolValue ? YES_SYMBOL : NO_SYMOBL);
+      } else {
+        ascii.append(this.stringValue());
+      }
+      return;
     }
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.indent(ascii, level);
     switch (this.type()) {
       case INTEGER:
         {

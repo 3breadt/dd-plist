@@ -301,21 +301,10 @@ public class NSSet extends NSObject {
    *
    * @param ascii The ASCII file string builder
    * @param level The indentation level
+   * @param gnuStep Whether to use the GnuStep format
    */
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
-    new NSArray(this.allObjects()).toASCII(ascii, level);
-  }
-
-  /**
-   * Returns the ASCII representation of this set according to the GnuStep format. There is no
-   * official ASCII representation for sets. In this implementation sets are represented as arrays.
-   *
-   * @param ascii The ASCII file string builder
-   * @param level The indentation level
-   */
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    new NSArray(this.allObjects()).toASCIIGnuStep(ascii, level);
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
+    new NSArray(this.allObjects()).toASCII(ascii, level, gnuStep);
   }
 }

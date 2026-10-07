@@ -136,13 +136,8 @@ public class UID extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
-    new NSString(this.uid.toString(16)).toASCII(ascii, level);
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    new NSString(this.uid.toString(16)).toASCIIGnuStep(ascii, level);
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
+    new NSString(this.uid.toString(16)).toASCII(ascii, level, gnuStep);
   }
 
   @Override

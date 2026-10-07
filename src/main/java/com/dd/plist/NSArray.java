@@ -313,16 +313,7 @@ public class NSArray extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
-    this.toASCII(ascii, level, false);
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.toASCII(ascii, level, true);
-  }
-
-  private void toASCII(StringBuilder ascii, int level, boolean gnustep) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     this.indent(ascii, level);
     ascii.append(ASCIIPropertyListParser.ARRAY_BEGIN_TOKEN);
     int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
@@ -335,21 +326,13 @@ public class NSArray extends NSObject {
           && indexOfLastNewLine != ascii.length()) {
         ascii.append(NEWLINE);
         indexOfLastNewLine = ascii.length();
-        if (gnustep) {
-          entry.toASCIIGnuStep(ascii, level + 1);
-        } else {
-          entry.toASCII(ascii, level + 1);
-        }
+        entry.toASCII(ascii, level + 1, gnuStep);
       } else {
         if (i != 0) {
           ascii.append(' ');
         }
 
-        if (gnustep) {
-          entry.toASCIIGnuStep(ascii, 0);
-        } else {
-          entry.toASCII(ascii, 0);
-        }
+        entry.toASCII(ascii, 0, gnuStep);
       }
 
       if (i != this.array.length - 1)

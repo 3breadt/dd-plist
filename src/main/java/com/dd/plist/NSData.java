@@ -196,7 +196,7 @@ public class NSData extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     this.indent(ascii, level);
     ascii.append(ASCIIPropertyListParser.DATA_BEGIN_TOKEN);
     int indexOfLastNewLine = ascii.lastIndexOf(NEWLINE);
@@ -212,10 +212,5 @@ public class NSData extends NSObject {
       }
     }
     ascii.append(ASCIIPropertyListParser.DATA_END_TOKEN);
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.toASCII(ascii, level);
   }
 }

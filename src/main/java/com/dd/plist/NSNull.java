@@ -77,12 +77,7 @@ public final class NSNull extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
-    throw new NullPointerException("A null value cannot be represented in an ASCII property list.");
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     throw new NullPointerException("A null value cannot be represented in an ASCII property list.");
   }
 

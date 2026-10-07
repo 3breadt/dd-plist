@@ -211,18 +211,16 @@ public class NSDate extends NSObject {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     this.indent(ascii, level);
-    ascii.append('"');
-    ascii.append(makeDateString(this.date));
-    ascii.append('"');
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.indent(ascii, level);
-    ascii.append("<*D");
-    ascii.append(makeDateStringGnuStep(this.date));
-    ascii.append('>');
+    if (gnuStep) {
+      ascii.append("<*D");
+      ascii.append(makeDateStringGnuStep(this.date));
+      ascii.append('>');
+    } else {
+      ascii.append('"');
+      ascii.append(makeDateString(this.date));
+      ascii.append('"');
+    }
   }
 }

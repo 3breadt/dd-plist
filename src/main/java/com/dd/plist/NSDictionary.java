@@ -434,16 +434,7 @@ public class NSDictionary extends NSObject implements Map<String, NSObject> {
   }
 
   @Override
-  protected void toASCII(StringBuilder ascii, int level) {
-    this.toASCII(ascii, level, false);
-  }
-
-  @Override
-  protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.toASCII(ascii, level, true);
-  }
-
-  private void toASCII(StringBuilder ascii, int level, boolean gnustep) {
+  void toASCII(StringBuilder ascii, int level, boolean gnuStep) {
     this.indent(ascii, level);
     ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
     ascii.append(NEWLINE);
@@ -460,18 +451,10 @@ public class NSDictionary extends NSObject implements Map<String, NSObject> {
           || objClass.equals(NSArray.class)
           || objClass.equals(NSData.class)) {
         ascii.append(NEWLINE);
-        if (gnustep) {
-          val.toASCIIGnuStep(ascii, valLevel);
-        } else {
-          val.toASCII(ascii, valLevel);
-        }
+        val.toASCII(ascii, valLevel, gnuStep);
       } else {
         ascii.append(' ');
-        if (gnustep) {
-          val.toASCIIGnuStep(ascii, 0);
-        } else {
-          val.toASCII(ascii, 0);
-        }
+        val.toASCII(ascii, 0, gnuStep);
       }
       ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
       ascii.append(NEWLINE);
