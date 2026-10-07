@@ -50,12 +50,8 @@ public final class ASCIIPropertyListWriter {
    * @throws IOException If an error occurs during the writing process.
    */
   public static void write(NSDictionary root, File out) throws IOException {
-    File parent = out.getParentFile();
-    if (!parent.exists() && !parent.mkdirs()) {
-      throw new IOException("The output directory does not exist and could not be created.");
-    }
-
-    write(root, out.toPath());
+    Objects.requireNonNull(root, "The root object is null.");
+    write(root, PropertyListParser.createParentDirectories(out));
   }
 
   /**
@@ -82,13 +78,7 @@ public final class ASCIIPropertyListWriter {
    */
   public static void write(NSArray root, File out) throws IOException {
     Objects.requireNonNull(root, "The root object is null.");
-
-    File parent = out.getParentFile();
-    if (!parent.exists() && !parent.mkdirs()) {
-      throw new IOException("The output directory does not exist and could not be created.");
-    }
-
-    write(root, out.toPath());
+    write(root, PropertyListParser.createParentDirectories(out));
   }
 
   /**
@@ -115,13 +105,7 @@ public final class ASCIIPropertyListWriter {
    */
   public static void writeGnuStep(NSDictionary root, File out) throws IOException {
     Objects.requireNonNull(root, "The root object is null.");
-
-    File parent = out.getParentFile();
-    if (!parent.exists() && !parent.mkdirs()) {
-      throw new IOException("The output directory does not exist and could not be created.");
-    }
-
-    writeGnuStep(root, out.toPath());
+    writeGnuStep(root, PropertyListParser.createParentDirectories(out));
   }
 
   /**
@@ -148,13 +132,7 @@ public final class ASCIIPropertyListWriter {
    */
   public static void writeGnuStep(NSArray root, File out) throws IOException {
     Objects.requireNonNull(root, "The root object is null.");
-
-    File parent = out.getParentFile();
-    if (!parent.exists() && !parent.mkdirs()) {
-      throw new IOException("The output directory does not exist and could not be created.");
-    }
-
-    writeGnuStep(root, out.toPath());
+    writeGnuStep(root, PropertyListParser.createParentDirectories(out));
   }
 
   /**

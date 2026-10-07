@@ -142,14 +142,9 @@ public final class BinaryPropertyListWriter {
    */
   public static void write(NSObject root, File file, boolean createParentDirectories)
       throws IOException {
-    if (createParentDirectories) {
-      File parent = file.getParentFile();
-      if (!parent.exists() && !parent.mkdirs()) {
-        throw new IOException("The output directory does not exist and could not be created.");
-      }
-    }
-
-    write(root, file.toPath());
+    write(
+        root,
+        createParentDirectories ? PropertyListParser.createParentDirectories(file) : file.toPath());
   }
 
   /**

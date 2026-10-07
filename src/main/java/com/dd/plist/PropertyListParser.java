@@ -60,6 +60,23 @@ public class PropertyListParser {
   }
 
   /**
+   * Creates the parent directories of the given output file, if they do not exist yet.
+   *
+   * @param file The output file. May be a bare file name, in which case the current working
+   *     directory is the parent and nothing is created.
+   * @return The file's path, to be passed to the {@code Path}-based writer overload.
+   * @throws IOException If the parent directories could not be created.
+   */
+  static Path createParentDirectories(File file) throws IOException {
+    Path path = file.toPath();
+    Path parent = path.toAbsolutePath().getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+    return path;
+  }
+
+  /**
    * Determines the property list type by means of the first bytes of its data.
    *
    * @param dataBeginning The very first bytes of data of the property list (minus any whitespace)

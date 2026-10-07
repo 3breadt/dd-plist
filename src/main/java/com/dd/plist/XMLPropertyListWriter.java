@@ -47,13 +47,7 @@ public class XMLPropertyListWriter {
    */
   public static void write(NSObject root, File out) throws IOException {
     Objects.requireNonNull(root, "The root object is null.");
-
-    File parent = out.getParentFile();
-    if (!parent.exists() && !parent.mkdirs()) {
-      throw new IOException("The output directory does not exist and could not be created.");
-    }
-
-    write(root, out.toPath());
+    write(root, PropertyListParser.createParentDirectories(out));
   }
 
   /**

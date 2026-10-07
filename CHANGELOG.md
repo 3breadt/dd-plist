@@ -11,6 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Limited ASCII property lists to 512 nested objects to prevent stack overflows from
   excessively nested input
 
+### Fixed
+
+- Writing to a `File` given as a bare file name (no parent directory) threw a
+  `NullPointerException` in the XML, ASCII and binary writers.
+
 ### Changed
 
 - Switch from using bundled iharder Base64 implementation to `java.util.Base64` which is

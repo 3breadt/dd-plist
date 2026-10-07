@@ -7,7 +7,9 @@ import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 import com.dd.plist.PropertyListParser;
 import java.io.File;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for the {@link ASCIIPropertyListWriter} class.
@@ -15,6 +17,14 @@ import org.junit.jupiter.api.Test;
  * @author Daniel Dreibrodt
  */
 public class ASCIIPropertyListWriterTest {
+  @Test
+  public void writeGnuStep_createsMissingParentDirectories(@TempDir Path tempDir) throws Exception {
+    NSDictionary x = (NSDictionary) PropertyListParser.parse(new File("test-files/test1.plist"));
+    File out = tempDir.resolve("a").resolve("b").resolve("out.plist").toFile();
+    ASCIIPropertyListWriter.writeGnuStep(x, out);
+    assertEquals(x, PropertyListParser.parse(out));
+  }
+
   @Test
   public void write_canWriteAppleFormat() throws Exception {
     File in = new File("test-files/test1.plist");
