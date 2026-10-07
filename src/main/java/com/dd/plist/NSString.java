@@ -316,10 +316,7 @@ public class NSString extends NSObject {
 
   @Override
   protected void toASCIIGnuStep(StringBuilder ascii, int level) {
-    this.indent(ascii, level);
-    ascii.append("\"");
-    ascii.append(escapeStringForASCII(this.content));
-    ascii.append("\"");
+    this.toASCII(ascii, level);
   }
 
   @Override

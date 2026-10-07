@@ -426,10 +426,7 @@ public class NSDictionary extends NSObject implements Map<String, NSObject> {
    * @return ASCII representation of this object.
    */
   public String toASCIIPropertyList() {
-    StringBuilder ascii = new StringBuilder();
-    this.toASCII(ascii, 0);
-    ascii.append(NEWLINE);
-    return ascii.toString();
+    return this.toASCIIPropertyList(false);
   }
 
   /**
@@ -441,62 +438,48 @@ public class NSDictionary extends NSObject implements Map<String, NSObject> {
    * @return GnuStep ASCII representation of this object.
    */
   public String toGnuStepASCIIPropertyList() {
-    StringBuilder ascii = new StringBuilder();
-    this.toASCIIGnuStep(ascii, 0);
-    ascii.append(NEWLINE);
-    return ascii.toString();
+    return this.toASCIIPropertyList(true);
   }
 
   @Override
   protected void toASCII(StringBuilder ascii, int level) {
-    this.indent(ascii, level);
-    ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
-    ascii.append(NEWLINE);
-    String[] keys = this.allKeys();
-    for (String key : keys) {
-      NSObject val = this.objectForKey(key);
-      this.indent(ascii, level + 1);
-      ascii.append('"');
-      ascii.append(NSString.escapeStringForASCII(key));
-      ascii.append("\" =");
-      Class<?> objClass = val.getClass();
-      if (objClass.equals(NSDictionary.class)
-          || objClass.equals(NSArray.class)
-          || objClass.equals(NSData.class)) {
-        ascii.append(NEWLINE);
-        val.toASCII(ascii, level + 2);
-      } else {
-        ascii.append(' ');
-        val.toASCII(ascii, 0);
-      }
-      ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
-      ascii.append(NEWLINE);
-    }
-    this.indent(ascii, level);
-    ascii.append(ASCIIPropertyListParser.DICTIONARY_END_TOKEN);
+    this.toASCII(ascii, level, false);
   }
 
   @Override
   protected void toASCIIGnuStep(StringBuilder ascii, int level) {
+    this.toASCII(ascii, level, true);
+  }
+
+  private void toASCII(StringBuilder ascii, int level, boolean gnustep) {
     this.indent(ascii, level);
     ascii.append(ASCIIPropertyListParser.DICTIONARY_BEGIN_TOKEN);
     ascii.append(NEWLINE);
-    String[] keys = this.dict.keySet().toArray(new String[0]);
-    for (String key : keys) {
-      NSObject val = this.objectForKey(key);
-      this.indent(ascii, level + 1);
+    int keyLevel = level + 1;
+    int valLevel = level + 2;
+    for (Map.Entry<String, NSObject> entry : this.dict.entrySet()) {
+      NSObject val = entry.getValue();
+      this.indent(ascii, keyLevel);
       ascii.append('"');
-      ascii.append(NSString.escapeStringForASCII(key));
+      ascii.append(NSString.escapeStringForASCII(entry.getKey()));
       ascii.append("\" =");
       Class<?> objClass = val.getClass();
       if (objClass.equals(NSDictionary.class)
           || objClass.equals(NSArray.class)
           || objClass.equals(NSData.class)) {
         ascii.append(NEWLINE);
-        val.toASCIIGnuStep(ascii, level + 2);
+        if (gnustep) {
+          val.toASCIIGnuStep(ascii, valLevel);
+        } else {
+          val.toASCII(ascii, valLevel);
+        }
       } else {
         ascii.append(' ');
-        val.toASCIIGnuStep(ascii, 0);
+        if (gnustep) {
+          val.toASCIIGnuStep(ascii, 0);
+        } else {
+          val.toASCII(ascii, 0);
+        }
       }
       ascii.append(ASCIIPropertyListParser.DICTIONARY_ITEM_DELIMITER_TOKEN);
       ascii.append(NEWLINE);

@@ -167,6 +167,23 @@ public abstract class NSObject implements Cloneable, Comparable<NSObject> {
   abstract void toASCIIGnuStep(StringBuilder ascii, int level);
 
   /**
+   * Generates a complete ASCII property list, terminated by a newline, with this object as root.
+   *
+   * @param gnuStep Whether to use the GnuStep format.
+   * @return The ASCII property list.
+   */
+  final String toASCIIPropertyList(boolean gnuStep) {
+    StringBuilder ascii = new StringBuilder();
+    if (gnuStep) {
+      this.toASCIIGnuStep(ascii, 0);
+    } else {
+      this.toASCII(ascii, 0);
+    }
+    ascii.append(NEWLINE);
+    return ascii.toString();
+  }
+
+  /**
    * Helper method that adds correct indentation to the xml output. Calling this method will add
    * <code>level</code> number of tab characters to the <code>xml</code> string.
    *

@@ -297,10 +297,7 @@ public class NSArray extends NSObject {
    * @return ASCII representation of this object.
    */
   public String toASCIIPropertyList() {
-    StringBuilder ascii = new StringBuilder();
-    this.toASCII(ascii, 0);
-    ascii.append(NEWLINE);
-    return ascii.toString();
+    return this.toASCIIPropertyList(false);
   }
 
   /**
@@ -312,10 +309,7 @@ public class NSArray extends NSObject {
    * @return GnuStep ASCII representation of this object.
    */
   public String toGnuStepASCIIPropertyList() {
-    StringBuilder ascii = new StringBuilder();
-    this.toASCIIGnuStep(ascii, 0);
-    ascii.append(NEWLINE);
-    return ascii.toString();
+    return this.toASCIIPropertyList(true);
   }
 
   @Override
