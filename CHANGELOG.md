@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `containsObject(null)` returned `false`, `addObject(null)` added a second entry and
   `toJavaObject()` threw a `NullPointerException`. Both varargs constructors now behave like
   `addObject`.
+- The ASCII parser now detects a UTF-16 or UTF-32 byte order mark in a text file that consists of
+  nothing but the BOM, and reports that the property list is empty instead of failing with an
+  unexpected-character error caused by decoding the BOM with the wrong charset.
 
 ### Changed
 
