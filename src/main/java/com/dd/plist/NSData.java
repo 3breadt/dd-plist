@@ -182,12 +182,9 @@ public class NSData extends NSObject {
     this.indent(xml, level);
     xml.append("<data>");
     xml.append(NSObject.NEWLINE);
-    String base64 = this.getBase64EncodedData();
-    for (String line : base64.split("\n")) {
-      this.indent(xml, level + 1);
-      xml.append(line);
-      xml.append(NSObject.NEWLINE);
-    }
+    this.indent(xml, level + 1);
+    xml.append(this.getBase64EncodedData());
+    xml.append(NSObject.NEWLINE);
     this.indent(xml, level);
     xml.append("</data>");
   }
