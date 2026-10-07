@@ -171,9 +171,6 @@ public final class ASCIIPropertyListParser {
   /** The index at which the current line began. */
   private int lineBeginning = -1;
 
-  /** Nesting depth of the object currently being parsed; guards against stack overflows. */
-  private int depth;
-
   /**
    * Creates a new parser for the given property list content.
    *
@@ -589,7 +586,7 @@ public final class ASCIIPropertyListParser {
     this.skipWhitespacesAndComments();
     this.expect(DICTIONARY_BEGIN_TOKEN, ARRAY_BEGIN_TOKEN, COMMENT_BEGIN_TOKEN);
     try {
-      return this.parseObject();
+      return this.parseObject(1);
     } catch (ArrayIndexOutOfBoundsException ex) {
       throw this.createParseException("Reached end of input unexpectedly.", this.index);
     }
@@ -598,11 +595,13 @@ public final class ASCIIPropertyListParser {
   /**
    * Parses the NSObject found at the current position in the property list data stream.
    *
+   * @param depth The nesting depth of the object, starting at 1 for the root object. Used to guard
+   *     against stack overflows from excessively nested input.
    * @return The parsed NSObject.
    * @see ASCIIPropertyListParser#index
    */
-  private NSObject parseObject() throws ParseException {
-    if (++this.depth > ParsedObjectStack.MAX_NESTING_DEPTH) {
+  private NSObject parseObject(int depth) throws ParseException {
+    if (depth > ParsedObjectStack.MAX_NESTING_DEPTH) {
       throw this.createParseException(
           "The nesting depth of the property list exceeds the maximum supported depth of "
               + ParsedObjectStack.MAX_NESTING_DEPTH
@@ -615,12 +614,12 @@ public final class ASCIIPropertyListParser {
     switch (this.data[this.index]) {
       case ARRAY_BEGIN_TOKEN:
         {
-          result = this.parseArray();
+          result = this.parseArray(depth);
           break;
         }
       case DICTIONARY_BEGIN_TOKEN:
         {
-          result = this.parseDictionary();
+          result = this.parseDictionary(depth);
           break;
         }
       case DATA_BEGIN_TOKEN:
@@ -664,7 +663,6 @@ public final class ASCIIPropertyListParser {
       result.setLocationInformation(loc);
     }
 
-    this.depth--;
     return result;
   }
 
@@ -672,15 +670,16 @@ public final class ASCIIPropertyListParser {
    * Parses an array from the current parsing position. The prerequisite for calling this method is,
    * that an array begin token has been read.
    *
+   * @param depth The nesting depth of the array.
    * @return The array found at the parsing position.
    */
-  private NSArray parseArray() throws ParseException {
+  private NSArray parseArray(int depth) throws ParseException {
     // Skip begin token
     this.skip();
     this.skipWhitespacesAndComments();
     List<NSObject> objects = new LinkedList<>();
     while (!this.accept(ARRAY_END_TOKEN)) {
-      objects.add(this.parseObject());
+      objects.add(this.parseObject(depth + 1));
       this.skipWhitespacesAndComments();
       if (this.accept(ARRAY_ITEM_DELIMITER_TOKEN)) {
         this.skip();
@@ -700,9 +699,10 @@ public final class ASCIIPropertyListParser {
    * Parses a dictionary from the current parsing position. The prerequisite for calling this method
    * is, that a dictionary begin token has been read.
    *
+   * @param depth The nesting depth of the dictionary.
    * @return The dictionary found at the parsing position.
    */
-  private NSDictionary parseDictionary() throws ParseException {
+  private NSDictionary parseDictionary(int depth) throws ParseException {
     // Skip begin token
     this.skip();
     this.skipWhitespacesAndComments();
@@ -722,7 +722,7 @@ public final class ASCIIPropertyListParser {
       this.read(DICTIONARY_ASSIGN_TOKEN);
       this.skipWhitespacesAndComments();
 
-      NSObject object = this.parseObject();
+      NSObject object = this.parseObject(depth + 1);
       dict.put(keyString, object);
       this.skipWhitespacesAndComments();
       this.read(DICTIONARY_ITEM_DELIMITER_TOKEN);
