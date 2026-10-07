@@ -239,7 +239,7 @@ public final class BinaryPropertyListParser {
    */
   public static byte[] copyOfRange(byte[] src, int startIndex, int endIndex) {
     if (endIndex > src.length) {
-      // Arrays.copyOfRange would silently zero-pad; System.arraycopy (previous impl.) threw.
+      // Reject out-of-bounds ranges instead of letting Arrays.copyOfRange silently zero-pad.
       throw new ArrayIndexOutOfBoundsException(endIndex);
     }
     return Arrays.copyOfRange(src, startIndex, endIndex);

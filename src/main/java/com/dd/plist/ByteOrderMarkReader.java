@@ -88,7 +88,7 @@ class ByteOrderMarkReader {
    * @return The name of the detected charset, or <c>null</c> if no BOM was detected.
    */
   public static String detect(byte[] bytes) {
-    // Hand-unrolled instead of reusing readByte: allocation-free, ~6x faster.
+    // Hand-unrolled instead of reusing readByte so that detection stays allocation-free.
     if (bytes.length >= 2) {
       if (bytes[0] == (byte) 0xFE && bytes[1] == (byte) 0xFF) {
         return "UTF-16";
