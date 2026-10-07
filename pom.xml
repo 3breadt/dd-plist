@@ -101,8 +101,11 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.15.0</version>
         <configuration>
-          <compilerArgument>-Xlint:unchecked</compilerArgument>
-          <compilerArgument>-Xlint:deprecation</compilerArgument>
+          <compilerArgs>
+            <arg>-Xlint:unchecked</arg>
+            <arg>-Xlint:deprecation</arg>
+            <arg>-Xlint:-options</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -242,6 +245,10 @@
         <extensions>true</extensions>
         <configuration>
           <publishingServerId>central</publishingServerId>
+          <!-- Diese System-Property verhindert das Erzeugen von .locks im Staging-Verzeichnis -->
+          <systemPropertyVariables>
+              <aether.named.locks.file.factory.nop>true</aether.named.locks.file.factory.nop>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>
