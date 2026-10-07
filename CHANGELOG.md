@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.31.0] - 2026-10-07
 
 ### Security
 
@@ -298,7 +298,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added thread-safe XML and binary parsing and date/string serialization.
 - Adopted the MIT license and Maven build.
 
-[Unreleased]: https://github.com/3breadt/dd-plist/compare/v1.30.0...HEAD
+[1.31.0]: https://github.com/3breadt/dd-plist/compare/v1.30.0...v1.31.0
 [1.30.0]: https://github.com/3breadt/dd-plist/compare/v1.29.0...v1.30.0
 [1.29.0]: https://github.com/3breadt/dd-plist/compare/v1.28.0...v1.29.0
 [1.28.0]: https://github.com/3breadt/dd-plist/compare/v1.27.0...v1.28.0
