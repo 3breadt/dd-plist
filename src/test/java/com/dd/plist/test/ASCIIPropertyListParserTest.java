@@ -240,6 +240,8 @@ public class ASCIIPropertyListParserTest {
             + "f = \"a \\' b\";\n"
             + "g = \"\\u07F7\";"
             + "h = \"\\775\";"
+            + "i = \"trailing\\\\\";"
+            + "\"key\\101\" = \"escaped key\";"
             + "}";
     NSDictionary dict =
         (NSDictionary)
@@ -252,6 +254,8 @@ public class ASCIIPropertyListParserTest {
     assertEquals("a ' b", dict.get("f").toString());
     assertEquals("߷", dict.get("g").toString());
     assertEquals("ǽ", dict.get("h").toString());
+    assertEquals("trailing\\", dict.get("i").toString());
+    assertEquals("escaped key", dict.get("keyA").toString());
   }
 
   @Test

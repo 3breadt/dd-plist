@@ -8,7 +8,9 @@ import com.dd.plist.BinaryPropertyListParser;
 import com.dd.plist.BinaryPropertyListWriter;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSNumber;
+import com.dd.plist.PropertyListParser;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,6 +19,28 @@ import org.junit.jupiter.api.Test;
  * @author Daniel Dreibrodt
  */
 public class NSNumberTest {
+  /**
+   * Negative integers, both long extremes and negative/large reals must decode to the same values
+   * from XML and from the binary format, where 8-byte integers are signed.
+   */
+  @Test
+  public void parse_decodesNumberExtremesIdenticallyFromXmlAndBinary() throws Exception {
+    NSDictionary xml =
+        (NSDictionary)
+            PropertyListParser.parse(new File("test-files/test-number-extremes-xml.plist"));
+    NSDictionary binary =
+        (NSDictionary)
+            PropertyListParser.parse(new File("test-files/test-number-extremes-binary.plist"));
+
+    assertEquals(-1234L, ((NSNumber) xml.get("number")).longValue());
+    assertEquals(Long.MAX_VALUE, ((NSNumber) xml.get("number2")).longValue());
+    assertEquals(-3.12312423423, ((NSNumber) xml.get("number3")).doubleValue());
+    assertEquals(Long.MIN_VALUE, ((NSNumber) xml.get("number4")).longValue());
+    assertEquals(2.352535353543534e+19, ((NSNumber) xml.get("number5")).doubleValue());
+    assertEquals(-999992312312312.2, ((NSNumber) xml.get("number6")).doubleValue());
+    assertEquals(xml, binary);
+  }
+
   @Test
   public void init_canHandleNaNString() {
     NSNumber nan = new NSNumber("nan");
