@@ -4,7 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.dd.plist.*;
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.function.BiConsumer;
 import org.junit.jupiter.api.Test;
@@ -112,6 +116,21 @@ public class XMLPropertyListParserTest {
     this.testXmlEncoding("UTF-32LE");
   }
 
+  /**
+   * The JDK's XML parser rejects a UTF-32 byte order mark, so the InputStream entry points must
+   * strip it before handing the data to the parser.
+   */
+  @Test
+  public void parse_stripsByteOrderMarkFromInputStream() throws Exception {
+    Path fixture = Paths.get("test-files/test-xml-utf-32be-bom.plist");
+    try (InputStream is = Files.newInputStream(fixture)) {
+      assertTestXmlContent(XMLPropertyListParser.parse(is));
+    }
+    try (InputStream is = Files.newInputStream(fixture)) {
+      assertTestXmlContent(XMLPropertyListParser.parse(is, true));
+    }
+  }
+
   @Test
   public void parse_canHandleNumbersWithInfinityValue() throws Exception {
     // See https://github.com/3breadt/dd-plist/issues/83
@@ -180,11 +199,12 @@ public class XMLPropertyListParserTest {
   }
 
   private void testXmlEncoding(String encoding) throws Exception {
-    NSObject x =
+    assertTestXmlContent(
         PropertyListParser.parse(
-            new File("test-files/test-xml-" + encoding.toLowerCase() + ".plist"));
+            new File("test-files/test-xml-" + encoding.toLowerCase() + ".plist")));
+  }
 
-    // check the data in it
+  private static void assertTestXmlContent(NSObject x) {
     NSDictionary d = assertInstanceOf(NSDictionary.class, x);
     assertEquals(5, d.count());
     assertEquals("valueA", d.objectForKey("keyA").toString());

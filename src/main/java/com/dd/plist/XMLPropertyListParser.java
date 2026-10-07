@@ -181,9 +181,7 @@ public class XMLPropertyListParser {
    */
   public static NSObject parse(InputStream is)
       throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
-    // Do not pass BOM to XML parser because it can't handle it
-    InputStream filteredInputStream = new ByteOrderMarkFilterInputStream(is, false);
-    return parse(parseXml(new InputSource(filteredInputStream), false));
+    return parse(is, false);
   }
 
   /**
@@ -203,7 +201,7 @@ public class XMLPropertyListParser {
    */
   public static NSObject parse(Reader reader)
       throws ParserConfigurationException, IOException, SAXException, PropertyListFormatException {
-    return parse(parseXml(new InputSource(reader), false));
+    return parse(reader, false);
   }
 
   /**
