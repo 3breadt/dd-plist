@@ -33,6 +33,11 @@ import java.util.TimeZone;
 /**
  * The NSDate class wraps a date.
  *
+ * <p>Like Foundation's NSDate, an instance stores its value as a time interval in seconds since the
+ * reference date (2001-01-01 00:00:00 UTC), held as a {@code double}. That value is what binary
+ * property lists contain, so a date read from a binary property list is written back unchanged. The
+ * {@link Date} returned by {@link #getDate()} is that interval rounded to the nearest millisecond.
+ *
  * @author Daniel Dreibrodt
  * @see <a href="https://developer.apple.com/reference/foundation/nsdate" target="_blank">Foundation
  *     NSDate documentation</a>
@@ -40,6 +45,8 @@ import java.util.TimeZone;
 public class NSDate extends NSObject {
 
   private final Date date;
+  private final double timeIntervalSinceReferenceDate;
+  private final long dateMillis;
 
   // EPOCH = new SimpleDateFormat("yyyy MM dd zzz").parse("2001 01 01 GMT").getTime();
   // ...but that's annoying in a static initializer because it can throw exceptions, ick.
@@ -68,11 +75,25 @@ public class NSDate extends NSObject {
    */
   public NSDate(byte[] bytes, final int startIndex, final int endIndex) {
     // dates are 8 byte big-endian double, seconds since the epoch
-    this.date =
-        new Date(
-            EPOCH
-                + (long)
-                    (1000 * BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex)));
+    this(BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex));
+  }
+
+  /**
+   * Creates a new NSDate instance from a time interval relative to the reference date (2001-01-01
+   * 00:00:00 UTC). The time interval is stored exactly. The {@link Date} returned by {@link
+   * #getDate()} is the time interval rounded to the nearest millisecond, limited to the range of
+   * {@link Date}. A time interval that is not a number is represented by the reference date.
+   *
+   * @param timeIntervalSinceReferenceDate The number of seconds since the reference date. Negative
+   *     values denote dates before the reference date.
+   * @see <a
+   *     href="https://developer.apple.com/documentation/foundation/nsdate/init(timeintervalsincereferencedate:)"
+   *     target="_blank">Foundation NSDate init(timeIntervalSinceReferenceDate:)</a>
+   */
+  public NSDate(double timeIntervalSinceReferenceDate) {
+    this.timeIntervalSinceReferenceDate = timeIntervalSinceReferenceDate;
+    this.dateMillis = toMillis(timeIntervalSinceReferenceDate);
+    this.date = new Date(this.dateMillis);
   }
 
   /**
@@ -86,6 +107,8 @@ public class NSDate extends NSObject {
    */
   public NSDate(String textRepresentation) throws ParseException {
     this.date = parseDateString(textRepresentation);
+    this.dateMillis = this.date.getTime();
+    this.timeIntervalSinceReferenceDate = toTimeInterval(this.dateMillis);
   }
 
   /**
@@ -96,11 +119,37 @@ public class NSDate extends NSObject {
   public NSDate(Date d) {
     if (d == null) throw new IllegalArgumentException("Date cannot be null");
     this.date = d;
+    this.dateMillis = d.getTime();
+    this.timeIntervalSinceReferenceDate = toTimeInterval(this.dateMillis);
+  }
+
+  private NSDate(Date d, double timeIntervalSinceReferenceDate) {
+    this.date = d;
+    this.dateMillis = d.getTime();
+    this.timeIntervalSinceReferenceDate = timeIntervalSinceReferenceDate;
   }
 
   static {
     sdfDefault.setTimeZone(TimeZone.getTimeZone("GMT"));
     sdfGnuStep.setTimeZone(TimeZone.getTimeZone("GMT"));
+  }
+
+  /**
+   * Converts a time interval since the reference date to milliseconds since the Unix epoch,
+   * rounding to the nearest millisecond. Values beyond the range of a long are clamped and NaN is
+   * mapped to the reference date.
+   *
+   * @param timeIntervalSinceReferenceDate The number of seconds since the reference date.
+   * @return The number of milliseconds since the Unix epoch.
+   */
+  private static long toMillis(double timeIntervalSinceReferenceDate) {
+    // Math.round saturates at Long.MIN_VALUE/Long.MAX_VALUE, only the addition can overflow
+    long offset = Math.round(1000 * timeIntervalSinceReferenceDate);
+    return offset > Long.MAX_VALUE - EPOCH ? Long.MAX_VALUE : EPOCH + offset;
+  }
+
+  private static double toTimeInterval(long millis) {
+    return (millis - EPOCH) / 1000.0;
   }
 
   /**
@@ -144,7 +193,9 @@ public class NSDate extends NSObject {
   }
 
   /**
-   * Gets the date.
+   * Gets the date. Its precision is limited to milliseconds, see {@link
+   * #getTimeIntervalSinceReferenceDate()} for the exact value. Changes to the returned date are
+   * reflected by this NSDate.
    *
    * @return The date.
    */
@@ -152,20 +203,46 @@ public class NSDate extends NSObject {
     return this.date;
   }
 
+  /**
+   * Gets the exact time interval between this date and the reference date (2001-01-01 00:00:00
+   * UTC). If the {@link Date} returned by {@link #getDate()} has been modified, the time interval
+   * is derived from its new value.
+   *
+   * @return The number of seconds since the reference date. Negative values denote dates before the
+   *     reference date.
+   * @see <a
+   *     href="https://developer.apple.com/documentation/foundation/nsdate/timeintervalsincereferencedate"
+   *     target="_blank">Foundation NSDate timeIntervalSinceReferenceDate</a>
+   */
+  public double getTimeIntervalSinceReferenceDate() {
+    long millis = this.date.getTime();
+    return millis == this.dateMillis ? this.timeIntervalSinceReferenceDate : toTimeInterval(millis);
+  }
+
+  /**
+   * Checks whether this NSDate is equal to another object. Two NSDate instances are equal when
+   * their time intervals since the reference date are identical, so dates that only differ below
+   * one millisecond are not equal even though their {@link #getDate()} values are.
+   *
+   * @param obj The object to compare to.
+   * @return Whether the object is an NSDate with the same time interval.
+   */
   @Override
   public boolean equals(Object obj) {
     if (obj == null) return false;
-    return obj.getClass().equals(this.getClass()) && this.date.equals(((NSDate) obj).getDate());
+    return obj.getClass().equals(this.getClass())
+        && Double.doubleToRawLongBits(this.getTimeIntervalSinceReferenceDate())
+            == Double.doubleToRawLongBits(((NSDate) obj).getTimeIntervalSinceReferenceDate());
   }
 
   @Override
   public int hashCode() {
-    return this.date.hashCode();
+    return Long.hashCode(Double.doubleToRawLongBits(this.getTimeIntervalSinceReferenceDate()));
   }
 
   @Override
   public NSDate clone() {
-    return new NSDate((Date) this.getDate().clone());
+    return new NSDate((Date) this.getDate().clone(), this.getTimeIntervalSinceReferenceDate());
   }
 
   @Override
@@ -179,7 +256,7 @@ public class NSDate extends NSObject {
   @Override
   void toBinary(BinaryPropertyListWriter out) throws IOException {
     out.write(0x33);
-    out.writeDouble((this.date.getTime() - EPOCH) / 1000.0);
+    out.writeDouble(this.getTimeIntervalSinceReferenceDate());
   }
 
   /**
@@ -204,7 +281,14 @@ public class NSDate extends NSObject {
     if (o == this) {
       return 0;
     } else if (o instanceof NSDate) {
-      return this.getDate().compareTo(((NSDate) o).getDate());
+      double thisInterval = this.getTimeIntervalSinceReferenceDate();
+      double otherInterval = ((NSDate) o).getTimeIntervalSinceReferenceDate();
+      int result = Double.compare(thisInterval, otherInterval);
+      // Double.compare treats all NaN values as equal, distinguish them as equals() does
+      return result != 0
+          ? result
+          : Long.compare(
+              Double.doubleToRawLongBits(thisInterval), Double.doubleToRawLongBits(otherInterval));
     } else {
       return this.getClass().getName().compareTo(o.getClass().getName());
     }

@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `NSDate` keeps the exact time interval since the reference date (2001-01-01 00:00:00 UTC) that
+  binary property lists store, so dates read from a binary property list are written back
+  unchanged, including fractions below one millisecond. The value is available through
+  `NSDate.getTimeIntervalSinceReferenceDate()`, and the new `NSDate(double)` constructor creates a
+  date from it.
+
+### Changed
+
+- `NSDate.equals`, `hashCode` and `compareTo` compare the exact time interval since the reference
+  date instead of the millisecond-precision `java.util.Date`. Dates that differ by less than one
+  millisecond are no longer equal, and the binary writer no longer merges them into one object.
+
+### Fixed
+
+- Dates read from binary property lists could be off by one millisecond, because the time interval
+  was truncated to whole milliseconds instead of rounded. For example, 2001-01-01T00:00:01.001Z
+  was read as 2001-01-01T00:00:01Z. Time intervals beyond the range of `java.util.Date` no longer
+  overflow (#106).
+
 ## [1.31.0] - 2026-10-07
 
 ### Security

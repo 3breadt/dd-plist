@@ -225,6 +225,37 @@ public class IssueTest {
     assertThrows(PropertyListFormatException.class, (() -> PropertyListParser.parse(file)));
   }
 
+  @Test
+  public void testIssue106_BinaryDateLosesMillisecond() throws Exception {
+    // Written by Python's plistlib
+    NSDictionary dict =
+        (NSDictionary) PropertyListParser.parse(new File("test-files/github-issue106.plist"));
+    NSDate plus = (NSDate) dict.get("plus");
+    NSDate minus = (NSDate) dict.get("minus");
+    NSDate subMillisecond = (NSDate) dict.get("subMillisecond");
+    NSDate negativeSubMillisecond = (NSDate) dict.get("negativeSubMillisecond");
+
+    assertEquals(978307201001L, plus.getDate().getTime());
+    assertEquals(978307198999L, minus.getDate().getTime());
+    assertEquals(0.0006, subMillisecond.getTimeIntervalSinceReferenceDate());
+    assertEquals(978307200001L, subMillisecond.getDate().getTime());
+    assertEquals(-0.0006, negativeSubMillisecond.getTimeIntervalSinceReferenceDate());
+    assertEquals(978307199999L, negativeSubMillisecond.getDate().getTime());
+
+    NSDictionary reparsed =
+        (NSDictionary) BinaryPropertyListParser.parse(BinaryPropertyListWriter.writeToArray(dict));
+    assertEquals(dict, reparsed);
+    assertEquals(
+        0.0006, ((NSDate) reparsed.get("subMillisecond")).getTimeIntervalSinceReferenceDate());
+
+    for (long millis : new long[] {978307201001L, 978307198999L}) {
+      NSDate original = new NSDate(new java.util.Date(millis));
+      NSDate decoded =
+          (NSDate) BinaryPropertyListParser.parse(BinaryPropertyListWriter.writeToArray(original));
+      assertEquals(millis, decoded.getDate().getTime());
+    }
+  }
+
   private static Stream<Arguments> provideIssue75ErrorFiles() {
     return Stream.of(Objects.requireNonNull(new File("test-files/github-issue75/").listFiles()))
         .filter(Objects::nonNull)
