@@ -253,4 +253,48 @@ public class NSNumberTest {
     NSNumber parsedNegativeInfinity = (NSNumber) parsedDict.get("inf");
     assertEquals(Double.NEGATIVE_INFINITY, parsedNegativeInfinity.doubleValue());
   }
+
+  private static NSNumber binaryRoundTrip(NSNumber number) throws Exception {
+    return (NSNumber) BinaryPropertyListParser.parse(BinaryPropertyListWriter.writeToArray(number));
+  }
+
+  /**
+   * Like -[NSNumber longValue], real numbers are truncated towards zero, however they are created.
+   */
+  @Test
+  public void longValue_truncatesRealNumbers() throws Exception {
+    double[] values = {1.5, 2.7, -1.5, -2.7, 0.4};
+    long[] expected = {1, 2, -1, -2, 0};
+    for (int i = 0; i < values.length; i++) {
+      assertEquals(expected[i], new NSNumber(values[i]).longValue());
+      assertEquals(expected[i], new NSNumber(String.valueOf(values[i])).longValue());
+      assertEquals(expected[i], binaryRoundTrip(new NSNumber(values[i])).longValue());
+      assertEquals((int) expected[i], binaryRoundTrip(new NSNumber(values[i])).intValue());
+    }
+  }
+
+  @Test
+  public void equals_realNumbersAreEqualRegardlessOfOrigin() throws Exception {
+    NSNumber number = new NSNumber(1.5);
+    NSNumber parsed = binaryRoundTrip(number);
+    assertEquals(number, parsed);
+    assertEquals(number.hashCode(), parsed.hashCode());
+    assertEquals(parsed, parsed.clone());
+    assertEquals(number, new NSNumber("1.5"));
+  }
+
+  @Test
+  public void equals_comparesRealNumbersLikeDouble() {
+    assertEquals(new NSNumber(Double.NaN), new NSNumber(Double.NaN));
+    assertEquals(new NSNumber(Double.NaN).hashCode(), new NSNumber(Double.NaN).hashCode());
+    assertNotEquals(new NSNumber(0.0), new NSNumber(-0.0));
+  }
+
+  @Test
+  public void equals_numbersOfDifferentTypesAreNotEqual() {
+    assertNotEquals(new NSNumber(1), new NSNumber(1.0));
+    assertNotEquals(new NSNumber(1), new NSNumber(true));
+    assertNotEquals(new NSNumber(1.0), new NSNumber(true));
+    assertEquals(new NSNumber(1), new NSNumber(1L));
+  }
 }

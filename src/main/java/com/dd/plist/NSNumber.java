@@ -101,7 +101,7 @@ public class NSNumber extends NSObject {
       case REAL:
         {
           this.doubleValue = BinaryPropertyListParser.parseDouble(bytes, startIndex, endIndex);
-          this.longValue = Math.round(this.doubleValue);
+          this.longValue = (long) this.doubleValue;
           break;
         }
       default:
@@ -161,7 +161,7 @@ public class NSNumber extends NSObject {
       } catch (Exception ex) {
         try {
           this.doubleValue = Double.parseDouble(text);
-          this.longValue = Math.round(this.doubleValue);
+          this.longValue = (long) this.doubleValue;
           this.type = REAL;
         } catch (Exception ex2) {
           throw new IllegalArgumentException(
@@ -266,7 +266,8 @@ public class NSNumber extends NSObject {
   }
 
   /**
-   * Gets this instance's long integer value.
+   * Gets this instance's long integer value. Like {@code -[NSNumber longValue]}, real numbers are
+   * truncated towards zero, so 1.5 and -1.5 yield 1 and -1.
    *
    * @return The value of the number as a <code>long</code>.
    * @throws IllegalStateException The integer value is not available because the value of this
@@ -340,7 +341,10 @@ public class NSNumber extends NSObject {
   }
 
   /**
-   * Checks whether the other object is a NSNumber of the same value.
+   * Checks whether the other object is a NSNumber of the same type and value. Unlike {@code
+   * -[NSNumber isEqual:]}, numbers of different types are never equal, e.g. the integer 1, the real
+   * number 1.0 and the boolean value {@code true}. Real numbers are compared like {@link
+   * Double#equals(Object)}, so NaN is equal to itself and 0.0 is not equal to -0.0.
    *
    * @param obj The object to compare to.
    * @return Whether the objects are equal in terms of numeric value and type.
@@ -350,23 +354,28 @@ public class NSNumber extends NSObject {
     if (obj == null) return false;
     if (this.getClass() != obj.getClass()) return false;
     NSNumber n = (NSNumber) obj;
-    return this.type == n.type
-        && this.longValue == n.longValue
-        && this.doubleValue == n.doubleValue
-        && this.boolValue == n.boolValue;
+    if (this.type != n.type) return false;
+    switch (this.type) {
+      case INTEGER:
+        return this.longValue == n.longValue;
+      case REAL:
+        return Double.doubleToLongBits(this.doubleValue) == Double.doubleToLongBits(n.doubleValue);
+      default:
+        return this.boolValue == n.boolValue;
+    }
   }
 
   @Override
   public int hashCode() {
     int hash = this.type;
-    hash = 37 * hash + (int) (this.longValue ^ (this.longValue >>> 32));
-    hash =
-        37 * hash
-            + (int)
-                (Double.doubleToLongBits(this.doubleValue)
-                    ^ (Double.doubleToLongBits(this.doubleValue) >>> 32));
-    hash = 37 * hash + (this.boolValue() ? 1 : 0);
-    return hash;
+    switch (this.type) {
+      case INTEGER:
+        return 37 * hash + Long.hashCode(this.longValue);
+      case REAL:
+        return 37 * hash + Double.hashCode(this.doubleValue);
+      default:
+        return 37 * hash + Boolean.hashCode(this.boolValue);
+    }
   }
 
   @Override

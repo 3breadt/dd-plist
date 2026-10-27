@@ -19,9 +19,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `NSDate.equals`, `hashCode` and `compareTo` compare the exact time interval since the reference
   date instead of the millisecond-precision `java.util.Date`. Dates that differ by less than one
   millisecond are no longer equal, and the binary writer no longer merges them into one object.
+- `NSNumber.longValue()` and `intValue()` truncate real numbers towards zero, like
+  `-[NSNumber longValue]`. Real numbers read from XML, ASCII or binary property lists used to be
+  rounded instead, so 1.5 was read as 2 and is now read as 1. Numbers created with
+  `new NSNumber(double)` already truncated.
+- `NSNumber.equals` compares real numbers like `Double.equals`, so NaN is equal to itself and 0.0
+  is no longer equal to -0.0. The binary writer therefore no longer merges 0.0 and -0.0 into one
+  object.
 
 ### Fixed
 
+- A real number read from a property list was not equal to the same number created with
+  `new NSNumber(double)`, and cloning such a number returned an object that was not equal to the
+  original. Both happened because `equals` compared the derived integer value, which was rounded
+  for parsed numbers and truncated for created ones.
 - Dates read from binary property lists could be off by one millisecond, because the time interval
   was truncated to whole milliseconds instead of rounded. For example, 2001-01-01T00:00:01.001Z
   was read as 2001-01-01T00:00:01Z. Time intervals beyond the range of `java.util.Date` no longer
